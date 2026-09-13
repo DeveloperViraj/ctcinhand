@@ -1,0 +1,41 @@
+---
+import { SITE } from '../config/site';
+
+const verified = new Date(`${SITE.ratesVerifiedOn}T00:00:00+05:30`).toLocaleDateString('en-IN', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'Asia/Kolkata',
+});
+const links = [
+  { href: '/how-it-works', label: 'How it works' },
+  { href: '/about', label: 'About' },
+  { href: '/contact', label: 'Contact' },
+  { href: '/privacy', label: 'Privacy policy' },
+  { href: '/terms', label: 'Terms' },
+];
+---
+
+<footer class="mt-24 border-t border-line bg-surface">
+  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm text-ink-2 sm:px-6 md:grid-cols-[1fr_auto]">
+    <div class="max-w-prose space-y-2">
+      <p class="font-medium text-ink">{SITE.name}</p>
+      <p>
+        Estimates for {SITE.taxYearLabel} under the Income-tax Act, 2025. Statutory rates were last
+        checked against official sources on {verified}. This is not tax advice: confirm figures with
+        your employer's payroll team or a chartered accountant before acting on them.
+      </p>
+    </div>
+    <nav aria-label="Footer">
+      <ul class="flex flex-wrap gap-x-5 gap-y-2 md:flex-col md:items-end">
+        {links.map((l) => (
+          <li>
+            <a href={l.href} class="text-ink-2 hover:text-ink">
+              {l.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</footer>

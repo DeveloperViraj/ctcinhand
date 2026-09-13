@@ -1,0 +1,4 @@
+# ads.txt for inhand.in
+# No advertising sellers are authorised yet. After AdSense approval, replace this
+# comment with the line Google provides, which has the form:
+# google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0

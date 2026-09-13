@@ -1,14 +1,19 @@
 /**
  * Single source of truth for brand + domain. Rename the product by editing this file
- * and `site` in astro.config.mjs (Astro config can't import TS at load time).
+ * and `SITE_URL` in astro.config.mjs (Astro config can't import TS at load time).
  */
 export const SITE = {
   name: 'InHand',
   domain: 'inhand.in',
   url: 'https://inhand.in',
   tagline: 'CTC to in-hand salary calculator for India',
-  fiscalYear: 'FY 2026-27',
-  assessmentYear: 'AY 2027-28',
+  /**
+   * The Income-tax Act, 2025 (in force 1 April 2026) replaced "previous year" /
+   * "assessment year" with "tax year". FY 2026-27 is legally Tax Year 2026-27.
+   * "FY" is kept alongside because that is what people search for.
+   */
+  taxYearLabel: 'Tax Year 2026-27 (FY 2026-27)',
+  shortYearLabel: 'FY 2026-27',
   /** Date the statutory figures in src/lib/tax/rates.ts were last verified. */
   ratesVerifiedOn: '2026-09-13',
   contactEmail: 'hello@inhand.in',

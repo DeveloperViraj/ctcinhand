@@ -1,0 +1,47 @@
+---
+import { Icon } from 'astro-icon/components';
+---
+
+<button
+  type="button"
+  class="theme-toggle inline-flex size-9 items-center justify-center rounded-md text-ink-2 hover:bg-sunken hover:text-ink"
+  data-theme-toggle
+  aria-label="Colour theme: system. Click to change."
+  title="Colour theme"
+>
+  <Icon name="lucide:monitor" class="icon-system size-[18px]" aria-hidden="true" />
+  <Icon name="lucide:sun" class="icon-light size-[18px]" aria-hidden="true" />
+  <Icon name="lucide:moon" class="icon-dark size-[18px]" aria-hidden="true" />
+</button>
+
+<style>
+  .theme-toggle :global(svg) {
+    display: none;
+  }
+  :global(html[data-theme-pref='system']) .theme-toggle :global(.icon-system),
+  :global(html[data-theme-pref='light']) .theme-toggle :global(.icon-light),
+  :global(html[data-theme-pref='dark']) .theme-toggle :global(.icon-dark) {
+    display: block;
+  }
+</style>
+
+<script>
+  const ORDER = ['system', 'light', 'dark'] as const;
+  type Pref = (typeof ORDER)[number];
+
+  const currentPref = (): Pref => {
+    const v = document.documentElement.dataset.themePref;
+    return v === 'light' || v === 'dark' ? v : 'system';
+  };
+
+  for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')) {
+    const sync = () =>
+      btn.setAttribute('aria-label', `Colour theme: ${currentPref()}. Click to change.`);
+    sync();
+    btn.addEventListener('click', () => {
+      const next = ORDER[(ORDER.indexOf(currentPref()) + 1) % ORDER.length];
+      window.__setThemePref?.(next);
+      sync();
+    });
+  }
+</script>

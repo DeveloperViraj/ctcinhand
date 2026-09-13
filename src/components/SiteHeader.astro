@@ -1,0 +1,37 @@
+---
+import { SITE } from '../config/site';
+import ThemeToggle from './ThemeToggle.astro';
+import Logo from './Logo.astro';
+
+const path = Astro.url.pathname.replace(/(\.html|\/)$/, '') || '/';
+const nav = [
+  { href: '/', label: 'Calculator' },
+  { href: '/how-it-works', label: 'How it works' },
+  { href: '/about', label: 'About' },
+];
+---
+
+<header class="border-b border-line bg-surface">
+  <div class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+    <a href="/" class="flex items-center gap-2 font-semibold tracking-tight text-ink no-underline">
+      <Logo class="size-6" />
+      <span>{SITE.name}</span>
+    </a>
+    <nav aria-label="Primary" class="flex items-center gap-1 text-sm">
+      <ul class="hidden items-center gap-1 sm:flex">
+        {nav.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              aria-current={path === item.href ? 'page' : undefined}
+              class="rounded-md px-3 py-2 text-ink-2 no-underline hover:text-ink aria-[current=page]:font-medium aria-[current=page]:text-ink"
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+      <ThemeToggle />
+    </nav>
+  </div>
+</header>
