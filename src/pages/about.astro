@@ -1,0 +1,62 @@
+---
+import DocLayout from '../layouts/DocLayout.astro';
+import { SITE } from '../config/site';
+---
+
+<DocLayout
+  title={`About ${SITE.name}`}
+  description={`${SITE.name} is a free, private CTC to in-hand salary calculator for India, with rates checked against official sources for ${SITE.shortYearLabel}.`}
+>
+  <p>
+    {SITE.name} answers one question well:{' '}
+    <strong>
+      of the CTC on your offer letter, how much actually reaches your bank account each month?
+    </strong>
+  </p>
+
+  <h2>Why another salary calculator</h2>
+  <p>
+    Most CTC calculators get the easy part right and quietly skip the parts that change the answer:
+  </p>
+  <ul>
+    <li>
+      <strong>Both tax regimes, side by side.</strong> You see the new and old regime results
+      together, with the difference, rather than one assumed regime.
+    </li>
+    <li>
+      <strong>The Labour Code 50% wage rule.</strong> Since November 2025, Basic plus DA generally
+      has to be at least half of pay. When a salary structure falls short, PF and gratuity can be
+      worked out on a higher wage than the payslip's Basic, and we show when that happens.
+    </li>
+    <li>
+      <strong>Marginal relief done properly.</strong> Tax just above Rs 12 lakh, Rs 50 lakh and
+      higher thresholds is capped the way the law requires, so earning a little more never leaves
+      you worse off.
+    </li>
+    <li>
+      <strong>Professional tax by state, with the February rule.</strong> Maharashtra and Karnataka
+      charge Rs 300 in February. Where we have not verified a state's slabs, we say so instead of
+      guessing.
+    </li>
+  </ul>
+
+  <h2>How we keep it accurate</h2>
+  <p>
+    Every statutory rate is checked against primary sources: the Income-tax Act, 2025, the Finance
+    Act 2026, the Income-tax Rules 2026, EPFO and ESIC notifications, and state professional tax
+    Acts. The footer shows when the rates were last verified. The calculation code is covered by
+    automated tests built from hand-worked examples. The full method is on the{' '}
+    <a href="/how-it-works">How it works</a> page.
+  </p>
+
+  <h2>Private by design</h2>
+  <p>
+    Calculations run in your browser. Your salary is never sent to a server. See the{' '}
+    <a href="/privacy">privacy policy</a>.
+  </p>
+
+  <h2>Found a mistake?</h2>
+  <p>
+    Please <a href="/contact">tell us</a>. Corrections are fixed first.
+  </p>
+</DocLayout>

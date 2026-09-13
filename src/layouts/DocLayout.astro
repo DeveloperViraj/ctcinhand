@@ -1,0 +1,37 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  /** ISO date the content was last materially changed. */
+  updated?: string;
+  noindex?: boolean;
+}
+
+const { title, description, updated, noindex } = Astro.props;
+const updatedLabel = updated
+  ? new Date(`${updated}T00:00:00+05:30`).toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'Asia/Kolkata',
+    })
+  : undefined;
+---
+
+<BaseLayout title={title} description={description} noindex={noindex} ogType="article">
+  <article class="mx-auto max-w-6xl px-4 pt-10 pb-4 sm:px-6 sm:pt-14">
+    <header class="max-w-[68ch]">
+      <h1 class="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{title}</h1>
+      {updatedLabel && (
+        <p class="mt-2 text-sm text-ink-3">
+          Last updated <time datetime={updated}>{updatedLabel}</time>
+        </p>
+      )}
+    </header>
+    <div class="prose-doc mt-8">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>

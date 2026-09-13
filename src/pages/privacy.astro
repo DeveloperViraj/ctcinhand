@@ -1,0 +1,110 @@
+---
+import DocLayout from '../layouts/DocLayout.astro';
+import { SITE } from '../config/site';
+---
+
+<DocLayout
+  title="Privacy policy"
+  description={`How ${SITE.name} handles your data: salary calculations run entirely in your browser and are never sent to a server.`}
+  updated="2026-09-13"
+>
+  <p>
+    {SITE.name} is a salary calculator. The short version of this policy:{' '}
+    <strong>the numbers you type never leave your device.</strong> There are no accounts, no
+    sign-up, and no server that receives your salary details.
+  </p>
+
+  <h2>What happens to the figures you enter</h2>
+  <p>
+    Every calculation runs as JavaScript inside your browser. Your CTC, allowances, rent, deductions
+    and the results are not transmitted to us or to anyone else.
+  </p>
+
+  <h2>What is stored on your device</h2>
+  <p>
+    To save you retyping, the calculator keeps your most recent inputs, your advanced-mode settings
+    and your light or dark theme choice in your browser's <strong>local storage</strong>. This data
+    stays on your device, is never sent to us, and is deleted when you clear your browser's site
+    data. You can also use the calculator's reset button to clear it.
+  </p>
+
+  <h2>Share links contain your inputs</h2>
+  <p>
+    When you use the share option, your inputs are encoded into the page address (the part after the{' '}
+    <code>?</code>) so that someone opening the link sees the same result. Anyone you send that link
+    to, and any service that sees the link along the way (a chat app or email provider, for
+    example), can read the salary figures in it. Share links only with people you are comfortable
+    showing those numbers to.
+  </p>
+
+  <h2>Exports</h2>
+  <p>
+    PDF and Excel files are generated in your browser and saved straight to your device. They are
+    not uploaded anywhere.
+  </p>
+
+  <h2>Hosting and server logs</h2>
+  <p>
+    The site is served by Cloudflare Pages. Like any web host, Cloudflare processes technical
+    request data such as IP addresses and browser type in order to deliver pages and protect against
+    abuse. This data does not include anything you type into the calculator. See{' '}
+    <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">
+      Cloudflare's privacy policy
+    </a>{' '}
+    for details.
+  </p>
+
+  <h2>Analytics and cookies</h2>
+  <p>
+    {SITE.name} does not currently use analytics tools, tracking pixels or advertising cookies.
+    Fonts and icons are served from this site, not from third-party font services.
+  </p>
+
+  <h2>Advertising</h2>
+  <p>
+    We may show advertisements through Google AdSense in future to keep the calculator free. If we
+    do, this section will be updated before ads go live. In that case:
+  </p>
+  <ul>
+    <li>
+      Google and its partners use cookies to serve ads based on your visits to this and other
+      websites.
+    </li>
+    <li>
+      You can opt out of personalised advertising at{' '}
+      <a href="https://adssettings.google.com" rel="noopener">
+        Google Ads Settings
+      </a>
+      , and learn more at{' '}
+      <a href="https://policies.google.com/technologies/ads" rel="noopener">
+        How Google uses cookies in advertising
+      </a>
+      .
+    </li>
+    <li>Advertisers never receive the figures you enter into the calculator.</li>
+  </ul>
+
+  <h2>Children</h2>
+  <p>
+    The calculator is intended for working adults and is not directed at children. We do not
+    knowingly collect information from anyone.
+  </p>
+
+  <h2>Your rights</h2>
+  <p>
+    Because we do not collect personal data about you, there is nothing held by us to access,
+    correct or delete. Data stored in your browser is under your control and can be removed at any
+    time by clearing site data.
+  </p>
+
+  <h2>Changes to this policy</h2>
+  <p>
+    If this policy changes, the new version will be posted on this page with an updated date at the
+    top.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Questions about privacy: <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>.
+  </p>
+</DocLayout>

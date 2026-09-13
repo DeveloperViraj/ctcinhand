@@ -1,0 +1,78 @@
+---
+import DocLayout from '../layouts/DocLayout.astro';
+import { SITE } from '../config/site';
+---
+
+<DocLayout
+  title="Terms and conditions"
+  description={`Terms for using the ${SITE.name} salary calculator. Results are estimates and not professional tax, legal or financial advice.`}
+  updated="2026-09-13"
+>
+  <p>
+    By using {SITE.name} ("the calculator", "this site") you agree to these terms. If you do not
+    agree, please do not use the site.
+  </p>
+
+  <h2>Estimates, not advice</h2>
+  <p>
+    The calculator produces <strong>estimates</strong> of take-home salary, income tax, provident
+    fund, professional tax and related figures for {SITE.taxYearLabel}, based on the inputs you
+    provide and on our reading of the law as described on the{' '}
+    <a href="/how-it-works">How it works</a> page.
+  </p>
+  <p>
+    It is not tax, legal, accounting or financial advice. Your actual salary depends on your
+    employer's payroll policies, your full income and deductions, and rules that can change during
+    the year. Always confirm figures with your employer's payroll team or a qualified professional
+    such as a chartered accountant before making decisions, including accepting a job offer or
+    choosing a tax regime.
+  </p>
+
+  <h2>Accuracy</h2>
+  <p>
+    We check statutory rates against official sources and show the date they were last verified.
+    Even so, we cannot guarantee that every figure is complete, current or correct for your
+    situation. Some items, such as professional tax in states we have not verified, are shown as
+    unverified or left for you to enter.
+  </p>
+
+  <h2>No warranty</h2>
+  <p>
+    The site is provided "as is" and "as available", without warranties of any kind, whether express
+    or implied, including fitness for a particular purpose and accuracy.
+  </p>
+
+  <h2>Limitation of liability</h2>
+  <p>
+    To the fullest extent permitted by law, {SITE.name} and its operators are not liable for any
+    loss or damage arising from your use of, or reliance on, the site or its results, including
+    financial loss, tax liability, interest or penalties.
+  </p>
+
+  <h2>Acceptable use</h2>
+  <p>
+    You may use the calculator for personal and professional purposes. You may not attempt to
+    disrupt the site, scrape it at a volume that degrades service, or present its results as
+    official figures from a government body or employer.
+  </p>
+
+  <h2>Third-party links</h2>
+  <p>
+    The site links to government and other external websites for reference. We are not responsible
+    for their content or availability.
+  </p>
+
+  <h2>Changes</h2>
+  <p>
+    We may update these terms. Continued use of the site after changes are posted means you accept
+    the revised terms.
+  </p>
+
+  <h2>Governing law</h2>
+  <p>These terms are governed by the laws of India.</p>
+
+  <h2>Contact</h2>
+  <p>
+    <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>
+  </p>
+</DocLayout>

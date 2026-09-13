@@ -1,0 +1,39 @@
+---
+import DocLayout from '../layouts/DocLayout.astro';
+import { SITE } from '../config/site';
+---
+
+<DocLayout
+  title="Contact"
+  description={`Contact ${SITE.name} to report a calculation error, a changed tax rate, or to send feedback on the calculator.`}
+>
+  <p>
+    Email{' '}
+    <a href={`mailto:${SITE.contactEmail}`}>
+      <strong>{SITE.contactEmail}</strong>
+    </a>
+    .
+  </p>
+
+  <h2>Reporting a calculation error</h2>
+  <p>
+    Accuracy is the whole point of this calculator, so error reports are the most useful thing you
+    can send. To help us reproduce it, please include:
+  </p>
+  <ul>
+    <li>
+      The share link for your calculation (it contains your inputs, so check you are happy to send
+      them)
+    </li>
+    <li>
+      The figure you expected, and where it came from: your payslip, Form 130 or your employer
+    </li>
+    <li>If a rate or rule has changed, a link to the official notification or Act</li>
+  </ul>
+
+  <h2>What we cannot help with</h2>
+  <p>
+    We cannot give personal tax advice, review your payslip or file returns. For that, speak to your
+    employer's payroll team or a chartered accountant.
+  </p>
+</DocLayout>

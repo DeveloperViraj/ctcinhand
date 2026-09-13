@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<!--
+  This site is fully static, so the host never generates a server-side 500. This page is the
+  destination the calculator links to if something fails in the browser, and a stable URL for
+  AdSense's error-page check.
+-->
+<BaseLayout title="Something went wrong" description="An unexpected error occurred." noindex>
+  <section class="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+    <p class="text-sm font-medium text-ink-3 tabular-nums">500</p>
+    <h1 class="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Something went wrong</h1>
+    <p class="mt-3 max-w-prose text-ink-2">
+      An unexpected error stopped the page from working. Reloading usually fixes it. If it keeps
+      happening, clearing this site's saved data in your browser resets the calculator.
+    </p>
+    <div class="mt-8 flex flex-wrap gap-3">
+      <a
+        href="/"
+        class="inline-flex items-center rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-on-accent no-underline hover:bg-accent-strong"
+      >
+        Back to the calculator
+      </a>
+      <a
+        href="/contact"
+        class="inline-flex items-center rounded-md border border-line-strong px-4 py-2.5 text-sm font-medium text-ink no-underline hover:bg-sunken"
+      >
+        Report the problem
+      </a>
+    </div>
+  </section>
+</BaseLayout>
