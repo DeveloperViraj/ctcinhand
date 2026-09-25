@@ -18,7 +18,8 @@
     "test:watch": "vitest",
     "verify": "npm run lint && npm run format:check && npm run check && npm run test && npm run build",
     "deploy:preview": "npm run build && wrangler pages dev ./dist",
-    "deploy": "npm run verify && wrangler pages deploy ./dist --project-name=inhand"
+    "deploy": "npm run verify && wrangler pages deploy ./dist --project-name=inhand",
+    "lighthouse": "astro build && astro preview --port 4325 & lighthouse http://localhost:4325/ --view --chrome-flags=\"--headless=new\""
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
@@ -42,6 +43,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-astro": "^1.7.0",
     "globals": "^17.12.0",
+    "lighthouse": "^12.8.2",
     "prettier": "^3.9.6",
     "prettier-plugin-astro": "^1.0.0",
     "typescript": "^6.0.3",

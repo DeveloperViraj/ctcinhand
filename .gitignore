@@ -28,3 +28,6 @@ pnpm-debug.log*
 
 # test coverage
 coverage/
+
+# lighthouse reports
+lh-*.json
