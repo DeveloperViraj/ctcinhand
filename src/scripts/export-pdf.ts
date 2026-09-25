@@ -28,10 +28,14 @@ export async function exportPdf(result: CalculationResult): Promise<void> {
   pdf.text(doc.subtitle, margin, y);
   y += 26;
 
+  const headline = rs(monthlyInHand(result));
   pdf.setFont('helvetica', 'bold').setFontSize(24).setTextColor(11, 110, 135);
-  pdf.text(rs(monthlyInHand(result)), margin, y);
+  // Measure while the 24pt font is still active: measuring after switching to 10pt returns a
+  // width about 40% too small, which is what made the caption overlap the figure.
+  const headlineWidth = pdf.getTextWidth(headline);
+  pdf.text(headline, margin, y);
   pdf.setFont('helvetica', 'normal').setFontSize(10).setTextColor(90, 100, 110);
-  pdf.text('per month in hand', margin + pdf.getTextWidth(rs(monthlyInHand(result))) + 8, y);
+  pdf.text('per month in hand', margin + headlineWidth + 8, y);
   y += 24;
 
   for (const section of doc.sections) {
