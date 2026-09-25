@@ -1,0 +1,227 @@
+---
+import DocLayout from '../layouts/DocLayout.astro';
+import { SITE } from '../config/site';
+---
+
+<DocLayout
+  title="How it works"
+  description={`The exact method ${SITE.name} uses to turn CTC into in-hand salary for FY 2026-27: statutes, rates, assumptions, and the things we could not verify.`}
+  updated="2026-09-25"
+>
+  <p>
+    Every figure below was checked against a primary source, and where we could not reach one, this
+    page says so. If you find something wrong, <a href="/contact">tell us</a>.
+  </p>
+
+  <h2>The law this is built on</h2>
+  <p>
+    The <strong>Income-tax Act, 2025</strong> replaced the Income-tax Act, 1961 on 1 April 2026, and
+    the Income-tax Rules 2026 replaced the 1962 Rules. So FY 2026-27 is legally{' '}
+    <strong>Tax Year 2026-27</strong>; the term &ldquo;assessment year&rdquo; no longer exists.
+    Section numbers changed too, which is why this site cites section 156 rather than 87A, and
+    section 202 rather than 115BAC.
+  </p>
+  <p>The Finance Act 2026 left the slabs, the standard deduction and the rebate unchanged.</p>
+
+  <h2>Income tax</h2>
+  <ul>
+    <li>
+      <strong>New regime slabs (s.202(1)):</strong> nil to &#8377;4 lakh, then 5%, 10%, 15%, 20%,
+      25% and 30% in &#8377;4 lakh steps to &#8377;24 lakh.
+    </li>
+    <li>
+      <strong>Old regime slabs:</strong> nil to &#8377;2.5 lakh, 5% to &#8377;5 lakh, 20% to
+      &#8377;10 lakh, 30% above. Resident senior citizens start at &#8377;3 lakh and super seniors
+      at &#8377;5 lakh.
+    </li>
+    <li>
+      <strong>Standard deduction (s.19):</strong> &#8377;75,000 new, &#8377;50,000 old, never more
+      than your salary.
+    </li>
+    <li>
+      <strong>Rebate (s.156):</strong> &#8377;60,000 up to &#8377;12 lakh in the new regime, with
+      marginal relief above it; &#8377;12,500 up to &#8377;5 lakh in the old regime, with no relief
+      above it. Residents only.
+    </li>
+    <li>
+      <strong>Surcharge:</strong> 10% above &#8377;50 lakh, 15% above &#8377;1 crore, 25% above
+      &#8377;2 crore, and 37% above &#8377;5 crore in the old regime only. The new regime is capped
+      at 25%.
+    </li>
+    <li>
+      <strong>Cess:</strong> 4% on tax plus surcharge, after both marginal reliefs.
+    </li>
+  </ul>
+  <p>
+    Marginal relief is applied as a real cap, not a flat percentage. At every threshold, tax plus
+    surcharge is limited to the tax at the threshold plus the income above it, so crossing a
+    threshold can never cost more than the extra income.
+  </p>
+
+  <h2>The Labour Code wage rule</h2>
+  <p>
+    Wages under the Code on Wages s.2(y) and the Code on Social Security s.2(88) are basic pay,
+    dearness allowance and retaining allowance. If the excluded payments &mdash; HRA, conveyance,
+    travel concessions, employer PF and similar &mdash; exceed half of your total remuneration, the
+    excess is added back into wages. That figure is then the base for PF, ESI and gratuity.
+  </p>
+  <p>Two points in that rule are genuinely ambiguous, so here is exactly what we do:</p>
+  <ul>
+    <li>
+      <strong>What counts as total remuneration.</strong> We follow the Ministry of Labour&rsquo;s
+      Additional FAQs of 16 March 2026: employer PF, pension contributions and statutory bonus are
+      included; gratuity, ESI and other retirement benefits are not. An earlier FAQ of 30 December
+      2025 put gratuity inside the total in its worked example, and the two conflict. We follow the
+      later and more specific answer.
+    </li>
+    <li>
+      <strong>Special allowance.</strong> It is named in neither the included nor the excluded list.
+      The Ministry treats every payment other than basic, DA and retaining allowance as subject to
+      the 50% test, so that is our default. The statute can also be read as making such allowances
+      wages in full, which raises gratuity and can change ESI; advanced mode has a switch for that
+      reading.
+    </li>
+  </ul>
+  <p>
+    There is <strong>no legal floor</strong> requiring Basic to be half of CTC, despite how often
+    that is written. The rule changes the calculation, not your payslip.
+  </p>
+
+  <h2>Provident fund, ESI and gratuity</h2>
+  <ul>
+    <li>
+      <strong>PF:</strong> 12% employee and 12% employer under the EPF Scheme 2026, on Labour Code
+      wages. The statutory wage ceiling is &#8377;15,000 a month, re-notified unchanged in May 2026.
+      Most employers cap contributions there (&#8377;1,800 a month); some contribute on full wages.
+      That is a switch, not an assumption. Of the employer&rsquo;s 12%, 8.33% of wages up to the
+      ceiling goes to the pension scheme.
+    </li>
+    <li>
+      <strong>ESI:</strong> 0.75% employee and 3.25% employer, when wages do not exceed
+      &#8377;21,000 a month (&#8377;25,000 for a person with a disability). Since 21 November 2025
+      that ceiling is tested on Labour Code wages rather than gross pay, which can bring in
+      employees whose gross is above the ceiling.
+    </li>
+    <li>
+      <strong>Gratuity:</strong> 15/26 of a month&rsquo;s wages for each completed year, with a part
+      year above six months counted as a full year. Five years of service are needed, or one year
+      for a fixed-term employee engaged directly, paid pro rata. Capped at &#8377;20 lakh.
+    </li>
+  </ul>
+
+  <h2>HRA</h2>
+  <p>
+    The exemption is the least of the HRA you receive, rent paid minus 10% of Basic, and 50% or 40%
+    of Basic. From this year, Rule 279 of the Income-tax Rules 2026 puts{' '}
+    <strong>eight cities</strong> at 50%: Mumbai, Kolkata, Delhi, Chennai, Hyderabad, Pune,
+    Ahmedabad and Bengaluru. Sites still using the old four-metro list understate the exemption for
+    Bengaluru, Hyderabad, Pune and Ahmedabad. HRA is not available in the new regime.
+  </p>
+
+  <h2>Professional tax</h2>
+  <p>
+    This is state law, capped at &#8377;2,500 a year by Article 276(2), and it is where most
+    calculators are wrong. We compute it month by month:
+  </p>
+  <table>
+    <thead>
+      <tr>
+        <th>State</th>
+        <th>What we apply</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Maharashtra</td>
+        <td>
+          Men nil to &#8377;7,500, &#8377;175 to &#8377;10,000, then &#8377;200 with &#8377;300 in
+          February. Women nil to &#8377;25,000, then the same. Exempt at 65.
+        </td>
+      </tr>
+      <tr>
+        <td>Karnataka</td>
+        <td>Nil below &#8377;25,000, then &#8377;200 with &#8377;300 in February. Exempt at 60.</td>
+      </tr>
+      <tr>
+        <td>Telangana and Andhra Pradesh</td>
+        <td>
+          Nil to &#8377;15,000, &#8377;150 to &#8377;20,000, then &#8377;200. No February change.
+        </td>
+      </tr>
+      <tr>
+        <td>West Bengal</td>
+        <td>
+          Old slabs to 30 September 2026, new slabs from 1 October 2026 (nil below &#8377;20,000,
+          then &#8377;100, &#8377;140, &#8377;170 and &#8377;208).
+        </td>
+      </tr>
+      <tr>
+        <td>Punjab</td>
+        <td>
+          &#8377;200 a month as State Development Tax, for employees liable to income tax. Often
+          wrongly listed as a zero-tax state.
+        </td>
+      </tr>
+      <tr>
+        <td>Delhi, Haryana, UP, Rajasthan, Uttarakhand, Himachal, Goa, J&amp;K and others</td>
+        <td>No professional tax.</td>
+      </tr>
+      <tr>
+        <td>Every other levying state</td>
+        <td>
+          Shown as zero with a warning, plus a field to enter your payslip figure. We do not guess.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <p>Professional tax is deductible in the old regime only.</p>
+
+  <h2>What we assume</h2>
+  <ul>
+    <li>You are a resident individual with salary income only, unless you say otherwise.</li>
+    <li>Your salary is the same every month, with no mid-year joining, increment or job change.</li>
+    <li>Variable pay is shown as if fully earned, and its tax is spread across the year.</li>
+    <li>
+      Where employer contributions to PF and NPS exceed &#8377;7.5 lakh a year, we tax the excess
+      attributable to PF as a perquisite. Employer NPS is already inside taxable salary, so this
+      avoids taxing the same rupees twice. The interaction of the two rules is not settled in
+      published guidance.
+    </li>
+    <li>
+      ESI is shown as a steady state for the year. In reality, someone who crosses the ceiling
+      mid-period stays covered until the contribution period ends in September or March.
+    </li>
+    <li>Employer insurance premiums, ESOPs and reimbursements are not modelled.</li>
+  </ul>
+
+  <h2>What we could not verify</h2>
+  <p>These are open, and we would rather say so than paper over them:</p>
+  <ul>
+    <li>
+      <strong>West Bengal&rsquo;s new slabs.</strong> Two independent compliance advisories agree on
+      the table and the 1 October 2026 date but cite different notification numbers, and no West
+      Bengal gazette would load for us.
+    </li>
+    <li>
+      <strong>Punjab&rsquo;s income threshold.</strong> The state&rsquo;s clarification is a scanned
+      image we could not read, and its Act still refers to the repealed 1961 Act. We apply the levy
+      above the basic exemption limit.
+    </li>
+    <li>
+      <strong>Andhra Pradesh.</strong> Its slabs match Telangana in every compliance source, but the
+      state portal would not serve its own schedule page.
+    </li>
+    <li>
+      <strong>Slabs for the other levying states</strong>, including Tamil Nadu and Kerala, which
+      charge half-yearly through local bodies rather than on a state monthly schedule.
+    </li>
+  </ul>
+
+  <h2>When this was checked</h2>
+  <p>
+    Statutory rates were last verified on {SITE.ratesVerifiedOn} against the Income-tax Act 2025 and
+    Rules 2026, the Finance Act 2026, Ministry of Labour FAQs, EPFO and ESIC notifications, and
+    state professional tax Acts. They must be checked again after Union Budget 2027 before being
+    used for the next year.
+  </p>
+</DocLayout>

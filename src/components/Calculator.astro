@@ -1,0 +1,467 @@
+---
+import { Icon } from 'astro-icon/components';
+import { calculate } from '../lib/tax/calculate';
+import { DEFAULT_INPUT } from '../lib/tax/defaults';
+import { HRA_CITY_OPTIONS } from '../lib/tax/hra';
+import { STATES } from '../lib/tax/professional-tax';
+import { renderResult } from '../lib/render-result';
+
+// Rendered at build time so the page carries real numbers before any JavaScript runs.
+const initial = renderResult(calculate(DEFAULT_INPUT));
+
+const field =
+  'w-full rounded-md border border-line bg-sunken px-3 py-2 text-ink outline-none focus:border-accent';
+const label = 'block text-sm font-medium text-ink';
+const hint = 'mt-1 text-xs text-ink-3';
+const checkbox = 'size-4 rounded-sm border-line-strong accent-[var(--color-accent)]';
+---
+
+<form id="calc" class="grid gap-8 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]" novalidate>
+  <!-- Inputs -->
+  <div class="space-y-6">
+    <div>
+      <label class={label} for="ctc">
+        Annual CTC
+      </label>
+      <div class="mt-1.5 flex items-center gap-2 rounded-md border border-line bg-sunken px-3 focus-within:border-accent">
+        <span aria-hidden="true" class="text-ink-3">
+          ₹
+        </span>
+        <input
+          id="ctc"
+          name="ctc"
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          value="12,00,000"
+          class="w-full bg-transparent py-2.5 text-lg font-medium tabular-nums text-ink outline-none"
+        />
+      </div>
+      <p class={hint} id="ctc-hint">
+        Type a number, or something like “18L”.
+      </p>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div>
+        <label class={label} for="state">
+          Work state
+        </label>
+        <select id="state" name="state" class={`mt-1.5 ${field}`}>
+          {STATES.map((s) => (
+            <option value={s.code} selected={s.code === DEFAULT_INPUT.stateCode}>
+              {s.name}
+            </option>
+          ))}
+        </select>
+        <p class={hint} id="pt-status"></p>
+      </div>
+      <div>
+        <label class={label} for="city">
+          City you live in
+        </label>
+        <select id="city" name="city" class={`mt-1.5 ${field}`}>
+          {HRA_CITY_OPTIONS.map((c) => (
+            <option value={c} selected={c === DEFAULT_INPUT.city}>
+              {c === 'Other' ? 'Anywhere else' : c}
+            </option>
+          ))}
+        </select>
+        <p class={hint}>Sets the 50% or 40% HRA limit.</p>
+      </div>
+    </div>
+
+    <div>
+      <label class={label} for="rent">
+        Monthly rent you pay
+      </label>
+      <input
+        id="rent"
+        name="rent"
+        type="text"
+        inputmode="numeric"
+        value="0"
+        class={`mt-1.5 ${field} tabular-nums`}
+      />
+      <p class={hint}>Only affects the old regime, which allows an HRA exemption.</p>
+    </div>
+
+    <!-- Mode -->
+    <div class="flex items-center justify-between gap-3 border-t border-line pt-5">
+      <div>
+        <p class="text-sm font-medium text-ink">Advanced mode</p>
+        <p class="text-xs text-ink-3">Set every component to match your offer letter.</p>
+      </div>
+      <button
+        type="button"
+        id="mode-toggle"
+        role="switch"
+        aria-checked="false"
+        aria-controls="advanced"
+        class="relative h-6 w-11 shrink-0 rounded-full border border-line-strong bg-sunken transition-colors aria-checked:border-accent aria-checked:bg-accent"
+      >
+        <span class="sr-only">Advanced mode</span>
+        <span
+          aria-hidden="true"
+          class="absolute top-0.5 left-0.5 size-4 rounded-full bg-surface transition-transform"
+          data-knob
+        ></span>
+      </button>
+    </div>
+
+    <div id="advanced" hidden class="space-y-6 border-t border-line pt-5">
+      <fieldset class="space-y-4">
+        <legend class="text-sm font-semibold text-ink">Salary structure</legend>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label class={label} for="basic">
+              Basic + DA
+            </label>
+            <div class="mt-1.5 flex gap-2">
+              <input
+                id="basic"
+                type="number"
+                min="0"
+                max="100"
+                step="0.5"
+                value="50"
+                class={`${field} tabular-nums`}
+              />
+              <select id="basic-unit" class={`${field} w-24`} aria-label="Basic unit">
+                <option value="percent">% of CTC</option>
+                <option value="rupees">₹ / year</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class={label} for="hra">
+              HRA
+            </label>
+            <div class="mt-1.5 flex gap-2">
+              <input
+                id="hra"
+                type="number"
+                min="0"
+                step="0.5"
+                value="50"
+                class={`${field} tabular-nums`}
+              />
+              <select id="hra-unit" class={`${field} w-24`} aria-label="HRA unit">
+                <option value="percent">% of Basic</option>
+                <option value="rupees">₹ / year</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class={label} for="lta">
+              Leave travel allowance
+            </label>
+            <div class="mt-1.5 flex gap-2">
+              <input
+                id="lta"
+                type="number"
+                min="0"
+                step="0.5"
+                value="0"
+                class={`${field} tabular-nums`}
+              />
+              <select id="lta-unit" class={`${field} w-24`} aria-label="LTA unit">
+                <option value="percent">% of Basic</option>
+                <option value="rupees">₹ / year</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class={label} for="variable">
+              Variable pay / bonus
+            </label>
+            <div class="mt-1.5 flex gap-2">
+              <input
+                id="variable"
+                type="number"
+                min="0"
+                step="0.5"
+                value="0"
+                class={`${field} tabular-nums`}
+              />
+              <select id="variable-unit" class={`${field} w-24`} aria-label="Variable pay unit">
+                <option value="percent">% of CTC</option>
+                <option value="rupees">₹ / year</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class={label} for="nps">
+              Employer NPS
+            </label>
+            <div class="mt-1.5 flex gap-2">
+              <input
+                id="nps"
+                type="number"
+                min="0"
+                max="14"
+                step="0.5"
+                value="0"
+                class={`${field} tabular-nums`}
+              />
+              <select id="nps-unit" class={`${field} w-24`} aria-label="Employer NPS unit">
+                <option value="percent">% of Basic</option>
+                <option value="rupees">₹ / year</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class={label} for="special">
+              Special allowance
+            </label>
+            <div class="mt-1.5 flex gap-2">
+              <input
+                id="special"
+                type="number"
+                min="0"
+                step="1000"
+                value="0"
+                disabled
+                class={`${field} tabular-nums disabled:opacity-50`}
+              />
+              <select id="special-unit" class={`${field} w-24`} aria-label="Special allowance mode">
+                <option value="balance">Balance</option>
+                <option value="rupees">₹ / year</option>
+                <option value="percent">% of CTC</option>
+              </select>
+            </div>
+            <p class={hint}>“Balance” absorbs whatever is left of your CTC.</p>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="space-y-3">
+        <legend class="text-sm font-semibold text-ink">Provident fund</legend>
+        <div>
+          <label class={label} for="pf-mode">
+            Contribution basis
+          </label>
+          <select id="pf-mode" class={`mt-1.5 ${field}`}>
+            <option value="ceiling">12% of ₹15,000 ceiling (₹1,800/month)</option>
+            <option value="actual">12% of full wages</option>
+            <option value="none">Not a PF member</option>
+          </select>
+          <p class={hint}>
+            Employers may cap PF at the statutory ceiling or contribute on your actual wages. Check
+            your payslip.
+          </p>
+        </div>
+        <label class="flex items-center gap-2 text-sm text-ink-2">
+          <input type="checkbox" id="pf-in-ctc" checked class={checkbox} /> Employer PF is counted
+          inside my CTC
+        </label>
+        <label class="flex items-center gap-2 text-sm text-ink-2">
+          <input type="checkbox" id="gratuity-in-ctc" checked class={checkbox} /> Gratuity provision
+          is inside my CTC
+        </label>
+        <label class="flex items-center gap-2 text-sm text-ink-2">
+          <input type="checkbox" id="esi-in-ctc" checked class={checkbox} /> Employer ESI is inside
+          my CTC
+        </label>
+        <label class="flex items-start gap-2 text-sm text-ink-2">
+          <input type="checkbox" id="special-as-wages" class={`mt-0.5 ${checkbox}`} />
+          <span>
+            Treat special allowance as wages in full
+            <span class="block text-xs text-ink-3">
+              The statute can be read this way; the Ministry of Labour’s FAQs cannot. Changes
+              gratuity and ESI.
+            </span>
+          </span>
+        </label>
+      </fieldset>
+
+      <fieldset class="space-y-4">
+        <legend class="text-sm font-semibold text-ink">About you</legend>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label class={label} for="age">
+              Age
+            </label>
+            <input
+              id="age"
+              type="number"
+              min="15"
+              max="100"
+              value="30"
+              class={`mt-1.5 ${field} tabular-nums`}
+            />
+            <p class={hint}>Changes old-regime slabs and some state exemptions.</p>
+          </div>
+          <div>
+            <label class={label} for="pt-category">
+              Professional tax category
+            </label>
+            <select id="pt-category" class={`mt-1.5 ${field}`}>
+              <option value="men">Men’s slab</option>
+              <option value="women">Women’s slab</option>
+            </select>
+            <p class={hint}>Maharashtra sets a higher exemption for women.</p>
+          </div>
+          <div>
+            <label class={label} for="employer-type">
+              Employer
+            </label>
+            <select id="employer-type" class={`mt-1.5 ${field}`}>
+              <option value="other">Private, PSU or other</option>
+              <option value="government">Central or State Government</option>
+            </select>
+          </div>
+          <div>
+            <label class={label} for="employment-type">
+              Employment
+            </label>
+            <select id="employment-type" class={`mt-1.5 ${field}`}>
+              <option value="permanent">Permanent</option>
+              <option value="fixed-term">Fixed-term contract</option>
+            </select>
+          </div>
+          <div>
+            <label class={label} for="years">
+              Years of service (for gratuity)
+            </label>
+            <input
+              id="years"
+              type="number"
+              min="0"
+              max="60"
+              step="0.5"
+              value="5"
+              class={`mt-1.5 ${field} tabular-nums`}
+            />
+          </div>
+          <div>
+            <label class={label} for="pt-override">
+              Professional tax override
+            </label>
+            <input
+              id="pt-override"
+              type="number"
+              min="0"
+              max="1000"
+              placeholder="From your payslip"
+              class={`mt-1.5 ${field} tabular-nums`}
+            />
+            <p class={hint}>₹ per month. Use this if we have not verified your state.</p>
+          </div>
+        </div>
+        <label class="flex items-center gap-2 text-sm text-ink-2">
+          <input type="checkbox" id="disabled" class={checkbox} /> I am a person with a disability
+          (raises the ESI ceiling)
+        </label>
+        <label class="flex items-center gap-2 text-sm text-ink-2">
+          <input type="checkbox" id="resident" checked class={checkbox} /> I am a resident of India
+          for tax purposes
+        </label>
+      </fieldset>
+
+      <fieldset class="space-y-4">
+        <legend class="text-sm font-semibold text-ink">Old regime deductions</legend>
+        <p class="text-xs text-ink-3">
+          These only affect the old regime. The new regime allows none of them.
+        </p>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label class={label} for="d-80c">
+              80C investments
+            </label>
+            <input
+              id="d-80c"
+              type="number"
+              min="0"
+              step="1000"
+              value="0"
+              class={`mt-1.5 ${field} tabular-nums`}
+            />
+            <p class={hint}>Excluding your PF, which we add. Capped at ₹1.5 lakh.</p>
+          </div>
+          <div>
+            <label class={label} for="d-nps">
+              NPS 80CCD(1B)
+            </label>
+            <input
+              id="d-nps"
+              type="number"
+              min="0"
+              step="1000"
+              value="0"
+              class={`mt-1.5 ${field} tabular-nums`}
+            />
+            <p class={hint}>Capped at ₹50,000.</p>
+          </div>
+          <div>
+            <label class={label} for="d-80d">
+              Health insurance premium
+            </label>
+            <input
+              id="d-80d"
+              type="number"
+              min="0"
+              step="1000"
+              value="0"
+              class={`mt-1.5 ${field} tabular-nums`}
+            />
+          </div>
+          <div>
+            <label class={label} for="d-home">
+              Home loan interest
+            </label>
+            <input
+              id="d-home"
+              type="number"
+              min="0"
+              step="1000"
+              value="0"
+              class={`mt-1.5 ${field} tabular-nums`}
+            />
+            <p class={hint}>Self-occupied, capped at ₹2 lakh.</p>
+          </div>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="flex flex-wrap gap-2 border-t border-line pt-5">
+      <button
+        type="button"
+        id="share"
+        class="inline-flex items-center gap-1.5 rounded-md bg-accent px-3.5 py-2 text-sm font-medium text-on-accent hover:bg-accent-strong"
+      >
+        <Icon name="lucide:link" class="size-4" aria-hidden="true" />
+        <span data-share-label>Copy share link</span>
+      </button>
+      <button
+        type="button"
+        id="export-pdf"
+        class="inline-flex items-center gap-1.5 rounded-md border border-line-strong px-3.5 py-2 text-sm font-medium text-ink hover:bg-sunken"
+      >
+        <Icon name="lucide:file-text" class="size-4" aria-hidden="true" /> PDF
+      </button>
+      <button
+        type="button"
+        id="export-xlsx"
+        class="inline-flex items-center gap-1.5 rounded-md border border-line-strong px-3.5 py-2 text-sm font-medium text-ink hover:bg-sunken"
+      >
+        <Icon name="lucide:table" class="size-4" aria-hidden="true" /> Excel
+      </button>
+      <button
+        type="button"
+        id="reset"
+        class="rounded-md px-3.5 py-2 text-sm font-medium text-ink-2 hover:text-ink"
+      >
+        Reset
+      </button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <output id="result" for="calc" aria-live="polite" class="block" set:html={initial} />
+</form>
+
+<script>
+  import { mountCalculator } from '../scripts/calculator';
+  mountCalculator();
+</script>

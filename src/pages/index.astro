@@ -1,15 +1,147 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Calculator from '../components/Calculator.astro';
 import { SITE } from '../config/site';
+
+const faqs = [
+  {
+    q: 'Why is my in-hand salary so much lower than my CTC?',
+    a: 'CTC includes money that never reaches your bank account: your employer’s provident fund contribution, the gratuity provision, employer ESI, and any variable pay you only receive if targets are met. Add income tax, your own PF contribution and professional tax, and the gap between CTC and what is credited is typically 25–30%.',
+  },
+  {
+    q: 'Which tax regime should I choose for FY 2026-27?',
+    a: 'The new regime is the default and wins for most salaried people, because the standard deduction of ₹75,000 and the rebate under section 156 make income up to ₹12 lakh tax-free. The old regime can still win if you claim a large HRA exemption, a home loan interest deduction and a full ₹1.5 lakh under section 123 (the old 80C). This calculator shows both side by side so you do not have to guess.',
+  },
+  {
+    q: 'Do the new Labour Codes mean my Basic pay must be half my CTC?',
+    a: 'No. That is a common misreading. The Codes, in force since 21 November 2025, do not set a floor on Basic pay. They change how statutory wages are calculated: if the excluded allowances (HRA, conveyance, employer PF and similar) come to more than half of your total remuneration, the excess is treated as wages for PF, gratuity and ESI, even though it is still paid to you as an allowance. Your payslip need not change, but your gratuity and PF base can.',
+  },
+  {
+    q: 'Is income up to ₹12 lakh really tax-free?',
+    a: 'Under the new regime, a resident individual with ₹12 lakh of taxable income pays no tax, because the section 156 rebate of ₹60,000 cancels the tax due. With the ₹75,000 standard deduction, that corresponds to a gross salary of about ₹12.75 lakh. Just above ₹12 lakh, marginal relief caps the tax at the amount by which your income exceeds ₹12 lakh, so earning slightly more never leaves you worse off.',
+  },
+  {
+    q: 'How much professional tax will I pay?',
+    a: 'It depends on your state, and it is capped at ₹2,500 a year by the Constitution. Maharashtra and Karnataka charge ₹300 in February and ₹200 in other months. Several states, including Delhi, Haryana, Uttar Pradesh and Rajasthan, do not levy it at all. Punjab charges ₹200 a month under a differently named Act. Where we have not verified a state’s slabs, we show zero and say so rather than guessing.',
+  },
+  {
+    q: 'Does this calculator store my salary?',
+    a: 'No. Everything is calculated in your browser. Your figures are never sent to a server. Your last inputs are saved in your own browser so you do not have to retype them, and a share link carries the inputs in the address itself.',
+  },
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebApplication',
+      name: `${SITE.name} CTC Calculator`,
+      url: SITE.url,
+      applicationCategory: 'FinanceApplication',
+      operatingSystem: 'Any',
+      description: `Convert CTC to monthly in-hand salary for ${SITE.shortYearLabel}, comparing the new and old tax regimes.`,
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' },
+      isAccessibleForFree: true,
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faqs.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ],
+};
 ---
 
 <BaseLayout
-  title={`CTC to In-Hand Salary Calculator, ${SITE.shortYearLabel} | ${SITE.name}`}
-  description="Convert CTC to monthly in-hand salary for FY 2026-27. Compares the new and old tax regimes side by side, with PF, professional tax, HRA and the Labour Code 50% wage rule."
+  title={`CTC to In-Hand Salary Calculator ${SITE.shortYearLabel}`}
+  description="Work out your monthly in-hand salary from CTC for FY 2026-27. Both tax regimes side by side, with PF, ESI, gratuity, state professional tax and the Labour Code wage rule. Free, private, no sign-up."
 >
-  <section class="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-    <h1 class="text-3xl font-semibold tracking-tight">CTC to in-hand salary</h1>
-    <p class="mt-2 text-ink-2">Calculator coming together. Rupee glyph check: ₹12,75,000</p>
-    <p class="mt-6 text-figure font-semibold tabular-nums text-accent">₹84,210</p>
+  <script
+    type="application/ld+json"
+    slot="head"
+    set:html={JSON.stringify(jsonLd)}
+    is:inline
+  ></script>
+  <section class="mx-auto max-w-6xl px-4 pt-10 pb-8 sm:px-6 sm:pt-14">
+    <h1 class="max-w-3xl text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+      CTC to in-hand salary calculator
+    </h1>
+    <p class="mt-3 max-w-2xl text-ink-2">
+      See what actually reaches your bank account each month, for {SITE.taxYearLabel}. Both tax
+      regimes are compared side by side, with provident fund, ESI, gratuity, state professional tax
+      and the Labour Code wage rule applied.
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4 sm:px-6">
+    <Calculator />
+  </section>
+
+  <section class="mx-auto mt-20 max-w-6xl px-4 sm:px-6">
+    <div class="grid gap-10 lg:grid-cols-2">
+      <div class="prose-doc">
+        <h2>The Labour Code wage rule, in plain English</h2>
+        <p>
+          India&rsquo;s four Labour Codes took effect on <strong>21 November 2025</strong>. The part
+          that affects your salary is a single definition of &ldquo;wages&rdquo;.
+        </p>
+        <p>
+          You will often read that Basic pay must now be at least half of CTC. That is not what the
+          law says. There is no floor on Basic. What the law does is change the <em>calculation</em>
+          : if allowances such as HRA and conveyance, together with your employer&rsquo;s PF
+          contribution, add up to more than half of your total remuneration, the excess is counted
+          as wages anyway.
+        </p>
+        <p>
+          The practical effect is that your provident fund, gratuity and ESI can be worked out on a
+          higher figure than the Basic shown on your payslip. Your employer does not have to
+          restructure your salary, and many are still working through it, but the statutory
+          calculation applies now. This calculator applies it and tells you when it changed your
+          numbers.
+        </p>
+      </div>
+
+      <div class="prose-doc">
+        <h2>What this calculator gets right</h2>
+        <ul>
+          <li>
+            <strong>Marginal relief as a real cap.</strong> Just above &#8377;12 lakh, and at every
+            surcharge threshold, tax is clamped so that earning one rupee more never costs you more
+            than that rupee.
+          </li>
+          <li>
+            <strong>Professional tax month by month.</strong> Maharashtra and Karnataka charge
+            &#8377;300 in February; West Bengal changed its whole schedule on 1 October 2026. A flat
+            annual figure gets both wrong.
+          </li>
+          <li>
+            <strong>The eight-city HRA rule.</strong> From this year Bengaluru, Hyderabad, Pune and
+            Ahmedabad join the four old metros at 50% of Basic.
+          </li>
+          <li>
+            <strong>Honest gaps.</strong> Where a state&rsquo;s slabs are not verified, we show zero
+            and let you enter your payslip figure instead of inventing one.
+          </li>
+        </ul>
+        <p>
+          <a href="/how-it-works">Read the full method and sources</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto mt-20 max-w-6xl px-4 sm:px-6">
+    <h2 class="text-xl font-semibold tracking-tight text-ink">Common questions</h2>
+    <div class="mt-6 max-w-3xl divide-y divide-line border-t border-line">
+      {faqs.map((f) => (
+        <details class="group py-4">
+          <summary class="cursor-pointer text-base font-medium text-ink">{f.q}</summary>
+          <p class="mt-2 max-w-[68ch] text-ink-2">{f.a}</p>
+        </details>
+      ))}
+    </div>
   </section>
 </BaseLayout>

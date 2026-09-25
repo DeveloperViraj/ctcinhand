@@ -2,5 +2,5 @@
   // Cloudflare Pages project config. Static output only — no Functions, no bindings.
   "name": "inhand",
   "pages_build_output_dir": "./dist",
-  "compatibility_date": "2026-09-13"
+  "compatibility_date": "2026-09-13",
 }
