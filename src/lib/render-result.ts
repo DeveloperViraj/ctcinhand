@@ -318,6 +318,21 @@ export function renderResult(result: CalculationResult): string {
     .filter(Boolean)
     .join('');
 
+  // The one place our arithmetic visibly beats every competitor we examined: above Rs 12 lakh,
+  // section 156(2)(b) caps tax at the income above the threshold. Calculators that treat the
+  // rebate as a simple on/off switch publish results where earning more leaves you with less.
+  const relief = best.tax.rebateIsMarginalRelief
+    ? `<div class="mt-4 rounded-lg border border-accent bg-accent-soft/50 p-4">
+        <p class="text-sm font-medium text-ink">Marginal relief applied</p>
+        <p class="mt-1 text-sm text-ink-2">
+          Your income is just above &#8377;12 lakh, so your tax is capped at the amount by which it
+          exceeds that. Without this relief you would pay
+          <strong class="text-ink">${formatRupees(best.tax.rebate * 1.04)}</strong> more, and a small
+          raise could have left you worse off.
+        </p>
+      </div>`
+    : '';
+
   const notices = result.notices.length
     ? `<div class="mt-6 space-y-2">${result.notices
         .map(
@@ -351,6 +366,7 @@ export function renderResult(result: CalculationResult): string {
     </p>
   </div>
 
+  ${relief}
   ${compositionBar(result)}
 
   <div class="mt-4 grid gap-3 sm:grid-cols-2">
