@@ -168,6 +168,9 @@ export function calculate(input: CalculatorInput): CalculationResult {
     annualBonus: variableAnnual,
     age: input.age,
     category: input.ptCategory,
+    // Punjab charges its development tax only to income-tax payers. The basic exemption limit is
+    // the lowest threshold at which anyone becomes liable, so it is the safest test to apply.
+    liableToIncomeTax: structure.annual.grossFixed + variableAnnual > 2_50_000,
   });
   const professionalTax: PtResult =
     input.ptOverrideMonthly !== null && input.ptOverrideMonthly >= 0
@@ -175,12 +178,16 @@ export function calculate(input: CalculatorInput): CalculationResult {
           status: 'calculated',
           monthly: Array.from({ length: 12 }, () => input.ptOverrideMonthly as number),
           annual: (input.ptOverrideMonthly as number) * 12,
+          label: ptCalculated.label,
           note: 'Using the monthly amount you entered.',
         }
       : ptCalculated;
 
   if (professionalTax.status === 'unverified' && input.ptOverrideMonthly === null) {
     notices.push(professionalTax.note);
+  }
+  if (professionalTax.caveat && input.ptOverrideMonthly === null) {
+    notices.push(professionalTax.caveat);
   }
   if (structure.wages.addBack > 0) {
     notices.push(

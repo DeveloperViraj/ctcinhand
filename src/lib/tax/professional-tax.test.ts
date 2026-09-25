@@ -7,6 +7,7 @@ const input = (overrides: Partial<PtInput>): PtInput => ({
   annualBonus: 0,
   age: 30,
   category: 'men',
+  liableToIncomeTax: true,
   ...overrides,
 });
 
@@ -91,6 +92,70 @@ describe('Karnataka', () => {
   });
 });
 
+describe('Telangana and Andhra Pradesh', () => {
+  for (const state of ['TS', 'AP']) {
+    it(`${state}: nil to Rs 15,000, Rs 150 to Rs 20,000, then Rs 200, with no February change`, () => {
+      const at = (gross: number) => computeProfessionalTax(state, input({ monthlyGross: gross }));
+      expect(at(15_000).annual).toBe(0);
+      expect(at(15_001).annual).toBe(1_800); // 150 x 12
+      expect(at(20_001).annual).toBe(2_400); // 200 x 12
+      expect(at(50_000).monthly[FEB]).toBe(200);
+    });
+  }
+});
+
+describe('West Bengal: schedule changes on 1 October 2026, mid-year', () => {
+  const wb = (gross: number) => computeProfessionalTax('WB', input({ monthlyGross: gross }));
+  const OCT = FY_MONTHS.indexOf('Oct');
+
+  it('charges the old rate in April and the new one in October', () => {
+    const r = wb(18_000);
+    expect(r.monthly[0]).toBe(130); // old table: 15,001-25,000
+    expect(r.monthly[OCT]).toBe(0); // new table: nil up to 20,000
+    expect(r.annual).toBe(780); // 6 x 130
+  });
+
+  it('matches worked examples across the October boundary', () => {
+    expect(wb(1_20_000).annual).toBe(2_448); // 6 x 200 + 6 x 208
+    expect(wb(60_000).annual).toBe(2_220); // 6 x 200 + 6 x 170
+    expect(wb(45_000).annual).toBe(2_040); // 6 x 200 + 6 x 140
+    expect(wb(22_000).annual).toBe(1_380); // 6 x 130 + 6 x 100
+  });
+
+  it('carries a caveat because the new table is not gazette-confirmed', () => {
+    expect(wb(50_000).caveat).toMatch(/1 October 2026/);
+  });
+
+  it('has no February variation', () => {
+    expect(wb(50_000).monthly[FEB]).toBe(wb(50_000).monthly[OCT]);
+  });
+});
+
+describe('Punjab State Development Tax', () => {
+  it('is Rs 200 every month for an income-tax payer, Rs 2,400 a year', () => {
+    const r = computeProfessionalTax('PB', input({ monthlyGross: 80_000 }));
+    expect(r.annual).toBe(2_400);
+    expect(r.monthly[FEB]).toBe(200); // no February variation
+    expect(r.label).toBe('Punjab State Development Tax');
+  });
+
+  it('does not apply to someone not liable to income tax', () => {
+    expect(computeProfessionalTax('PB', input({ liableToIncomeTax: false })).annual).toBe(0);
+  });
+
+  it('is not treated as a zero-tax state', () => {
+    expect(computeProfessionalTax('PB', input({})).status).toBe('calculated');
+  });
+});
+
+describe('states that levy nothing', () => {
+  it.each(['DL', 'HR', 'UP', 'RJ', 'UK', 'HP', 'GA', 'JK', 'CH'])('%s returns zero', (code) => {
+    const r = computeProfessionalTax(code, input({ monthlyGross: 2_00_000 }));
+    expect(r.status).toBe('not-levied');
+    expect(r.annual).toBe(0);
+  });
+});
+
 describe('all states', () => {
   it('unknown or unverified states return 0 with status "unverified", never a guess', () => {
     const r = computeProfessionalTax('TN', input({}));
@@ -100,7 +165,7 @@ describe('all states', () => {
   });
 
   it('never exceeds the Rs 2,500 constitutional cap for any salary', () => {
-    for (const state of ['MH', 'KA']) {
+    for (const state of ['MH', 'KA', 'TS', 'AP', 'WB', 'PB']) {
       for (const category of ['men', 'women'] as const) {
         for (let gross = 0; gross <= 5_00_000; gross += 2_500) {
           expect(
