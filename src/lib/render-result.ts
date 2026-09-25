@@ -20,6 +20,12 @@ const escape = (s: string) =>
 
 const REGIME_LABEL: Record<Regime, string> = { new: 'New regime', old: 'Old regime' };
 
+/**
+ * Engine messages are written with "Rs" because the same strings go into the PDF, whose built-in
+ * fonts have no rupee glyph. On screen we can show the real symbol.
+ */
+const forScreen = (text: string) => escape(text).replace(/Rs (?=[\d₹])/g, '₹');
+
 function row(
   label: string,
   value: string,
@@ -160,7 +166,7 @@ export function renderResult(result: CalculationResult): string {
     return `<div role="alert" class="rounded-lg border border-danger/40 bg-danger-soft p-4 text-sm text-ink">
       <p class="font-medium">This structure does not add up</p>
       <ul class="mt-2 list-disc space-y-1 pl-5 text-ink-2">
-        ${result.errors.map((e) => `<li>${escape(e)}</li>`).join('')}
+        ${result.errors.map((e) => `<li>${forScreen(e)}</li>`).join('')}
       </ul>
     </div>`;
   }
@@ -203,13 +209,34 @@ export function renderResult(result: CalculationResult): string {
     .filter(Boolean)
     .join('');
 
-  const employerSide = [
-    a.employerPf > 0 ? row('Employer PF', formatRupees(a.employerPf)) : '',
-    a.employerEsi > 0 ? row('Employer ESI (3.25%)', formatRupees(a.employerEsi)) : '',
-    a.gratuity > 0 ? row('Gratuity provision', formatRupees(a.gratuity)) : '',
-    a.employerNps > 0 ? row('Employer NPS', formatRupees(a.employerNps)) : '',
+  // Each row says where the money actually goes: some of this is yours but not liquid (PF, NPS),
+  // some is paid later (gratuity), some is cover rather than cash (ESI), and variable pay is paid
+  // to you but separately. Lumping it all under "not your bank account" would be wrong.
+  const restOfCtc = [
     a.variable > 0
-      ? row('Variable pay', formatRupees(a.variable), { hint: 'Paid separately, if fully earned' })
+      ? row('Variable pay', formatRupees(a.variable), {
+          hint: 'Paid to you separately, if fully earned',
+        })
+      : '',
+    a.employerPf > 0
+      ? row('Employer PF', formatRupees(a.employerPf), {
+          hint: 'Yours, but locked in your PF account',
+        })
+      : '',
+    a.employerNps > 0
+      ? row('Employer NPS', formatRupees(a.employerNps), {
+          hint: 'Yours, but locked until retirement',
+        })
+      : '',
+    a.gratuity > 0
+      ? row('Gratuity provision', formatRupees(a.gratuity), {
+          hint: 'Paid only when you leave, if eligible',
+        })
+      : '',
+    a.employerEsi > 0
+      ? row('Employer ESI (3.25%)', formatRupees(a.employerEsi), {
+          hint: 'Buys insurance cover, not cash',
+        })
       : '',
   ]
     .filter(Boolean)
@@ -219,7 +246,7 @@ export function renderResult(result: CalculationResult): string {
     ? `<div class="mt-6 space-y-2">${result.notices
         .map(
           (n) =>
-            `<p class="rounded-md border border-warn-line bg-warn-soft px-3 py-2 text-sm text-warn-ink">${escape(n)}</p>`,
+            `<p class="rounded-md border border-warn-line bg-warn-soft px-3 py-2 text-sm text-warn-ink">${forScreen(n)}</p>`,
         )
         .join('')}</div>`
     : '';
@@ -257,8 +284,8 @@ export function renderResult(result: CalculationResult): string {
     value: formatRupees(best.annualTakeHome - a.variable),
   })}
   ${
-    employerSide
-      ? sectionTable('In your CTC, but not your bank account', employerSide, {
+    restOfCtc
+      ? sectionTable('The rest of your CTC, and where it goes', restOfCtc, {
           label: 'Total CTC',
           value: formatRupees(a.ctcComponents),
         })

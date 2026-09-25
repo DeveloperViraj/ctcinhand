@@ -458,7 +458,14 @@ const checkbox = 'size-4 rounded-sm border-line-strong accent-[var(--color-accen
   </div>
 
   <!-- Results -->
-  <output id="result" for="calc" aria-live="polite" class="block" set:html={initial} />
+  <!--
+    The result is NOT a live region: re-announcing the whole breakdown on every keystroke is
+    unusable with a screen reader. A short summary is announced instead, debounced, from #live.
+  -->
+  <div class="block">
+    <p id="live" class="sr-only" role="status" aria-live="polite"></p>
+    <output id="result" for="calc" class="block" set:html={initial} />
+  </div>
 </form>
 
 <script>

@@ -236,3 +236,39 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Printing a salary breakdown is a real thing people do, and the PDF export is not always at hand. */
+@media print {
+  :root {
+    color-scheme: light;
+  }
+  body {
+    background: #fff;
+    color: #000;
+  }
+  header,
+  footer,
+  #calc > div:first-child,
+  details > summary,
+  .no-print {
+    display: none !important;
+  }
+  #calc {
+    display: block !important;
+  }
+  details[open] > div,
+  details > div {
+    display: block !important;
+    border: 0 !important;
+    padding: 0 !important;
+  }
+  a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.75em;
+    color: #555;
+  }
+  section,
+  table {
+    break-inside: avoid;
+  }
+}

@@ -19,6 +19,7 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) =>
 export function mountCalculator(): void {
   const form = $<HTMLFormElement>('calc');
   const result = $('result');
+  const live = $('live');
   if (!form || !result) return;
 
   const el = {
@@ -211,6 +212,7 @@ export function mountCalculator(): void {
   }
 
   let urlTimer: number | undefined;
+  let liveTimer: number | undefined;
   function render() {
     state.input = readFromForm();
     const computed = calculate(state.input);
@@ -226,6 +228,18 @@ export function mountCalculator(): void {
       window.history.replaceState(null, '', query ? `?${query}` : window.location.pathname);
       saveState(state);
     }, 250);
+
+    // Announce a one-line summary once typing pauses, rather than the whole breakdown per keystroke.
+    window.clearTimeout(liveTimer);
+    liveTimer = window.setTimeout(() => {
+      if (!live) return;
+      const best = computed.regimes[computed.better];
+      live.textContent = computed.errors.length
+        ? computed.errors[0]
+        : `Monthly in-hand ${formatRupees(best.monthlyTakeHome)}. ` +
+          `${computed.better === 'new' ? 'New' : 'Old'} regime is cheaper by ` +
+          `${formatRupees(computed.savingByChoosingBetter)} a year.`;
+    }, 900);
   }
 
   form.addEventListener('input', render);

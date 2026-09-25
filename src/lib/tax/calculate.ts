@@ -214,6 +214,30 @@ export function calculate(input: CalculatorInput): CalculationResult {
   const better: Regime = regimes.new.tax.totalTax <= regimes.old.tax.totalTax ? 'new' : 'old';
   const savingByChoosingBetter = Math.abs(regimes.new.tax.totalTax - regimes.old.tax.totalTax);
 
+  // Caps are enforced in the maths above; this makes it visible rather than silently trimming.
+  const capped = (
+    [
+      ['80C', regimes.old.sec80C],
+      ['NPS 80CCD(1B)', regimes.old.nps80CCD1B],
+      ['health insurance', regimes.old.healthInsurance],
+      ['home loan interest', regimes.old.selfOccupiedInterest],
+    ] as const
+  ).filter(([, d]) => d?.capped);
+
+  for (const [name, deduction] of capped) {
+    // 80C includes the employee PF we add automatically, which would otherwise look like a typo
+    // to someone who entered a smaller figure themselves.
+    const because =
+      name === '80C'
+        ? ` (including ${formatShort(structure.pf.employee * 12)} of provident fund)`
+        : '';
+    notices.push(
+      `Your ${name} total of ${formatShort(deduction!.claimed)}${because} is above the legal limit, so only ${formatShort(
+        deduction!.allowed,
+      )} has been allowed in the old regime.`,
+    );
+  }
+
   return {
     input,
     structure,
