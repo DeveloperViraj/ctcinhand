@@ -1,0 +1,89 @@
+---
+import DocLayout from '../../layouts/DocLayout.astro';
+import { SITE } from '../../config/site';
+import { PT_STATE_PAGES } from '../../content/professional-tax';
+import { STATES } from '../../lib/tax/professional-tax';
+
+const detailed = new Set(PT_STATE_PAGES.map((p) => p.code));
+const verified = STATES.filter((s) => s.pt === 'verified');
+const none = STATES.filter((s) => s.pt === 'not-levied');
+const unverified = STATES.filter((s) => s.pt === 'unverified');
+---
+
+<DocLayout
+  title={`Professional tax by state (${SITE.shortYearLabel})`}
+  description="Which Indian states charge professional tax, how much, and which charge nothing. Includes the February rule in Maharashtra and Karnataka, West Bengal's mid-year change, and Punjab's development tax."
+  updated="2026-09-25"
+>
+  <p>
+    Professional tax is a state levy on employment, deducted from your salary by your employer. The
+    Constitution caps it at <strong>&#8377;2,500 a year</strong>, but the slabs, the exemptions and
+    even the name differ from state to state.
+  </p>
+  <p>Three things catch most calculators out:</p>
+  <ul>
+    <li>
+      <strong>February is different</strong> in Maharashtra and Karnataka, where the monthly amount
+      rises from &#8377;200 to &#8377;300 so the year lands exactly on &#8377;2,500.
+    </li>
+    <li>
+      <strong>West Bengal changed its slabs mid-year</strong>, on 1 October 2026, so 2026-27 has two
+      different tables.
+    </li>
+    <li>
+      <strong>Punjab charges &#8377;200 a month</strong> under a differently named Act, and is often
+      wrongly listed as a state with no professional tax.
+    </li>
+  </ul>
+
+  <h2>States we calculate in full</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>State</th>
+        <th>Details</th>
+      </tr>
+    </thead>
+    <tbody>
+      {verified.map((s) => (
+        <tr>
+          <td>{s.name}</td>
+          <td>
+            {detailed.has(s.code) ? (
+              <a href={`/professional-tax/${s.code.toLowerCase()}`}>Slabs and examples</a>
+            ) : (
+              'Calculated in the tool'
+            )}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+
+  <h2>States and union territories that charge nothing</h2>
+  <p>If you work in one of these, no professional tax is deducted from your salary at all:</p>
+  <p>{none.map((s) => s.name).join(', ')}.</p>
+  <p>
+    Himachal Pradesh is on that list deliberately. It is sometimes reported as having introduced
+    professional tax, but the only instrument is a 2005 Bill whose levy was withdrawn that November.
+  </p>
+
+  <h2>States we do not calculate</h2>
+  <p>
+    These states levy professional tax, but we have not verified their current slabs against a
+    primary source, so the calculator shows zero and says so rather than guessing. You can enter the
+    figure from your payslip in advanced mode:
+  </p>
+  <p>{unverified.map((s) => s.name).join(', ')}.</p>
+  <p>
+    Tamil Nadu and Kerala are the awkward ones: they levy half-yearly through local bodies rather
+    than on a state-wide monthly schedule, so a single monthly slab table would be wrong for them.
+  </p>
+
+  <h2>Does professional tax reduce your income tax?</h2>
+  <p>
+    In the old regime, yes: it is deducted from taxable salary. In the new regime it is not
+    deductible at all, because section 202(2) of the Income-tax Act, 2025 removes that deduction.
+    The <a href="/">calculator</a> applies this correctly in each regime.
+  </p>
+</DocLayout>
