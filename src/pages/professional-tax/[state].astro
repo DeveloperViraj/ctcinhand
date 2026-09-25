@@ -85,26 +85,28 @@ const title = `Professional tax in ${name} (${SITE.shortYearLabel})`;
   <p>
     Calculated with the same engine as the <a href="/">calculator</a>, on a monthly gross salary:
   </p>
-  <table>
-    <thead>
-      <tr>
-        {page.code === 'MH' && <th>Slab</th>}
-        <th>Monthly salary</th>
-        <th>What is deducted</th>
-        <th>Year total</th>
-      </tr>
-    </thead>
-    <tbody>
-      {rows.map((r) => (
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
         <tr>
-          {page.code === 'MH' && <td>{r.category === 'men' ? "Men's" : "Women's"}</td>}
-          <td class="tabular-nums">{formatRupees(r.monthlyGross)}</td>
-          <td>{r.annual === 0 ? 'Nothing' : r.pattern}</td>
-          <td class="tabular-nums">{formatRupees(r.annual)}</td>
+          {page.code === 'MH' && <th>Slab</th>}
+          <th>Monthly salary</th>
+          <th>What is deducted</th>
+          <th>Year total</th>
         </tr>
-      ))}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr>
+            {page.code === 'MH' && <td>{r.category === 'men' ? "Men's" : "Women's"}</td>}
+            <td class="tabular-nums">{formatRupees(r.monthlyGross)}</td>
+            <td>{r.annual === 0 ? 'Nothing' : r.pattern}</td>
+            <td class="tabular-nums">{formatRupees(r.annual)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
 
   <h2>What counts as salary</h2>
   <p>{page.salaryBasis}</p>

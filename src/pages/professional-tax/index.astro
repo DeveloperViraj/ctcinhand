@@ -37,28 +37,30 @@ const unverified = STATES.filter((s) => s.pt === 'unverified');
   </ul>
 
   <h2>States we calculate in full</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>State</th>
-        <th>Details</th>
-      </tr>
-    </thead>
-    <tbody>
-      {verified.map((s) => (
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
         <tr>
-          <td>{s.name}</td>
-          <td>
-            {detailed.has(s.code) ? (
-              <a href={`/professional-tax/${s.code.toLowerCase()}`}>Slabs and examples</a>
-            ) : (
-              'Calculated in the tool'
-            )}
-          </td>
+          <th>State</th>
+          <th>Details</th>
         </tr>
-      ))}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {verified.map((s) => (
+          <tr>
+            <td>{s.name}</td>
+            <td>
+              {detailed.has(s.code) ? (
+                <a href={`/professional-tax/${s.code.toLowerCase()}`}>Slabs and examples</a>
+              ) : (
+                'Calculated in the tool'
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
 
   <h2>States and union territories that charge nothing</h2>
   <p>If you work in one of these, no professional tax is deducted from your salary at all:</p>
