@@ -40,6 +40,18 @@
   --color-accent-soft: oklch(0.955 0.028 215);
   --color-on-accent: oklch(1 0 0);
 
+  /*
+   * Chart palette. This is an "emphasis" chart, not a categorical one: take-home wears the accent
+   * and everything else recedes into a grey ramp, so identity comes from direct labels and the
+   * legend rather than from hue. Steps were checked with the dataviz palette validator — adjacent
+   * pairs clear the normal-vision and CVD separation floors (worst pair dE 15.6 protan / 17.9 normal).
+   * The lightest step is under 3:1 against the surface by design, which is why every segment is
+   * also labelled with its amount and repeated in the tables below.
+   */
+  --color-chart-take: oklch(0.5 0.105 218);
+  --color-chart-tax: oklch(0.68 0.02 236);
+  --color-chart-rest: oklch(0.86 0.012 233);
+
   /* Status — used only for warnings/errors, never decoration */
   --color-warn-soft: oklch(0.965 0.04 88);
   --color-warn-line: oklch(0.85 0.09 80);
@@ -96,6 +108,11 @@
   --color-accent-strong: oklch(0.83 0.08 208);
   --color-accent-soft: oklch(0.28 0.045 222);
   --color-on-accent: oklch(0.17 0.02 240);
+
+  /* Re-stepped for the dark surface, not flipped: worst adjacent pair dE 14.0 protan / 16.1 normal. */
+  --color-chart-take: oklch(0.76 0.095 208);
+  --color-chart-tax: oklch(0.62 0.018 235);
+  --color-chart-rest: oklch(0.4 0.016 240);
 
   --color-warn-soft: oklch(0.27 0.04 75);
   --color-warn-line: oklch(0.45 0.08 75);

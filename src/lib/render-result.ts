@@ -161,6 +161,82 @@ function taxDetail(r: RegimeBreakdown): string {
   ${sectionTable('Income tax', taxRows, { label: 'Total tax', value: formatRupees(r.tax.totalTax) })}`;
 }
 
+/**
+ * Where the CTC actually goes, as one horizontal stacked bar.
+ *
+ * Three segments only. Part-to-whole wants a stacked bar rather than a donut, and an emphasis
+ * treatment (accent for the money you keep, grey for everything else) rather than a categorical
+ * palette: with more segments the grey steps stop being tellable apart. The detail lives in the
+ * tables below, which double as the table view for the two segments that sit under 3:1 contrast.
+ *
+ * Built from flex children rather than SVG so the 2px gaps and 4px end radius survive any width
+ * without non-uniform scaling distorting them.
+ */
+function compositionBar(result: CalculationResult): string {
+  const total = result.structure.annual.ctcComponents;
+  if (total <= 0) return '';
+
+  const best = result.regimes[result.better];
+  const takeHome = Math.max(0, best.annualTakeHome);
+  const tax = Math.max(0, best.tax.totalTax);
+  const rest = Math.max(0, total - takeHome - tax);
+
+  const segments = [
+    {
+      label: 'Reaches your bank',
+      value: takeHome,
+      color: 'var(--color-chart-take)',
+      note: 'Salary credited over the year, after everything below',
+    },
+    {
+      label: 'Income tax',
+      value: tax,
+      color: 'var(--color-chart-tax)',
+      note: 'Including cess and any surcharge',
+    },
+    {
+      label: 'PF, gratuity and other',
+      value: rest,
+      color: 'var(--color-chart-rest)',
+      note: 'Your PF and gratuity, plus ESI and professional tax',
+    },
+  ].filter((seg) => seg.value > 0);
+
+  const pct = (value: number) => (value / total) * 100;
+  const bar = segments
+    .map(
+      (seg) =>
+        `<div style="width:${pct(seg.value).toFixed(2)}%;background:${seg.color}" title="${escape(
+          `${seg.label}: ${formatRupees(seg.value)} (${pct(seg.value).toFixed(1)}% of CTC)`,
+        )}"></div>`,
+    )
+    .join('');
+
+  const legend = segments
+    .map(
+      (seg) => `<li class="flex items-baseline gap-2">
+        <span class="mt-1.5 size-2 shrink-0 rounded-[2px]" style="background:${seg.color}" aria-hidden="true"></span>
+        <span class="min-w-0 flex-1">
+          <span class="block text-sm text-ink">${escape(seg.label)}</span>
+          <span class="block text-xs text-ink-3">${escape(seg.note)}</span>
+        </span>
+        <span class="shrink-0 text-right">
+          <span class="block text-sm font-medium tabular-nums text-ink">${formatRupees(seg.value)}</span>
+          <span class="block text-xs tabular-nums text-ink-3">${pct(seg.value).toFixed(1)}%</span>
+        </span>
+      </li>`,
+    )
+    .join('');
+
+  return `<section class="mt-4 rounded-lg border border-line bg-surface p-5">
+    <h3 class="text-sm font-medium text-ink">Where your ${formatCompactRupees(total)} CTC goes</h3>
+    <div class="mt-3 flex h-4 gap-0.5 overflow-hidden rounded" role="img" aria-label="${escape(
+      segments.map((seg) => `${seg.label} ${pct(seg.value).toFixed(0)} percent`).join(', '),
+    )}">${bar}</div>
+    <ul class="mt-4 space-y-3">${legend}</ul>
+  </section>`;
+}
+
 export function renderResult(result: CalculationResult): string {
   if (result.errors.length > 0) {
     return `<div role="alert" class="rounded-lg border border-danger/40 bg-danger-soft p-4 text-sm text-ink">
@@ -274,6 +350,8 @@ export function renderResult(result: CalculationResult): string {
       from a ${formatCompactRupees(result.input.ctc)} CTC
     </p>
   </div>
+
+  ${compositionBar(result)}
 
   <div class="mt-4 grid gap-3 sm:grid-cols-2">
     ${regimeCard(best, true, result.savingByChoosingBetter)}
