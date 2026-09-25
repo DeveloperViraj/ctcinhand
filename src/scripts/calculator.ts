@@ -65,6 +65,9 @@ export function mountCalculator(): void {
     exportXlsx: $<HTMLButtonElement>('export-xlsx')!,
   };
 
+  const stickyBar = $('sticky-total');
+  const stickyValue = stickyBar?.querySelector<HTMLElement>('[data-sticky-value]') ?? null;
+
   const stateByCode = new Map(STATES.map((s) => [s.code, s]));
   let state: CalculatorState = initialState();
   let lastHeadline = 0;
@@ -192,23 +195,69 @@ export function mountCalculator(): void {
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  /** The one flourish: the headline figure counts to its new value as you type. */
+  /**
+   * The one flourish: the headline figure counts to its new value and briefly tints, so it is
+   * obvious the result already updated and there is no "Calculate" button to hunt for.
+   */
   function animateHeadline(to: number) {
     const node = result!.querySelector<HTMLElement>('[data-headline]');
     if (!node) return;
     const from = lastHeadline;
     lastHeadline = to;
-    if (prefersReducedMotion.matches || from === 0 || Math.abs(to - from) < 1) return;
+
+    if (stickyValue) stickyValue.textContent = formatRupees(to);
+    const changed = Math.abs(to - from) >= 1;
+
+    if (changed && from !== 0) {
+      for (const target of [node, stickyValue]) {
+        if (!target) continue;
+        // Restart the animation even if it is already running.
+        target.classList.remove('value-flash');
+        void target.offsetWidth;
+        target.classList.add('value-flash');
+      }
+    }
+
+    if (prefersReducedMotion.matches || from === 0 || !changed) return;
 
     const start = performance.now();
     const duration = 320;
     const step = (now: number) => {
       const t = Math.min(1, (now - start) / duration);
       const eased = 1 - Math.pow(1 - t, 3);
-      node.textContent = formatRupees(from + (to - from) * eased);
+      const value = formatRupees(from + (to - from) * eased);
+      node.textContent = value;
+      if (stickyValue) stickyValue.textContent = value;
       if (t < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
+  }
+
+  /**
+   * Reveals the sticky bar only once the result card has scrolled out of view. A throttled scroll
+   * listener rather than IntersectionObserver: the behaviour is identical, and this is testable in
+   * environments where observer callbacks do not fire.
+   */
+  let visibilityQueued = false;
+  function syncStickyBar() {
+    if (!stickyBar) return;
+    const card = result!.querySelector('[data-result-card]');
+    if (!card) {
+      stickyBar.hidden = true;
+      return;
+    }
+    const { top, bottom } = card.getBoundingClientRect();
+    const onScreen = bottom > 8 && top < window.innerHeight;
+    stickyBar.hidden = onScreen;
+  }
+
+  function watchResultVisibility() {
+    if (visibilityQueued) return;
+    visibilityQueued = true;
+    requestAnimationFrame(() => {
+      visibilityQueued = false;
+      syncStickyBar();
+    });
   }
 
   let urlTimer: number | undefined;
@@ -219,6 +268,7 @@ export function mountCalculator(): void {
     result!.innerHTML = renderResult(computed);
     animateHeadline(computed.errors.length ? 0 : computed.regimes[computed.better].monthlyTakeHome);
     updatePtStatus();
+    watchResultVisibility();
     el.special.disabled = el.specialUnit.value === 'balance';
 
     // Debounced so typing does not spam history or storage.
@@ -269,6 +319,16 @@ export function mountCalculator(): void {
     window.setTimeout(() => {
       if (label) label.textContent = 'Copy share link';
     }, 2000);
+  });
+
+  window.addEventListener('scroll', watchResultVisibility, { passive: true });
+  window.addEventListener('resize', watchResultVisibility, { passive: true });
+
+  stickyBar?.querySelector('[data-sticky-jump]')?.addEventListener('click', () => {
+    result!.scrollIntoView({
+      behavior: prefersReducedMotion.matches ? 'auto' : 'smooth',
+      block: 'start',
+    });
   });
 
   el.reset.addEventListener('click', () => {

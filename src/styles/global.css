@@ -226,6 +226,45 @@
   }
 }
 
+/* The live figure: a brief tint when it changes, so nobody hunts for a "Calculate" button. */
+@keyframes value-changed {
+  0% {
+    background-color: color-mix(in oklch, var(--color-accent) 18%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.value-flash {
+  animation: value-changed 700ms var(--ease-out-soft);
+  border-radius: var(--radius-sm);
+}
+
+/* A quiet pulsing dot that marks the result as live. */
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+}
+
+.live-dot {
+  animation: live-pulse 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .value-flash,
+  .live-dot {
+    animation: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,

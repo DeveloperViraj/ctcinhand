@@ -466,6 +466,29 @@ const checkbox = 'size-4 rounded-sm border-line-strong accent-[var(--color-accen
     <p id="live" class="sr-only" role="status" aria-live="polite"></p>
     <output id="result" for="calc" class="block" set:html={initial} />
   </div>
+
+  <!--
+    On a phone the result sits below a long form, so the figure is off screen while you type.
+    This bar appears only once the result card scrolls out of view, keeping the number visible
+    and making it obvious that there is nothing to submit.
+  -->
+  <div
+    id="sticky-total"
+    hidden
+    class="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 px-4 py-2.5 backdrop-blur lg:hidden"
+  >
+    <button
+      type="button"
+      class="flex w-full items-center justify-between gap-3 text-left"
+      data-sticky-jump
+    >
+      <span class="flex items-center gap-1.5 text-xs text-ink-2">
+        <span class="live-dot size-1.5 rounded-full bg-accent" aria-hidden="true"></span>
+        Monthly in-hand
+      </span>
+      <span class="text-lg font-semibold tabular-nums text-accent" data-sticky-value></span>
+    </button>
+  </div>
 </form>
 
 <script>

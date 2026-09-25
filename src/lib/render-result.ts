@@ -260,8 +260,14 @@ export function renderResult(result: CalculationResult): string {
 
   return `
   <h2 class="sr-only">Your salary breakdown</h2>
-  <div class="rounded-lg border border-line bg-surface p-5 sm:p-6">
-    <p class="text-sm text-ink-2">Monthly in-hand</p>
+  <div class="rounded-lg border border-line bg-surface p-5 sm:p-6" data-result-card>
+    <div class="flex items-center justify-between gap-3">
+      <p class="text-sm text-ink-2">Monthly in-hand</p>
+      <p class="flex items-center gap-1.5 text-xs text-ink-3">
+        <span class="live-dot size-1.5 rounded-full bg-accent" aria-hidden="true"></span>
+        Updates as you type
+      </p>
+    </div>
     <p class="mt-1 text-figure font-semibold tabular-nums text-accent" data-headline>${formatRupees(best.monthlyTakeHome)}</p>
     <p class="mt-1 text-sm text-ink-2">
       ${formatRupees(best.annualTakeHome)} a year${a.variable > 0 ? ', including variable pay' : ''}
