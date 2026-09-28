@@ -4,489 +4,420 @@ import { calculate } from '../lib/tax/calculate';
 import { DEFAULT_INPUT } from '../lib/tax/defaults';
 import { HRA_CITY_OPTIONS } from '../lib/tax/hra';
 import { STATES } from '../lib/tax/professional-tax';
-import { renderResult } from '../lib/render-result';
+import { renderDetails, renderSummary } from '../lib/render-result';
+import NumberField from './form/NumberField.astro';
+import ComponentField from './form/ComponentField.astro';
+import SelectField from './form/SelectField.astro';
+import Segmented from './form/Segmented.astro';
 
 // Rendered at build time so the page carries real numbers before any JavaScript runs.
-const initial = renderResult(calculate(DEFAULT_INPUT));
+const initialResult = calculate(DEFAULT_INPUT);
+const summary = renderSummary(initialResult);
+const details = renderDetails(initialResult);
 
-const field =
-  'w-full rounded-md border border-line bg-sunken px-3 py-2 text-ink outline-none focus:border-accent';
-const label = 'block text-sm font-medium text-ink';
-const hint = 'mt-1 text-xs text-ink-3';
-const checkbox = 'size-4 rounded-sm border-line-strong accent-[var(--color-accent)]';
+// Short labels so a chip and its unit switch always fit on one line, even on a phone.
+const PCT_CTC = { value: 'percent', label: '% CTC' };
+const PCT_BASIC = { value: 'percent', label: '% Basic' };
+const RUPEES = { value: 'rupees', label: '₹/yr' };
+
+const checkbox = 'mt-0.5 size-4 shrink-0 rounded-xs accent-[var(--color-accent)]';
+const legend = 'text-base font-medium text-ink';
 ---
 
-<form id="calc" class="grid gap-8 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]" novalidate>
-  <!-- Inputs -->
-  <div class="space-y-6">
-    <div>
-      <label class={label} for="ctc">
-        Annual CTC
-      </label>
-      <div class="mt-1.5 flex items-center gap-2 rounded-md border border-line bg-sunken px-3 focus-within:border-accent">
-        <span aria-hidden="true" class="text-ink-3">
-          ₹
-        </span>
-        <input
+<form id="calc" novalidate>
+  <!--
+    Inputs and summary share their own grid so the pinned summary stops at the end of the form
+    instead of sliding over the breakdown below it.
+  -->
+  <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,25rem)] lg:gap-8">
+    <!-- Inputs -->
+    <div class="card p-5 sm:p-6" data-inputs>
+      <div class="space-y-6">
+        <NumberField
           id="ctc"
-          name="ctc"
-          type="text"
-          inputmode="numeric"
-          autocomplete="off"
+          label="Annual CTC"
           value="12,00,000"
-          class="w-full bg-transparent py-2.5 text-lg font-medium tabular-nums text-ink outline-none"
+          prefix="₹"
+          width="7.75rem"
+          hint="Type a number, or something like 18L."
+          slider={{
+            kind: 'log',
+            min: 1_00_000,
+            max: 2_00_00_000,
+            minLabel: '₹1 L',
+            maxLabel: '₹2 Cr',
+          }}
+          money
+        />
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <SelectField id="state" label="Work state" hintId="pt-status">
+            {STATES.map((s) => (
+              <option value={s.code} selected={s.code === DEFAULT_INPUT.stateCode}>
+                {s.name}
+              </option>
+            ))}
+          </SelectField>
+          <SelectField id="city" label="City you live in" hint="Sets the 50% or 40% HRA limit.">
+            {HRA_CITY_OPTIONS.map((c) => (
+              <option value={c} selected={c === DEFAULT_INPUT.city}>
+                {c === 'Other' ? 'Anywhere else' : c}
+              </option>
+            ))}
+          </SelectField>
+        </div>
+
+        <NumberField
+          id="rent"
+          label="Monthly rent you pay"
+          value="0"
+          prefix="₹"
+          width="6rem"
+          hint="Only the old regime gives relief for rent."
+          slider={{
+            kind: 'linear',
+            min: 0,
+            max: 1_50_000,
+            step: 1_000,
+            minLabel: '₹0',
+            maxLabel: '₹1.5 L',
+          }}
+          money
         />
       </div>
-      <p class={hint} id="ctc-hint">
-        Type a number, or something like “18L”.
-      </p>
-    </div>
 
-    <div class="grid gap-4 sm:grid-cols-2">
-      <div>
-        <label class={label} for="state">
-          Work state
-        </label>
-        <select id="state" name="state" class={`mt-1.5 ${field}`}>
-          {STATES.map((s) => (
-            <option value={s.code} selected={s.code === DEFAULT_INPUT.stateCode}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-        <p class={hint} id="pt-status"></p>
-      </div>
-      <div>
-        <label class={label} for="city">
-          City you live in
-        </label>
-        <select id="city" name="city" class={`mt-1.5 ${field}`}>
-          {HRA_CITY_OPTIONS.map((c) => (
-            <option value={c} selected={c === DEFAULT_INPUT.city}>
-              {c === 'Other' ? 'Anywhere else' : c}
-            </option>
-          ))}
-        </select>
-        <p class={hint}>Sets the 50% or 40% HRA limit.</p>
-      </div>
-    </div>
-
-    <div>
-      <label class={label} for="rent">
-        Monthly rent you pay
-      </label>
-      <input
-        id="rent"
-        name="rent"
-        type="text"
-        inputmode="numeric"
-        value="0"
-        class={`mt-1.5 ${field} tabular-nums`}
-      />
-      <p class={hint}>Only affects the old regime, which allows an HRA exemption.</p>
-    </div>
-
-    <!-- Mode -->
-    <div class="flex items-center justify-between gap-3 border-t border-line pt-5">
-      <div>
-        <p class="text-sm font-medium text-ink">Advanced mode</p>
-        <p class="text-xs text-ink-3">Set every component to match your offer letter.</p>
-      </div>
-      <button
-        type="button"
-        id="mode-toggle"
-        role="switch"
-        aria-checked="false"
-        aria-controls="advanced"
-        class="relative h-6 w-11 shrink-0 rounded-full border border-line-strong bg-sunken transition-colors aria-checked:border-accent aria-checked:bg-accent"
-      >
-        <span class="sr-only">Advanced mode</span>
-        <span
-          aria-hidden="true"
-          class="absolute top-0.5 left-0.5 size-4 rounded-full bg-surface transition-transform"
-          data-knob
-        ></span>
-      </button>
-    </div>
-
-    <div id="advanced" hidden class="space-y-6 border-t border-line pt-5">
-      <fieldset class="space-y-4">
-        <legend class="text-sm font-semibold text-ink">Salary structure</legend>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label class={label} for="basic">
-              Basic + DA
-            </label>
-            <div class="mt-1.5 flex gap-2">
-              <input
-                id="basic"
-                type="number"
-                min="0"
-                max="100"
-                step="0.5"
-                value="50"
-                class={`${field} tabular-nums`}
-              />
-              <select id="basic-unit" class={`${field} w-24`} aria-label="Basic unit">
-                <option value="percent">% of CTC</option>
-                <option value="rupees">₹ / year</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label class={label} for="hra">
-              HRA
-            </label>
-            <div class="mt-1.5 flex gap-2">
-              <input
-                id="hra"
-                type="number"
-                min="0"
-                step="0.5"
-                value="50"
-                class={`${field} tabular-nums`}
-              />
-              <select id="hra-unit" class={`${field} w-24`} aria-label="HRA unit">
-                <option value="percent">% of Basic</option>
-                <option value="rupees">₹ / year</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label class={label} for="lta">
-              Leave travel allowance
-            </label>
-            <div class="mt-1.5 flex gap-2">
-              <input
-                id="lta"
-                type="number"
-                min="0"
-                step="0.5"
-                value="0"
-                class={`${field} tabular-nums`}
-              />
-              <select id="lta-unit" class={`${field} w-24`} aria-label="LTA unit">
-                <option value="percent">% of Basic</option>
-                <option value="rupees">₹ / year</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label class={label} for="variable">
-              Variable pay / bonus
-            </label>
-            <div class="mt-1.5 flex gap-2">
-              <input
-                id="variable"
-                type="number"
-                min="0"
-                step="0.5"
-                value="0"
-                class={`${field} tabular-nums`}
-              />
-              <select id="variable-unit" class={`${field} w-24`} aria-label="Variable pay unit">
-                <option value="percent">% of CTC</option>
-                <option value="rupees">₹ / year</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label class={label} for="nps">
-              Employer NPS
-            </label>
-            <div class="mt-1.5 flex gap-2">
-              <input
-                id="nps"
-                type="number"
-                min="0"
-                max="14"
-                step="0.5"
-                value="0"
-                class={`${field} tabular-nums`}
-              />
-              <select id="nps-unit" class={`${field} w-24`} aria-label="Employer NPS unit">
-                <option value="percent">% of Basic</option>
-                <option value="rupees">₹ / year</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label class={label} for="special">
-              Special allowance
-            </label>
-            <div class="mt-1.5 flex gap-2">
-              <input
-                id="special"
-                type="number"
-                min="0"
-                step="1000"
-                value="0"
-                disabled
-                class={`${field} tabular-nums disabled:opacity-50`}
-              />
-              <select id="special-unit" class={`${field} w-24`} aria-label="Special allowance mode">
-                <option value="balance">Balance</option>
-                <option value="rupees">₹ / year</option>
-                <option value="percent">% of CTC</option>
-              </select>
-            </div>
-            <p class={hint}>“Balance” absorbs whatever is left of your CTC.</p>
-          </div>
-        </div>
-      </fieldset>
-
-      <fieldset class="space-y-3">
-        <legend class="text-sm font-semibold text-ink">Provident fund</legend>
+      <!-- Mode -->
+      <div class="mt-6 flex items-center justify-between gap-4 border-t border-line pt-5">
         <div>
-          <label class={label} for="pf-mode">
-            Contribution basis
-          </label>
-          <select id="pf-mode" class={`mt-1.5 ${field}`}>
-            <option value="ceiling">12% of ₹15,000 ceiling (₹1,800/month)</option>
-            <option value="actual">12% of full wages</option>
-            <option value="none">Not a PF member</option>
-          </select>
-          <p class={hint}>
-            Employers may cap PF at the statutory ceiling or contribute on your actual wages. Check
-            your payslip.
+          <p class="text-base font-medium text-ink" id="mode-label">
+            Advanced mode
           </p>
+          <p class="mt-0.5 text-sm text-ink-3">Match every component to your offer letter.</p>
         </div>
-        <label class="flex items-center gap-2 text-sm text-ink-2">
-          <input type="checkbox" id="pf-in-ctc" checked class={checkbox} /> Employer PF is counted
-          inside my CTC
-        </label>
-        <label class="flex items-center gap-2 text-sm text-ink-2">
-          <input type="checkbox" id="gratuity-in-ctc" checked class={checkbox} /> Gratuity provision
-          is inside my CTC
-        </label>
-        <label class="flex items-center gap-2 text-sm text-ink-2">
-          <input type="checkbox" id="esi-in-ctc" checked class={checkbox} /> Employer ESI is inside
-          my CTC
-        </label>
-        <label class="flex items-start gap-2 text-sm text-ink-2">
-          <input type="checkbox" id="special-as-wages" class={`mt-0.5 ${checkbox}`} />
-          <span>
-            Treat special allowance as wages in full
-            <span class="block text-xs text-ink-3">
-              The statute can be read this way; the Ministry of Labour’s FAQs cannot. Changes
-              gratuity and ESI.
-            </span>
-          </span>
-        </label>
-      </fieldset>
+        <button
+          type="button"
+          id="mode-toggle"
+          role="switch"
+          aria-checked="false"
+          aria-controls="advanced"
+          aria-labelledby="mode-label"
+          class="group relative h-6 w-10 shrink-0 rounded-pill border border-line-strong bg-sunken transition-colors duration-200 aria-checked:border-accent aria-checked:bg-accent"
+        >
+          <span
+            aria-hidden="true"
+            class="absolute top-[3px] left-[3px] size-4 rounded-full bg-ink-3 transition-transform duration-200 group-aria-checked:translate-x-4 group-aria-checked:bg-on-accent"
+          ></span>
+        </button>
+      </div>
 
-      <fieldset class="space-y-4">
-        <legend class="text-sm font-semibold text-ink">About you</legend>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label class={label} for="age">
-              Age
-            </label>
-            <input
-              id="age"
-              type="number"
-              min="15"
-              max="100"
-              value="30"
-              class={`mt-1.5 ${field} tabular-nums`}
+      <div id="advanced" hidden class="mt-6 space-y-8">
+        <fieldset class="space-y-5">
+          <legend class={legend}>Salary structure</legend>
+          <div class="grid gap-5 sm:grid-cols-2">
+            <ComponentField
+              id="basic"
+              label="Basic + DA"
+              value="50"
+              units={[PCT_CTC, RUPEES]}
+              unit="percent"
             />
-            <p class={hint}>Changes old-regime slabs and some state exemptions.</p>
-          </div>
-          <div>
-            <label class={label} for="pt-category">
-              Professional tax category
-            </label>
-            <select id="pt-category" class={`mt-1.5 ${field}`}>
-              <option value="men">Men’s slab</option>
-              <option value="women">Women’s slab</option>
-            </select>
-            <p class={hint}>Maharashtra sets a higher exemption for women.</p>
-          </div>
-          <div>
-            <label class={label} for="employer-type">
-              Employer
-            </label>
-            <select id="employer-type" class={`mt-1.5 ${field}`}>
-              <option value="other">Private, PSU or other</option>
-              <option value="government">Central or State Government</option>
-            </select>
-          </div>
-          <div>
-            <label class={label} for="employment-type">
-              Employment
-            </label>
-            <select id="employment-type" class={`mt-1.5 ${field}`}>
-              <option value="permanent">Permanent</option>
-              <option value="fixed-term">Fixed-term contract</option>
-            </select>
-          </div>
-          <div>
-            <label class={label} for="years">
-              Years of service (for gratuity)
-            </label>
-            <input
-              id="years"
-              type="number"
-              min="0"
-              max="60"
-              step="0.5"
-              value="5"
-              class={`mt-1.5 ${field} tabular-nums`}
+            <ComponentField
+              id="hra"
+              label="HRA"
+              value="50"
+              units={[PCT_BASIC, RUPEES]}
+              unit="percent"
             />
-          </div>
-          <div>
-            <label class={label} for="pt-override">
-              Professional tax override
-            </label>
-            <input
-              id="pt-override"
-              type="number"
-              min="0"
-              max="1000"
-              placeholder="From your payslip"
-              class={`mt-1.5 ${field} tabular-nums`}
+            <ComponentField
+              id="lta"
+              label="Leave travel allowance"
+              value="0"
+              units={[PCT_BASIC, RUPEES]}
+              unit="percent"
             />
-            <p class={hint}>₹ per month. Use this if we have not verified your state.</p>
+            <ComponentField
+              id="variable"
+              label="Variable pay or bonus"
+              value="0"
+              units={[PCT_CTC, RUPEES]}
+              unit="percent"
+            />
+            <ComponentField
+              id="nps"
+              label="Employer NPS"
+              value="0"
+              units={[PCT_BASIC, RUPEES]}
+              unit="percent"
+            />
+            <div class="sm:col-span-2">
+              <ComponentField
+                id="special"
+                label="Special allowance"
+                value="0"
+                units={[{ value: 'balance', label: 'Balance' }, RUPEES, PCT_CTC]}
+                unit="balance"
+                hint="Balance absorbs whatever is left of your CTC."
+                disabled
+              />
+            </div>
           </div>
-        </div>
-        <label class="flex items-center gap-2 text-sm text-ink-2">
-          <input type="checkbox" id="disabled" class={checkbox} /> I am a person with a disability
-          (raises the ESI ceiling)
-        </label>
-        <label class="flex items-center gap-2 text-sm text-ink-2">
-          <input type="checkbox" id="resident" checked class={checkbox} /> I am a resident of India
-          for tax purposes
-        </label>
-      </fieldset>
+        </fieldset>
 
-      <fieldset class="space-y-4">
-        <legend class="text-sm font-semibold text-ink">Old regime deductions</legend>
-        <p class="text-xs text-ink-3">
-          These only affect the old regime. The new regime allows none of them.
-        </p>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label class={label} for="d-80c">
-              80C investments
+        <fieldset class="space-y-4 border-t border-line pt-6">
+          <legend class={`${legend} float-left w-full`}>Provident fund</legend>
+          <div class="clear-both">
+            <SelectField
+              id="pf-mode"
+              label="Contribution basis"
+              hint="Employers may cap PF at the statutory ceiling or contribute on your actual wages. Check your payslip."
+            >
+              <option value="ceiling">12% of ₹15,000 (₹1,800/mo)</option>
+              <option value="actual">12% of full wages</option>
+              <option value="none">Not a PF member</option>
+            </SelectField>
+          </div>
+          <div class="space-y-3 text-sm text-ink-2">
+            <label class="flex items-start gap-2.5">
+              <input type="checkbox" id="pf-in-ctc" checked class={checkbox} />
+              <span>Employer PF is counted inside my CTC</span>
             </label>
-            <input
+            <label class="flex items-start gap-2.5">
+              <input type="checkbox" id="gratuity-in-ctc" checked class={checkbox} />
+              <span>Gratuity provision is inside my CTC</span>
+            </label>
+            <label class="flex items-start gap-2.5">
+              <input type="checkbox" id="esi-in-ctc" checked class={checkbox} />
+              <span>Employer ESI is inside my CTC</span>
+            </label>
+            <label class="flex items-start gap-2.5">
+              <input type="checkbox" id="special-as-wages" class={checkbox} />
+              <span>
+                Treat special allowance as wages in full
+                <span class="mt-0.5 block text-xs text-ink-3">
+                  The statute can be read this way; the Ministry of Labour’s FAQs cannot. Changes
+                  gratuity and ESI.
+                </span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="border-t border-line pt-6">
+          <legend class={`${legend} float-left w-full`}>About you</legend>
+          <div class="clear-both space-y-5 pt-4">
+            <div class="grid gap-5 sm:grid-cols-2">
+              <NumberField id="age" label="Age" value="30" suffix="yrs" width="2.5rem" />
+              <NumberField
+                id="years"
+                label="Years of service"
+                value="5"
+                suffix="yrs"
+                width="2.5rem"
+                inputmode="decimal"
+              />
+            </div>
+            <div class="grid gap-5 sm:grid-cols-2">
+              <Segmented
+                name="employer-type"
+                legend="Employer"
+                value="other"
+                options={[
+                  { value: 'other', label: 'Private or PSU' },
+                  { value: 'government', label: 'Government' },
+                ]}
+              />
+              <Segmented
+                name="employment-type"
+                legend="Employment"
+                value="permanent"
+                options={[
+                  { value: 'permanent', label: 'Permanent' },
+                  { value: 'fixed-term', label: 'Fixed-term' },
+                ]}
+                hint="Fixed-term staff get gratuity after one year."
+              />
+            </div>
+            <div class="grid gap-5 sm:grid-cols-2">
+              <Segmented
+                name="pt-category"
+                legend="Professional tax slab"
+                value="men"
+                options={[
+                  { value: 'men', label: 'Men' },
+                  { value: 'women', label: 'Women' },
+                ]}
+                hint="Maharashtra exempts women up to ₹25,000 a month."
+              />
+              <NumberField
+                id="pt-override"
+                label="Professional tax a month"
+                value=""
+                prefix="₹"
+                width="3.5rem"
+                placeholder="auto"
+                hint="Leave on auto, or enter the figure from your payslip."
+              />
+            </div>
+            <div class="space-y-3 text-sm text-ink-2">
+              <label class="flex items-start gap-2.5">
+                <input type="checkbox" id="disabled" class={checkbox} />
+                <span>I am a person with a disability (raises the ESI ceiling)</span>
+              </label>
+              <label class="flex items-start gap-2.5">
+                <input type="checkbox" id="resident" checked class={checkbox} />
+                <span>I am a resident of India for tax purposes</span>
+              </label>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="border-t border-line pt-6">
+          <legend class={`${legend} float-left w-full`}>Old regime deductions</legend>
+          <p class="clear-both pt-1 text-sm text-ink-3">
+            Only the old regime allows these. The new regime ignores them.
+          </p>
+          <div class="mt-5 space-y-6">
+            <NumberField
               id="d-80c"
-              type="number"
-              min="0"
-              step="1000"
+              label="80C investments"
               value="0"
-              class={`mt-1.5 ${field} tabular-nums`}
+              prefix="₹"
+              width="5.5rem"
+              hint="Excluding your PF, which we add. Capped at ₹1.5 lakh."
+              slider={{
+                kind: 'linear',
+                min: 0,
+                max: 1_50_000,
+                step: 1_000,
+                minLabel: '₹0',
+                maxLabel: '₹1.5 L',
+              }}
+              money
             />
-            <p class={hint}>Excluding your PF, which we add. Capped at ₹1.5 lakh.</p>
-          </div>
-          <div>
-            <label class={label} for="d-nps">
-              NPS 80CCD(1B)
-            </label>
-            <input
+            <NumberField
               id="d-nps"
-              type="number"
-              min="0"
-              step="1000"
+              label="NPS, section 80CCD(1B)"
               value="0"
-              class={`mt-1.5 ${field} tabular-nums`}
+              prefix="₹"
+              width="5.5rem"
+              hint="Capped at ₹50,000."
+              slider={{
+                kind: 'linear',
+                min: 0,
+                max: 50_000,
+                step: 1_000,
+                minLabel: '₹0',
+                maxLabel: '₹50,000',
+              }}
+              money
             />
-            <p class={hint}>Capped at ₹50,000.</p>
-          </div>
-          <div>
-            <label class={label} for="d-80d">
-              Health insurance premium
-            </label>
-            <input
+            <NumberField
               id="d-80d"
-              type="number"
-              min="0"
-              step="1000"
+              label="Health insurance premium"
               value="0"
-              class={`mt-1.5 ${field} tabular-nums`}
+              prefix="₹"
+              width="5.5rem"
+              slider={{
+                kind: 'linear',
+                min: 0,
+                max: 1_00_000,
+                step: 1_000,
+                minLabel: '₹0',
+                maxLabel: '₹1 L',
+              }}
+              money
             />
-          </div>
-          <div>
-            <label class={label} for="d-home">
-              Home loan interest
-            </label>
-            <input
+            <NumberField
               id="d-home"
-              type="number"
-              min="0"
-              step="1000"
+              label="Home loan interest"
               value="0"
-              class={`mt-1.5 ${field} tabular-nums`}
+              prefix="₹"
+              width="5.5rem"
+              hint="Self-occupied home, capped at ₹2 lakh."
+              slider={{
+                kind: 'linear',
+                min: 0,
+                max: 2_00_000,
+                step: 5_000,
+                minLabel: '₹0',
+                maxLabel: '₹2 L',
+              }}
+              money
             />
-            <p class={hint}>Self-occupied, capped at ₹2 lakh.</p>
           </div>
-        </div>
-      </fieldset>
+        </fieldset>
+      </div>
+
+      <div class="mt-6 border-t border-line pt-5">
+        <button type="button" id="reset" class="btn btn-tertiary">
+          Reset to defaults
+        </button>
+      </div>
     </div>
 
-    <div class="flex flex-wrap gap-2 border-t border-line pt-5">
-      <button
-        type="button"
-        id="share"
-        class="inline-flex items-center gap-1.5 rounded-md bg-accent px-3.5 py-2 text-sm font-medium text-on-accent hover:bg-accent-strong"
-      >
-        <Icon name="lucide:link" class="size-4" aria-hidden="true" />
-        <span data-share-label>Copy share link</span>
-      </button>
-      <button
-        type="button"
-        id="export-pdf"
-        class="inline-flex items-center gap-1.5 rounded-md border border-line-strong px-3.5 py-2 text-sm font-medium text-ink hover:bg-sunken"
-      >
-        <Icon name="lucide:file-text" class="size-4" aria-hidden="true" /> PDF
-      </button>
-      <button
-        type="button"
-        id="export-xlsx"
-        class="inline-flex items-center gap-1.5 rounded-md border border-line-strong px-3.5 py-2 text-sm font-medium text-ink hover:bg-sunken"
-      >
-        <Icon name="lucide:table" class="size-4" aria-hidden="true" /> Excel
-      </button>
-      <button
-        type="button"
-        id="reset"
-        class="rounded-md px-3.5 py-2 text-sm font-medium text-ink-2 hover:text-ink"
-      >
-        Reset
-      </button>
+    <!-- Summary: beside the inputs on a wide screen, and pinned while you scroll the long form. -->
+    <aside class="card lg:sticky lg:top-6" data-summary aria-label="Result">
+      <!--
+      The result is NOT a live region: re-announcing the whole breakdown on every keystroke is
+      unusable with a screen reader. A short summary is announced instead, debounced, from #live.
+    -->
+      <p id="live" class="sr-only" role="status" aria-live="polite"></p>
+      <output id="summary" for="calc" class="block" set:html={summary} />
+      <div class="grid grid-cols-[1fr_auto_auto] gap-2 border-t border-line p-5 sm:px-6 no-print">
+        <button type="button" id="share" class="btn btn-primary">
+          <Icon name="lucide:link" class="size-4" aria-hidden="true" />
+          <span data-share-label>Share link</span>
+        </button>
+        <button type="button" id="export-pdf" class="btn btn-secondary">
+          <Icon name="lucide:file-text" class="size-4" aria-hidden="true" /> PDF
+        </button>
+        <button type="button" id="export-xlsx" class="btn btn-secondary">
+          <Icon name="lucide:file-spreadsheet" class="size-4" aria-hidden="true" /> Excel
+        </button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- The full breakdown: an open section, not another card. -->
+  <section class="mt-10 border-t border-line pt-10" aria-labelledby="breakdown-heading">
+    <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+      <h2 id="breakdown-heading" class="text-xl font-medium text-ink">
+        Full breakdown
+      </h2>
+      <p class="text-sm text-ink-3">All figures a year, for the cheaper regime unless stated.</p>
     </div>
-  </div>
-
-  <!-- Results -->
-  <!--
-    The result is NOT a live region: re-announcing the whole breakdown on every keystroke is
-    unusable with a screen reader. A short summary is announced instead, debounced, from #live.
-  -->
-  <div class="block">
-    <p id="live" class="sr-only" role="status" aria-live="polite"></p>
-    <output id="result" for="calc" class="block" set:html={initial} />
-  </div>
+    <output id="details" for="calc" class="mt-8 block" set:html={details} />
+  </section>
 
   <!--
-    On a phone the result sits below a long form, so the figure is off screen while you type.
-    This bar appears only once the result card scrolls out of view, keeping the number visible
-    and making it obvious that there is nothing to submit.
+    On a phone the result sits below the form, so the figure is off screen while you type. This
+    bar appears once the summary scrolls out of view, keeping the number visible and making it
+    obvious there is nothing to submit.
   -->
   <div
     id="sticky-total"
     hidden
-    class="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 px-4 py-2.5 backdrop-blur lg:hidden"
+    data-sticky-total
+    class="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface px-4 pt-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))] lg:hidden"
   >
     <button
       type="button"
       class="flex w-full items-center justify-between gap-3 text-left"
       data-sticky-jump
     >
-      <span class="flex items-center gap-1.5 text-xs text-ink-2">
+      <span class="flex items-center gap-1.5 text-sm text-ink-2">
         <span class="live-dot size-1.5 rounded-full bg-accent" aria-hidden="true"></span>
-        Monthly in-hand
+        In hand per month
       </span>
-      <span class="text-lg font-semibold tabular-nums text-accent" data-sticky-value></span>
+      <span class="flex items-center gap-2">
+        <span
+          class="delta rounded-chip px-1.5 text-xs leading-5 font-medium tabular-nums"
+          data-sticky-delta
+          data-state="hidden"
+          aria-hidden="true"
+        ></span>
+        <span class="relative text-xl font-medium tabular-nums text-ink" data-sticky-value></span>
+      </span>
     </button>
   </div>
 </form>

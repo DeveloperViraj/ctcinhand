@@ -1,0 +1,35 @@
+---
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  id: string;
+  label: string;
+  hint?: string;
+  /** Set when script rewrites the hint, so its slot is always reserved. */
+  hintId?: string;
+}
+
+const { id, label, hint, hintId } = Astro.props;
+const describedBy = hintId ?? (hint ? `${id}-hint` : undefined);
+---
+
+<div>
+  <label for={id} class="block text-sm text-ink-2">
+    {label}
+  </label>
+  <div class="relative mt-2">
+    <select id={id} name={id} class="select" aria-describedby={describedBy}>
+      <slot />
+    </select>
+    <Icon
+      name="lucide:chevron-down"
+      class="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-ink-3"
+      aria-hidden="true"
+    />
+  </div>
+  {(hint !== undefined || hintId) && (
+    <p id={describedBy} class="mt-1.5 min-h-[1.125rem] text-xs text-ink-3">
+      {hint}
+    </p>
+  )}
+</div>

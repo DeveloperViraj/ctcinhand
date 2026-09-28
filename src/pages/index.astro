@@ -3,6 +3,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Calculator from '../components/Calculator.astro';
 import { SITE } from '../config/site';
 
+const verifiedLabel = new Date(`${SITE.ratesVerifiedOn}T00:00:00+05:30`).toLocaleDateString(
+  'en-IN',
+  { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' },
+);
+
 const faqs = [
   {
     q: 'Why is my in-hand salary so much lower than my CTC?',
@@ -65,14 +70,20 @@ const jsonLd = {
     set:html={JSON.stringify(jsonLd)}
     is:inline
   ></script>
-  <section class="mx-auto max-w-6xl px-4 pt-10 pb-8 sm:px-6 sm:pt-14">
-    <h1 class="max-w-3xl text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+  <section class="mx-auto max-w-6xl px-4 pt-8 pb-6 sm:px-6 sm:pt-12 sm:pb-8">
+    <h1 class="max-w-3xl text-2xl font-medium tracking-tight text-ink sm:text-3xl">
       CTC to in-hand salary calculator
     </h1>
-    <p class="mt-3 max-w-2xl text-ink-2">
-      See what actually reaches your bank account each month, for {SITE.taxYearLabel}. Both tax
-      regimes are compared side by side, with provident fund, ESI, gratuity, state professional tax
-      and the Labour Code wage rule applied.
+    <p class="mt-2 max-w-2xl text-ink-2">
+      What actually reaches your bank each month, with both tax regimes side by side.
+      <span class="hidden sm:inline">
+        Provident fund, ESI, gratuity, state professional tax and the Labour Code wage rule are all
+        applied.
+      </span>
+    </p>
+    <p class="mt-3 text-sm text-ink-3">
+      {SITE.taxYearLabel}. Rates last verified on{' '}
+      <time datetime={SITE.ratesVerifiedOn}>{verifiedLabel}</time>.
     </p>
   </section>
 

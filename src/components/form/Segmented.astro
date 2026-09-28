@@ -1,0 +1,32 @@
+---
+/**
+ * A segmented control made of real radio buttons, so arrow keys, form reset and
+ * `form.elements[name].value` all work without any script.
+ */
+interface Props {
+  name: string;
+  /** Visible label. Omit when the control sits beside a field that already names it. */
+  legend?: string;
+  /** Accessible name when there is no visible legend. */
+  ariaLabel?: string;
+  options: { value: string; label: string }[];
+  value: string;
+  hint?: string;
+  class?: string;
+}
+
+const { name, legend, ariaLabel, options, value, hint, class: className } = Astro.props;
+---
+
+<fieldset class:list={['min-w-0', className]} aria-label={legend ? undefined : ariaLabel}>
+  {legend && <legend class="mb-2 text-sm text-ink-2">{legend}</legend>}
+  <div class="seg">
+    {options.map((o) => (
+      <label>
+        <input type="radio" name={name} value={o.value} checked={o.value === value} />
+        <span>{o.label}</span>
+      </label>
+    ))}
+  </div>
+  {hint && <p class="mt-1.5 text-xs text-ink-3">{hint}</p>}
+</fieldset>

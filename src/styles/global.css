@@ -4,8 +4,9 @@
  * InHand design tokens.
  *
  * Accent: "peacock" — a deep teal-blue sitting between Groww's green and Zerodha's blue,
- * distinct from both. It is the ONLY chromatic colour used for emphasis; everything else
- * is a cool slate neutral. Amber and red exist strictly for warnings and errors.
+ * distinct from both. It marks interaction (inputs, sliders, the primary button) and the one
+ * chart segment that matters; it never means "this number is good". Money that is good or bad
+ * has its own warmer green and red, so a gain never reads as a control.
  *
  * Tailwind's default palette and type scale are cleared so stray `bg-blue-500` or
  * `text-7xl` classes fail to compile instead of drifting the design.
@@ -20,10 +21,14 @@
   --color-transparent: transparent;
   --color-current: currentColor;
 
-  /* Surfaces */
-  --color-canvas: oklch(0.985 0.004 225);
+  /*
+   * Surfaces. Elevation is a step along this ramp, never a drop shadow: a card sits on the
+   * canvas, and a block nested inside a card steps once more so it never goes flat.
+   */
+  --color-canvas: oklch(0.975 0.005 228);
   --color-surface: oklch(1 0 0);
-  --color-sunken: oklch(0.965 0.006 225);
+  --color-surface-2: oklch(0.975 0.005 228);
+  --color-sunken: oklch(0.958 0.006 228);
 
   /* Text */
   --color-ink: oklch(0.23 0.02 240);
@@ -36,9 +41,19 @@
 
   /* Accent (peacock) */
   --color-accent: oklch(0.5 0.105 218);
-  --color-accent-strong: oklch(0.43 0.1 220);
+  /* Hover/active is a ~3% darkening of the accent, not a visible lightness jump. */
+  --color-accent-strong: oklch(0.47 0.106 218);
+  /* Accent as text on the soft tint: one step darker so it clears 4.5:1 on the tint. */
+  --color-accent-ink: oklch(0.44 0.1 220);
   --color-accent-soft: oklch(0.955 0.028 215);
+  --color-accent-soft-2: oklch(0.93 0.038 215);
   --color-on-accent: oklch(1 0 0);
+
+  /* Money that went up or down. Warmer than the accent on purpose. */
+  --color-positive: oklch(0.5 0.13 152);
+  --color-positive-soft: oklch(0.96 0.035 152);
+  --color-negative: oklch(0.53 0.19 29);
+  --color-negative-soft: oklch(0.96 0.025 22);
 
   /*
    * Chart palette. This is an "emphasis" chart, not a categorical one: take-home wears the accent
@@ -59,32 +74,63 @@
   --color-danger: oklch(0.53 0.19 27);
   --color-danger-soft: oklch(0.96 0.025 20);
 
-  /* Type scale — ~1.25 ratio, 16px base */
+  /*
+   * Type scale. Dense at the bottom where financial UI actually lives (12/14/16/18/20),
+   * sparse at the top, with tighter line-heights than the usual 1.5.
+   */
   --text-*: initial;
   --text-xs: 0.75rem;
-  --text-xs--line-height: 1rem;
+  --text-xs--line-height: 1.125rem;
   --text-sm: 0.875rem;
   --text-sm--line-height: 1.25rem;
   --text-base: 1rem;
-  --text-base--line-height: 1.5rem;
+  --text-base--line-height: 1.375rem;
   --text-lg: 1.125rem;
-  --text-lg--line-height: 1.625rem;
-  --text-xl: 1.375rem;
-  --text-xl--line-height: 1.875rem;
-  --text-2xl: 1.75rem;
-  --text-2xl--line-height: 2.25rem;
-  --text-3xl: 2.25rem;
-  --text-3xl--line-height: 2.625rem;
-  /* The single "loud" size: the live in-hand figure */
-  --text-figure: clamp(2.5rem, 1.75rem + 3.2vw, 3.75rem);
-  --text-figure--line-height: 1;
-  --text-figure--letter-spacing: -0.025em;
+  --text-lg--line-height: 1.5625rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2.0625rem;
+  --text-3xl: 1.75rem;
+  --text-3xl--line-height: 2.4375rem;
+  --text-4xl: 2rem;
+  --text-4xl--line-height: 2.75rem;
+  /*
+   * The single "loud" size: the live in-hand figure. Capped at 48px — larger reads as a landing
+   * page rather than a tool.
+   */
+  --text-figure: clamp(2.25rem, 1.9rem + 1.6vw, 3rem);
+  --text-figure--line-height: 1.1;
+  --text-figure--letter-spacing: -0.02em;
 
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
+  /*
+   * Weights. The ceiling is 535, not 700: bold-everywhere is the loudest "unstyled HTML"
+   * signal, and the fintech interfaces this is modelled on top out at 535 for every heading
+   * and figure. IBM Plex Sans is variable, so these land exactly and cost no extra bytes.
+   */
+  --font-weight-*: initial;
+  --font-weight-normal: 435;
+  --font-weight-medium: 535;
+  --font-weight-semibold: 535;
+  --font-weight-bold: 535;
 
+  /* A ladder keyed to element size, so the page is not a grid of identical rounded boxes. */
+  --radius-*: initial;
+  --radius-chip: 3px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 99px;
+
+  /*
+   * Motion. Three durations and two curves. Anything that slides along a track moves linearly,
+   * which reads as an instrument; anything that appears or settles eases out.
+   */
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-1: 120ms;
+  --duration-2: 200ms;
+  --duration-3: 420ms;
 }
 
 @theme inline {
@@ -93,9 +139,10 @@
 
 [data-theme='dark'] {
   color-scheme: dark;
-  --color-canvas: oklch(0.175 0.014 240);
-  --color-surface: oklch(0.21 0.016 240);
-  --color-sunken: oklch(0.155 0.012 240);
+  --color-canvas: oklch(0.165 0.014 240);
+  --color-surface: oklch(0.205 0.016 240);
+  --color-surface-2: oklch(0.243 0.017 240);
+  --color-sunken: oklch(0.183 0.014 240);
 
   --color-ink: oklch(0.94 0.008 230);
   --color-ink-2: oklch(0.78 0.012 230);
@@ -105,9 +152,17 @@
   --color-line-strong: oklch(0.38 0.016 240);
 
   --color-accent: oklch(0.76 0.095 208);
-  --color-accent-strong: oklch(0.83 0.08 208);
+  --color-accent-strong: oklch(0.8 0.098 208);
+  --color-accent-ink: oklch(0.82 0.088 208);
   --color-accent-soft: oklch(0.28 0.045 222);
+  --color-accent-soft-2: oklch(0.315 0.052 222);
   --color-on-accent: oklch(0.17 0.02 240);
+
+  /* Brighter in the dark, as money colours should be; the accent does the opposite. */
+  --color-positive: oklch(0.8 0.14 158);
+  --color-positive-soft: oklch(0.29 0.05 158);
+  --color-negative: oklch(0.74 0.15 32);
+  --color-negative-soft: oklch(0.29 0.055 28);
 
   /* Re-stepped for the dark surface, not flipped: worst adjacent pair dE 14.0 protan / 16.1 normal. */
   --color-chart-take: oklch(0.76 0.095 208);
@@ -142,10 +197,10 @@
     border-color: var(--color-line);
   }
 
+  /* The ring follows each element's own radius; forcing one here would reshape what is focused. */
   :focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
-    border-radius: var(--radius-sm);
   }
 
   ::selection {
@@ -169,6 +224,368 @@
   }
 }
 
+@layer components {
+  /* Card species 1: bordered plain. The default container, and the only one with a border. */
+  .card {
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+
+  /* A block nested inside a card: one step along the surface ramp, no border of its own. */
+  .inset {
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-2);
+  }
+
+  /* Card species 2: tinted and borderless, for the one callout a screen can afford. */
+  .callout {
+    border-radius: var(--radius-md);
+    background: var(--color-accent-soft);
+  }
+
+  /*
+   * The number chip. A tinted, borderless field with the value right-aligned in the accent, so
+   * every editable number on the page is recognisable at a glance. The unit sits one size down.
+   */
+  .chip {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 0.125rem;
+    min-height: 2.25rem;
+    padding: 0.375rem 0.625rem;
+    border-radius: var(--radius-chip);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-ink);
+    font-size: var(--text-lg);
+    line-height: 1.5rem;
+    font-weight: 535;
+    font-variant-numeric: tabular-nums;
+    cursor: text;
+    transition: background-color var(--duration-2);
+  }
+  .chip:hover {
+    background: var(--color-accent-soft-2);
+  }
+  .chip:focus-within {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  .chip input {
+    width: var(--chip-width, 7.5rem);
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: right;
+    /* The chip draws the focus ring, around the unit as well as the digits. */
+    outline: none;
+  }
+  /* Chrome paints autofilled fields its own colour; an inset shadow keeps the tint. */
+  .chip input:-webkit-autofill {
+    box-shadow: 0 0 0 1000px var(--color-accent-soft) inset;
+    -webkit-text-fill-color: var(--color-accent-ink);
+  }
+  .chip input::placeholder {
+    color: var(--color-ink-3);
+    font-weight: 435;
+    opacity: 1;
+  }
+  .chip input:disabled {
+    cursor: not-allowed;
+  }
+  .chip:has(input:disabled) {
+    background: var(--color-sunken);
+    color: var(--color-ink-3);
+  }
+  .chip-unit {
+    font-size: var(--text-base);
+    font-weight: 435;
+  }
+  /* An invalid value swaps the tint only, so nothing around it reflows. */
+  .chip[data-invalid] {
+    background: var(--color-negative-soft);
+    color: var(--color-negative);
+  }
+
+  /*
+   * Range slider: a 4px track filled up to --pct in the accent, and a 24px thumb that is easy to
+   * grab on a phone. The fill is a gradient on the native track, so there is no extra element.
+   */
+  .range {
+    --pct: 0%;
+    display: block;
+    width: 100%;
+    height: 1.75rem;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .range:focus-visible {
+    outline: none;
+  }
+  .range::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(
+      to right,
+      var(--color-accent) var(--pct),
+      var(--color-line-strong) var(--pct)
+    );
+  }
+  .range::-moz-range-track {
+    height: 4px;
+    border-radius: var(--radius-pill);
+    background: var(--color-line-strong);
+  }
+  .range::-moz-range-progress {
+    height: 4px;
+    border-radius: var(--radius-pill);
+    background: var(--color-accent);
+  }
+  .range::-webkit-slider-thumb {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-top: -10px;
+    border: 2px solid var(--color-accent);
+    border-radius: 50%;
+    background: var(--color-surface);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .range::-moz-range-thumb {
+    box-sizing: border-box;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 2px solid var(--color-accent);
+    border-radius: 50%;
+    background: var(--color-surface);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
+  }
+  .range:focus-visible::-webkit-slider-thumb {
+    box-shadow:
+      0 0 0 3px var(--color-surface),
+      0 0 0 5px var(--color-accent);
+  }
+  .range:focus-visible::-moz-range-thumb {
+    box-shadow:
+      0 0 0 3px var(--color-surface),
+      0 0 0 5px var(--color-accent);
+  }
+
+  /* Segmented control built on real radio buttons, so arrow keys and forms work natively. */
+  .seg {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-pill);
+    background: var(--color-sunken);
+  }
+  .seg label {
+    position: relative;
+    display: block;
+  }
+  .seg input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .seg span {
+    display: block;
+    padding: 0.3125rem 0.75rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill);
+    color: var(--color-ink-2);
+    font-size: var(--text-sm);
+    line-height: 1.25rem;
+    white-space: nowrap;
+    transition:
+      background-color var(--duration-2) linear,
+      color var(--duration-2) linear;
+  }
+  .seg label:hover span {
+    color: var(--color-ink);
+  }
+  .seg input:checked + span {
+    border-color: var(--color-line-strong);
+    background: var(--color-surface);
+    color: var(--color-ink);
+  }
+  .seg input:focus-visible + span {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+  }
+
+  /* Native select with the arrow drawn by a sibling icon, so it follows the theme. */
+  .select {
+    width: 100%;
+    height: 2.5rem;
+    padding: 0 2.25rem 0 0.75rem;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font-size: var(--text-base);
+    cursor: pointer;
+    transition: border-color var(--duration-2);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .select:hover {
+    border-color: var(--color-ink-3);
+  }
+
+  /* Buttons: three sizes of one shape. Hover swaps a background, nothing moves. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    height: 2.5rem;
+    min-width: 4.5rem;
+    padding: 0 1rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    line-height: 1rem;
+    font-weight: 535;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background-color var(--duration-2),
+      border-color var(--duration-2),
+      color var(--duration-2);
+  }
+  .btn-primary {
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+  .btn-primary:hover {
+    background: var(--color-accent-strong);
+  }
+  .btn-secondary {
+    border-color: var(--color-line-strong);
+    background: transparent;
+    color: var(--color-ink);
+  }
+  .btn-secondary:hover {
+    background: var(--color-sunken);
+  }
+  /* The quiet action: a dashed underline rather than a box. */
+  .btn-tertiary {
+    height: auto;
+    min-width: 0;
+    padding: 0 0 1px;
+    border: 0;
+    border-bottom: 1px dashed currentColor;
+    border-radius: 0;
+    color: var(--color-ink-2);
+    font-weight: 435;
+  }
+  .btn-tertiary:hover {
+    color: var(--color-ink);
+  }
+  /* While an export loads, the label keeps its place and a spinner sits over it. */
+  .btn[aria-busy='true'] {
+    position: relative;
+    color: transparent;
+    pointer-events: none;
+  }
+  .btn[aria-busy='true']::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: 1rem;
+    height: 1rem;
+    margin: auto;
+    border: 2px solid var(--color-ink-3);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 700ms linear infinite;
+  }
+
+  /* The rupee sign beside a large figure: smaller, lighter, on the baseline. */
+  .cur {
+    margin-right: 0.08em;
+    color: var(--color-ink-3);
+    font-size: 0.62em;
+    font-weight: 435;
+  }
+
+  /*
+   * Card species 4: the full-bleed table. The rules are the structure: dashed under the header,
+   * solid between rows, nothing after the last, and every money column right-aligned.
+   */
+  .ledger {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+  }
+  .ledger thead th {
+    padding: 0 0 0.5rem;
+    border-bottom: 1px dashed var(--color-line-strong);
+    color: var(--color-ink-3);
+    font-size: var(--text-xs);
+    font-weight: 435;
+    text-align: left;
+  }
+  .ledger thead th:last-child {
+    text-align: right;
+  }
+  .ledger tbody tr + tr {
+    border-top: 1px solid var(--color-line);
+  }
+  .ledger tbody th,
+  .ledger tbody td {
+    padding: 0.625rem 0;
+    vertical-align: top;
+  }
+  .ledger tbody th {
+    padding-right: 0.75rem;
+    color: var(--color-ink-2);
+    font-weight: 435;
+    text-align: left;
+  }
+  .ledger tbody td {
+    color: var(--color-ink);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .ledger tfoot th,
+  .ledger tfoot td {
+    padding: 0.625rem 0 0;
+    border-top: 1px solid var(--color-line-strong);
+    color: var(--color-ink);
+    font-weight: 535;
+  }
+  .ledger tfoot th {
+    text-align: left;
+  }
+  .ledger tfoot td {
+    text-align: right;
+    white-space: nowrap;
+  }
+  .ledger-note {
+    display: block;
+    margin-top: 0.125rem;
+    color: var(--color-ink-3);
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+  }
+}
+
 /* Long-form text (legal pages, methodology). Deliberately plain: hierarchy from size and weight only. */
 @layer components {
   .prose-doc {
@@ -184,14 +601,14 @@
     color: var(--color-ink);
     font-size: var(--text-xl);
     line-height: var(--text-xl--line-height);
-    font-weight: 600;
+    font-weight: 535;
     letter-spacing: -0.01em;
   }
   .prose-doc h3 {
     margin-top: 1.75em;
     color: var(--color-ink);
     font-size: var(--text-lg);
-    font-weight: 600;
+    font-weight: 535;
   }
   .prose-doc h2 + *,
   .prose-doc h3 + * {
@@ -199,14 +616,14 @@
   }
   .prose-doc strong {
     color: var(--color-ink);
-    font-weight: 600;
+    font-weight: 535;
   }
   .prose-doc a {
-    color: var(--color-accent);
+    color: var(--color-accent-ink);
     text-decoration: underline;
   }
   .prose-doc a:hover {
-    color: var(--color-accent-strong);
+    color: var(--color-ink);
   }
   .prose-doc ul,
   .prose-doc ol {
@@ -230,55 +647,127 @@
     font-size: var(--text-sm);
     font-variant-numeric: tabular-nums;
   }
+  .prose-doc thead th {
+    border-bottom: 1px dashed var(--color-line-strong);
+  }
+  .prose-doc tbody tr {
+    border-bottom: 1px solid var(--color-line);
+  }
+  .prose-doc tbody tr:last-child {
+    border-bottom: none;
+  }
   .prose-doc th,
   .prose-doc td {
     padding: 0.5rem 0.75rem 0.5rem 0;
-    border-bottom: 1px solid var(--color-line);
     text-align: left;
     vertical-align: top;
   }
   .prose-doc th {
     color: var(--color-ink);
-    font-weight: 600;
+    font-weight: 535;
+  }
+  /* Money columns are read by comparing digits, so they line up. */
+  .prose-doc td:not(:first-child) {
+    font-variant-numeric: tabular-nums;
   }
 }
 
-/* The live figure: a brief tint when it changes, so nobody hunts for a "Calculate" button. */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/*
+ * The live figure. On every recalculation a 2px rule draws itself left to right under the
+ * number and a faint tint comes and goes, so it is obvious the answer already updated and there
+ * is no "Calculate" button to hunt for.
+ */
 @keyframes value-changed {
   0% {
-    background-color: color-mix(in oklch, var(--color-accent) 18%, transparent);
+    background-color: transparent;
+  }
+  12% {
+    background-color: color-mix(in oklch, var(--color-accent) 14%, transparent);
   }
   100% {
     background-color: transparent;
   }
 }
 
-.value-flash {
-  animation: value-changed 700ms var(--ease-out-soft);
-  border-radius: var(--radius-sm);
+@keyframes underline-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 
-/* A quiet pulsing dot that marks the result as live. */
+.value-flash {
+  animation: value-changed 610ms var(--ease-out-soft);
+}
+
+.value-flash::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: -3px;
+  height: 2px;
+  background: var(--color-accent);
+  transform-origin: left;
+  animation: underline-draw 260ms var(--ease-out-soft) both;
+}
+
+/* The change chip beside the figure: how much this edit moved your monthly take-home. */
+.delta {
+  transition:
+    opacity var(--duration-2) var(--ease-out-soft),
+    transform var(--duration-2) var(--ease-out-soft);
+}
+.delta[data-state='hidden'] {
+  opacity: 0;
+  transform: translateY(2px);
+}
+
+/* Segments of the composition bar glide to their new share instead of jumping. */
+.bar-seg {
+  transition: flex-grow var(--duration-3) var(--ease-out-soft);
+}
+
+/* A quiet dot that marks the result as live. Three pulses on load, then still. */
 @keyframes live-pulse {
   0%,
   100% {
     opacity: 1;
-    transform: scale(1);
   }
   50% {
-    opacity: 0.45;
-    transform: scale(0.82);
+    opacity: 0.35;
   }
 }
 
 .live-dot {
-  animation: live-pulse 2.4s ease-in-out infinite;
+  animation: live-pulse 2.4s ease-in-out 3;
 }
 
+/*
+ * Reduced motion: every flourish above is switched off individually (so it snaps to its final
+ * state rather than running imperceptibly fast), and the blanket rule below catches the rest.
+ */
 @media (prefers-reduced-motion: reduce) {
   .value-flash,
+  .value-flash::after,
   .live-dot {
     animation: none !important;
+  }
+  .value-flash::after {
+    display: none;
+  }
+  .delta,
+  .bar-seg,
+  .chip,
+  .seg span {
+    transition: none !important;
   }
 }
 
@@ -304,13 +793,17 @@
   }
   header,
   footer,
-  #calc > div:first-child,
+  [data-inputs],
+  [data-sticky-total],
   details > summary,
   .no-print {
     display: none !important;
   }
   #calc {
     display: block !important;
+  }
+  [data-summary] {
+    position: static !important;
   }
   details[open] > div,
   details > div {

@@ -1,13 +1,15 @@
 /**
  * The calculator island: the only interactive JavaScript on the page.
  *
- * It keeps a single state object, recomputes on every input, and re-renders the result with the
- * same function the server used. Inputs are mirrored into the URL (so results are shareable) and
- * into localStorage (so a return visit starts where you left off).
+ * It keeps a single state object, recomputes on every input, and patches the result into the page
+ * with the same render functions the server used. Inputs are mirrored into the URL (so results are
+ * shareable) and into localStorage (so a return visit starts where you left off).
  */
 
-import { formatRupees, parseRupees } from '../lib/format';
-import { renderResult } from '../lib/render-result';
+import { formatNumber, formatRupees, parseRupees } from '../lib/format';
+import { morphInto } from '../lib/morph';
+import { renderDetails, renderSummary } from '../lib/render-result';
+import { fromPosition, toPosition, type SliderScale } from '../lib/slider-scale';
 import { calculate, type CalculatorInput, type ComponentValue } from '../lib/tax/calculate';
 import { STATES } from '../lib/tax/professional-tax';
 import { clearState, loadState, saveState } from '../lib/storage';
@@ -16,11 +18,20 @@ import { DEFAULT_STATE, decodeState, encodeState, type CalculatorState } from '.
 const $ = <T extends HTMLElement = HTMLElement>(id: string) =>
   document.getElementById(id) as T | null;
 
+/** A radio group read and written like a select: `group.value`. */
+type Choice = { value: string };
+
 export function mountCalculator(): void {
   const form = $<HTMLFormElement>('calc');
-  const result = $('result');
+  const summary = $('summary');
+  const details = $('details');
   const live = $('live');
-  if (!form || !result) return;
+  if (!form || !summary || !details) return;
+
+  const radios = (name: string): Choice => {
+    const group = form.elements.namedItem(name);
+    return group instanceof RadioNodeList ? group : { value: '' };
+  };
 
   const el = {
     ctc: $<HTMLInputElement>('ctc')!,
@@ -31,26 +42,26 @@ export function mountCalculator(): void {
     modeToggle: $<HTMLButtonElement>('mode-toggle')!,
     advanced: $('advanced')!,
     basic: $<HTMLInputElement>('basic')!,
-    basicUnit: $<HTMLSelectElement>('basic-unit')!,
+    basicUnit: radios('basic-unit'),
     hra: $<HTMLInputElement>('hra')!,
-    hraUnit: $<HTMLSelectElement>('hra-unit')!,
+    hraUnit: radios('hra-unit'),
     lta: $<HTMLInputElement>('lta')!,
-    ltaUnit: $<HTMLSelectElement>('lta-unit')!,
+    ltaUnit: radios('lta-unit'),
     variable: $<HTMLInputElement>('variable')!,
-    variableUnit: $<HTMLSelectElement>('variable-unit')!,
+    variableUnit: radios('variable-unit'),
     nps: $<HTMLInputElement>('nps')!,
-    npsUnit: $<HTMLSelectElement>('nps-unit')!,
+    npsUnit: radios('nps-unit'),
     special: $<HTMLInputElement>('special')!,
-    specialUnit: $<HTMLSelectElement>('special-unit')!,
+    specialUnit: radios('special-unit'),
     pfMode: $<HTMLSelectElement>('pf-mode')!,
     pfInCtc: $<HTMLInputElement>('pf-in-ctc')!,
     gratuityInCtc: $<HTMLInputElement>('gratuity-in-ctc')!,
     esiInCtc: $<HTMLInputElement>('esi-in-ctc')!,
     specialAsWages: $<HTMLInputElement>('special-as-wages')!,
     age: $<HTMLInputElement>('age')!,
-    ptCategory: $<HTMLSelectElement>('pt-category')!,
-    employerType: $<HTMLSelectElement>('employer-type')!,
-    employmentType: $<HTMLSelectElement>('employment-type')!,
+    ptCategory: radios('pt-category'),
+    employerType: radios('employer-type'),
+    employmentType: radios('employment-type'),
     years: $<HTMLInputElement>('years')!,
     ptOverride: $<HTMLInputElement>('pt-override')!,
     disabled: $<HTMLInputElement>('disabled')!,
@@ -65,8 +76,18 @@ export function mountCalculator(): void {
     exportXlsx: $<HTMLButtonElement>('export-xlsx')!,
   };
 
+  const summaryCard = form.querySelector<HTMLElement>('[data-summary]');
   const stickyBar = $('sticky-total');
   const stickyValue = stickyBar?.querySelector<HTMLElement>('[data-sticky-value]') ?? null;
+  const stickyDelta = stickyBar?.querySelector<HTMLElement>('[data-sticky-delta]') ?? null;
+
+  const sliders = Array.from(form.querySelectorAll<HTMLInputElement>('input[data-slider-for]'));
+  const scaleOf = (range: HTMLInputElement): SliderScale => ({
+    kind: range.dataset.kind === 'log' ? 'log' : 'linear',
+    min: Number(range.dataset.min),
+    max: Number(range.dataset.max),
+    step: range.dataset.step ? Number(range.dataset.step) : undefined,
+  });
 
   const stateByCode = new Map(STATES.map((s) => [s.code, s]));
   let state: CalculatorState = initialState();
@@ -78,27 +99,30 @@ export function mountCalculator(): void {
     return loadState() ?? structuredClone(DEFAULT_STATE);
   }
 
+  /** Every number field accepts what people type: "1,50,000", "1.5L", "12.5". */
   const num = (input: HTMLInputElement, fallback = 0) => {
-    const value = Number.parseFloat(input.value);
-    return Number.isFinite(value) ? Math.max(0, value) : fallback;
+    const value = parseRupees(input.value);
+    return value === null ? fallback : Math.max(0, value);
   };
 
-  function component(input: HTMLInputElement, unit: HTMLSelectElement): ComponentValue {
+  const grouped = (value: number) => value.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+
+  function component(input: HTMLInputElement, unit: Choice): ComponentValue {
     return { unit: unit.value === 'rupees' ? 'rupees' : 'percent', value: num(input) };
   }
 
-  function setComponent(input: HTMLInputElement, unit: HTMLSelectElement, v: ComponentValue) {
-    input.value = String(v.value);
+  function setComponent(input: HTMLInputElement, unit: Choice, v: ComponentValue) {
+    input.value = grouped(v.value);
     unit.value = v.unit;
   }
 
   /** Writes the state object into the form controls. */
   function applyToForm() {
     const i = state.input;
-    el.ctc.value = i.ctc ? i.ctc.toLocaleString('en-IN') : '';
+    el.ctc.value = i.ctc ? grouped(i.ctc) : '';
     el.state.value = i.stateCode;
     el.city.value = i.city;
-    el.rent.value = String(i.monthlyRent);
+    el.rent.value = grouped(i.monthlyRent);
     setComponent(el.basic, el.basicUnit, i.basic);
     setComponent(el.hra, el.hraUnit, i.hra);
     setComponent(el.lta, el.ltaUnit, i.lta);
@@ -124,11 +148,12 @@ export function mountCalculator(): void {
     el.ptOverride.value = i.ptOverrideMonthly === null ? '' : String(i.ptOverrideMonthly);
     el.disabled.checked = i.disabled;
     el.resident.checked = i.resident;
-    el.d80c.value = String(i.deductions.sec80C);
-    el.dNps.value = String(i.deductions.nps80CCD1B);
-    el.d80d.value = String(i.deductions.healthInsurance);
-    el.dHome.value = String(i.deductions.selfOccupiedInterest);
+    el.d80c.value = grouped(i.deductions.sec80C);
+    el.dNps.value = grouped(i.deductions.nps80CCD1B);
+    el.d80d.value = grouped(i.deductions.healthInsurance);
+    el.dHome.value = grouped(i.deductions.selfOccupiedInterest);
     setMode(state.mode);
+    for (const range of sliders) syncSliderFromField(range);
   }
 
   /** Reads the form controls back into the state object. */
@@ -159,10 +184,9 @@ export function mountCalculator(): void {
       disabled: el.disabled.checked,
       stateCode: el.state.value,
       city: el.city.value,
-      monthlyRent: parseRupees(el.rent.value) ?? 0,
+      monthlyRent: num(el.rent),
       ptCategory: el.ptCategory.value as CalculatorInput['ptCategory'],
-      ptOverrideMonthly:
-        ptOverrideRaw === '' ? null : Math.max(0, Number.parseFloat(ptOverrideRaw) || 0),
+      ptOverrideMonthly: ptOverrideRaw === '' ? null : num(el.ptOverride),
       deductions: {
         sec80C: num(el.d80c),
         nps80CCD1B: num(el.dNps),
@@ -172,13 +196,21 @@ export function mountCalculator(): void {
     };
   }
 
+  /** A chip whose text cannot be read as a number swaps to the error tint. */
+  function flagUnreadable() {
+    for (const input of form!.querySelectorAll<HTMLInputElement>('.chip input')) {
+      const text = input.value.trim();
+      const unreadable = text !== '' && parseRupees(text) === null;
+      input.closest('.chip')?.toggleAttribute('data-invalid', unreadable);
+      input.setAttribute('aria-invalid', String(unreadable));
+    }
+  }
+
   function setMode(mode: CalculatorState['mode']) {
     state.mode = mode;
     const advanced = mode === 'advanced';
     el.modeToggle.setAttribute('aria-checked', String(advanced));
     el.advanced.hidden = !advanced;
-    const knob = el.modeToggle.querySelector<HTMLElement>('[data-knob]');
-    if (knob) knob.style.transform = advanced ? 'translateX(1.25rem)' : 'translateX(0)';
   }
 
   function updatePtStatus() {
@@ -189,66 +221,145 @@ export function mountCalculator(): void {
         ? 'No professional tax here.'
         : info.pt === 'verified'
           ? 'Professional tax slabs verified.'
-          : 'Slabs not verified — enter yours in advanced mode.';
-    el.ptStatus.className = `mt-1 text-xs ${info.pt === 'unverified' ? 'text-warn-ink' : 'text-ink-3'}`;
+          : 'Slabs not verified: enter yours in advanced mode.';
+    el.ptStatus.className = `mt-1.5 min-h-[1.125rem] text-xs ${
+      info.pt === 'unverified' ? 'text-warn-ink' : 'text-ink-3'
+    }`;
   }
+
+  /* ---------------------------------------------------------------------------------------- */
+  /* Sliders                                                                                   */
+  /* ---------------------------------------------------------------------------------------- */
+
+  const fieldFor = (range: HTMLInputElement) => $<HTMLInputElement>(range.dataset.sliderFor!);
+
+  function paintSlider(range: HTMLInputElement) {
+    const fraction = Number(range.value) / Number(range.max);
+    // The fill ends under the centre of the 24px thumb, not at the raw percentage.
+    range.style.setProperty('--pct', `calc(0.75rem + (100% - 1.5rem) * ${fraction})`);
+  }
+
+  function syncSliderFromField(range: HTMLInputElement) {
+    const field = fieldFor(range);
+    if (!field) return;
+    range.value = String(toPosition(parseRupees(field.value) ?? 0, scaleOf(range)));
+    paintSlider(range);
+  }
+
+  for (const range of sliders) {
+    range.addEventListener('input', () => {
+      const field = fieldFor(range);
+      if (!field) return;
+      field.value = grouped(fromPosition(Number(range.value), scaleOf(range)));
+      paintSlider(range);
+      render();
+    });
+  }
+
+  /* ---------------------------------------------------------------------------------------- */
+  /* The live figure                                                                           */
+  /* ---------------------------------------------------------------------------------------- */
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
+  /** Restarts a CSS animation even if it is already running. */
+  function replay(node: Element, className: string) {
+    node.classList.remove(className);
+    void (node as HTMLElement).offsetWidth;
+    node.classList.add(className);
+  }
+
   /**
-   * The one flourish: the headline figure counts to its new value and briefly tints, so it is
-   * obvious the result already updated and there is no "Calculate" button to hunt for.
+   * The one flourish: the figure counts to its new value while a rule draws itself underneath,
+   * so it is obvious the result already updated and there is no "Calculate" button to hunt for.
    */
   function animateHeadline(to: number) {
-    const node = result!.querySelector<HTMLElement>('[data-headline]');
-    if (!node) return;
+    const headline = summary!.querySelector<HTMLElement>('[data-headline]');
+    const digits = headline?.querySelector<HTMLElement>('[data-headline-num]') ?? null;
     const from = lastHeadline;
     lastHeadline = to;
 
-    if (stickyValue) stickyValue.textContent = formatRupees(to);
-    const changed = Math.abs(to - from) >= 1;
+    const write = (value: number) => {
+      if (digits) digits.textContent = formatNumber(value);
+      if (stickyValue) stickyValue.textContent = formatRupees(value);
+    };
 
-    if (changed && from !== 0) {
-      for (const target of [node, stickyValue]) {
-        if (!target) continue;
-        // Restart the animation even if it is already running.
-        target.classList.remove('value-flash');
-        void target.offsetWidth;
-        target.classList.add('value-flash');
-      }
+    const changed = Math.abs(to - from) >= 1;
+    if (!headline || !digits || from === 0 || !changed || prefersReducedMotion.matches) {
+      write(to);
+      return;
     }
 
-    if (prefersReducedMotion.matches || from === 0 || !changed) return;
+    replay(headline, 'value-flash');
+    if (stickyValue) replay(stickyValue, 'value-flash');
 
     const start = performance.now();
     const duration = 320;
     const step = (now: number) => {
+      // A newer calculation has taken over; let it finish instead.
+      if (lastHeadline !== to) return;
       const t = Math.min(1, (now - start) / duration);
       const eased = 1 - Math.pow(1 - t, 3);
-      const value = formatRupees(from + (to - from) * eased);
-      node.textContent = value;
-      if (stickyValue) stickyValue.textContent = value;
+      write(from + (to - from) * eased);
       if (t < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
   }
 
   /**
-   * Reveals the sticky bar only once the result card has scrolled out of view. A throttled scroll
+   * The change chip: how much the edit you are making moved your monthly take-home. A burst of
+   * keystrokes ("1", "15", "150"...) is measured against where you started, not against each
+   * intermediate figure, and the chip fades a couple of seconds after you stop.
+   */
+  let deltaBaseline: number | null = null;
+  let deltaTimer: number | undefined;
+
+  function showDelta(from: number, to: number) {
+    const chips = [summary!.querySelector<HTMLElement>('[data-delta]'), stickyDelta].filter(
+      (c): c is HTMLElement => c !== null,
+    );
+
+    const hide = () => {
+      deltaBaseline = null;
+      for (const chip of chips) chip.dataset.state = 'hidden';
+    };
+
+    if (from === 0 || to === 0) {
+      hide();
+      return;
+    }
+    if (deltaBaseline === null) deltaBaseline = from;
+    const diff = Math.round(to - deltaBaseline);
+
+    window.clearTimeout(deltaTimer);
+    deltaTimer = window.setTimeout(hide, 2600);
+    if (Math.abs(diff) < 1) {
+      for (const chip of chips) chip.dataset.state = 'hidden';
+      return;
+    }
+
+    const up = diff > 0;
+    for (const chip of chips) {
+      chip.textContent = `${up ? '+' : '−'}${formatRupees(Math.abs(diff))}`;
+      chip.classList.toggle('bg-positive-soft', up);
+      chip.classList.toggle('text-positive', up);
+      chip.classList.toggle('bg-negative-soft', !up);
+      chip.classList.toggle('text-negative', !up);
+      chip.dataset.state = 'shown';
+    }
+  }
+
+  /**
+   * Reveals the sticky bar only once the summary has scrolled out of view. A throttled scroll
    * listener rather than IntersectionObserver: the behaviour is identical, and this is testable in
    * environments where observer callbacks do not fire.
    */
   let visibilityQueued = false;
   function syncStickyBar() {
-    if (!stickyBar) return;
-    const card = result!.querySelector('[data-result-card]');
-    if (!card) {
-      stickyBar.hidden = true;
-      return;
-    }
-    const { top, bottom } = card.getBoundingClientRect();
-    const onScreen = bottom > 8 && top < window.innerHeight;
-    stickyBar.hidden = onScreen;
+    if (!stickyBar || !summaryCard) return;
+    const { top, bottom } = summaryCard.getBoundingClientRect();
+    const onScreen = bottom > 8 && top < window.innerHeight - 72;
+    stickyBar.hidden = onScreen || lastHeadline === 0;
   }
 
   function watchResultVisibility() {
@@ -260,13 +371,23 @@ export function mountCalculator(): void {
     });
   }
 
+  /* ---------------------------------------------------------------------------------------- */
+  /* Render                                                                                    */
+  /* ---------------------------------------------------------------------------------------- */
+
   let urlTimer: number | undefined;
   let liveTimer: number | undefined;
   function render() {
     state.input = readFromForm();
+    flagUnreadable();
     const computed = calculate(state.input);
-    result!.innerHTML = renderResult(computed);
-    animateHeadline(computed.errors.length ? 0 : computed.regimes[computed.better].monthlyTakeHome);
+    morphInto(summary!, renderSummary(computed));
+    morphInto(details!, renderDetails(computed));
+
+    const previous = lastHeadline;
+    const next = computed.errors.length ? 0 : computed.regimes[computed.better].monthlyTakeHome;
+    animateHeadline(next);
+    showDelta(previous, next);
     updatePtStatus();
     watchResultVisibility();
     el.special.disabled = el.specialUnit.value === 'balance';
@@ -287,29 +408,43 @@ export function mountCalculator(): void {
       live.textContent = computed.errors.length
         ? computed.errors[0]
         : `Monthly in-hand ${formatRupees(best.monthlyTakeHome)}. ` +
-          `${computed.better === 'new' ? 'New' : 'Old'} regime is cheaper by ` +
-          `${formatRupees(computed.savingByChoosingBetter)} a year.`;
+          (computed.savingByChoosingBetter > 0
+            ? `${computed.better === 'new' ? 'New' : 'Old'} regime is cheaper by ` +
+              `${formatRupees(computed.savingByChoosingBetter)} a year.`
+            : 'Both regimes come to the same tax.');
     }, 900);
   }
 
-  form.addEventListener('input', render);
-  form.addEventListener('change', render);
+  form.addEventListener('input', (event) => {
+    const target = event.target as HTMLElement;
+    // Sliders render from their own handler, after writing into their field.
+    if (target.matches('input[data-slider-for]')) return;
+    const range = sliders.find((r) => r.dataset.sliderFor === target.id);
+    if (range) syncSliderFromField(range);
+    render();
+  });
+  form.addEventListener('change', (event) => {
+    if ((event.target as HTMLElement).matches('input[data-slider-for]')) return;
+    render();
+  });
   form.addEventListener('submit', (e) => e.preventDefault());
+
+  // Money is regrouped in lakh and crore once you leave the field, never while you type.
+  form.addEventListener('focusout', (event) => {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || !input.matches('[data-money]')) return;
+    const parsed = parseRupees(input.value);
+    if (parsed !== null) input.value = grouped(parsed);
+  });
 
   el.modeToggle.addEventListener('click', () => {
     setMode(state.mode === 'advanced' ? 'quick' : 'advanced');
     render();
   });
 
-  el.ctc.addEventListener('blur', () => {
-    const parsed = parseRupees(el.ctc.value);
-    if (parsed !== null) el.ctc.value = parsed.toLocaleString('en-IN');
-  });
-
   el.share.addEventListener('click', async () => {
     const label = el.share.querySelector('[data-share-label]');
-    const query = encodeState(state);
-    const url = `${window.location.origin}${window.location.pathname}${query ? `?${query}` : ''}`;
+    const url = shareUrl();
     try {
       await navigator.clipboard.writeText(url);
       if (label) label.textContent = 'Link copied';
@@ -317,15 +452,20 @@ export function mountCalculator(): void {
       window.prompt('Copy this link', url);
     }
     window.setTimeout(() => {
-      if (label) label.textContent = 'Copy share link';
+      if (label) label.textContent = 'Share link';
     }, 2000);
   });
+
+  function shareUrl() {
+    const query = encodeState(state);
+    return `${window.location.origin}${window.location.pathname}${query ? `?${query}` : ''}`;
+  }
 
   window.addEventListener('scroll', watchResultVisibility, { passive: true });
   window.addEventListener('resize', watchResultVisibility, { passive: true });
 
   stickyBar?.querySelector('[data-sticky-jump]')?.addEventListener('click', () => {
-    result!.scrollIntoView({
+    summaryCard?.scrollIntoView({
       behavior: prefersReducedMotion.matches ? 'auto' : 'smooth',
       block: 'start',
     });
@@ -339,26 +479,31 @@ export function mountCalculator(): void {
     render();
   });
 
-  // Export libraries are large, so they load only when someone actually exports.
-  el.exportPdf.addEventListener('click', async () => {
-    el.exportPdf.disabled = true;
+  /** Export libraries are large, so they load only when someone actually exports. */
+  async function busy(button: HTMLButtonElement, task: () => Promise<void>) {
+    button.setAttribute('aria-busy', 'true');
+    button.disabled = true;
     try {
+      await task();
+    } finally {
+      button.removeAttribute('aria-busy');
+      button.disabled = false;
+    }
+  }
+
+  el.exportPdf.addEventListener('click', () =>
+    busy(el.exportPdf, async () => {
       const { exportPdf } = await import('./export-pdf');
       await exportPdf(calculate(state.input));
-    } finally {
-      el.exportPdf.disabled = false;
-    }
-  });
+    }),
+  );
 
-  el.exportXlsx.addEventListener('click', async () => {
-    el.exportXlsx.disabled = true;
-    try {
+  el.exportXlsx.addEventListener('click', () =>
+    busy(el.exportXlsx, async () => {
       const { exportExcel } = await import('./export-excel');
       await exportExcel(calculate(state.input));
-    } finally {
-      el.exportXlsx.disabled = false;
-    }
-  });
+    }),
+  );
 
   applyToForm();
   render();

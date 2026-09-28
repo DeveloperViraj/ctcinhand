@@ -1,0 +1,104 @@
+---
+/**
+ * A labelled number chip, optionally paired with a slider.
+ *
+ * The chip is the real control: it is what the form reads, what screen readers announce and what
+ * the keyboard reaches. The slider is a pointer convenience that writes into the chip, so it is
+ * kept out of the tab order and the accessibility tree rather than duplicating the field.
+ */
+import type { SliderScale } from '../../lib/slider-scale';
+
+interface Props {
+  id: string;
+  label: string;
+  value: string;
+  prefix?: string;
+  suffix?: string;
+  hint?: string;
+  /** Width of the digits inside the chip, e.g. "7.5rem". */
+  width?: string;
+  inputmode?: 'numeric' | 'decimal';
+  placeholder?: string;
+  disabled?: boolean;
+  slider?: SliderScale & { minLabel: string; maxLabel: string };
+  /** Money fields are re-grouped as lakh/crore on blur. */
+  money?: boolean;
+}
+
+const {
+  id,
+  label,
+  value,
+  prefix,
+  suffix,
+  hint,
+  width = '7.5rem',
+  inputmode = 'numeric',
+  placeholder,
+  disabled = false,
+  slider,
+  money = false,
+} = Astro.props;
+const hintId = `${id}-hint`;
+---
+
+<div class="field">
+  <div class="flex items-center justify-between gap-4">
+    <label for={id} class="text-sm text-ink-2">
+      {label}
+    </label>
+    <div class="chip" style={`--chip-width:${width}`}>
+      {prefix && (
+        <span class="chip-unit" aria-hidden="true">
+          {prefix}
+        </span>
+      )}
+      <input
+        id={id}
+        name={id}
+        type="text"
+        inputmode={inputmode}
+        autocomplete="off"
+        spellcheck="false"
+        value={value}
+        placeholder={placeholder}
+        disabled={disabled}
+        aria-describedby={hint !== undefined ? hintId : undefined}
+        data-money={money ? '' : undefined}
+      />
+      {suffix && (
+        <span class="chip-unit" aria-hidden="true">
+          {suffix}
+        </span>
+      )}
+    </div>
+  </div>
+  {slider && (
+    <div class="mt-2">
+      <input
+        type="range"
+        class="range"
+        min="0"
+        max="1000"
+        step="1"
+        value="0"
+        tabindex="-1"
+        aria-hidden="true"
+        data-slider-for={id}
+        data-kind={slider.kind}
+        data-min={slider.min}
+        data-max={slider.max}
+        data-step={slider.step}
+      />
+      <div class="flex justify-between text-xs text-ink-3" aria-hidden="true">
+        <span>{slider.minLabel}</span>
+        <span>{slider.maxLabel}</span>
+      </div>
+    </div>
+  )}
+  {hint !== undefined && (
+    <p id={hintId} class="mt-1.5 min-h-[1.125rem] text-xs text-ink-3">
+      {hint}
+    </p>
+  )}
+</div>
