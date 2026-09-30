@@ -30,8 +30,8 @@ const forScreen = (text: string) => escape(text).replace(/Rs (?=[\d₹])/g, '₹
 /** A deduction, written with a real minus sign so it lines up with the digits above it. */
 const minus = (amount: number) => `&minus;${formatRupees(amount)}`;
 
-function row(label: string, value: string, note?: string) {
-  return `<tr>
+function row(label: string, value: string, note?: string, carry = false) {
+  return `<tr${carry ? ' class="ledger-carry"' : ''}>
     <th scope="row">${escape(label)}${note ? `<span class="ledger-note">${escape(note)}</span>` : ''}</th>
     <td>${value}</td>
   </tr>`;
@@ -347,20 +347,39 @@ export function renderDetails(result: CalculationResult): string {
   // Each row says where the money actually goes: some of this is yours but not liquid (PF, NPS),
   // some is paid later (gratuity), some is cover rather than cash (ESI), and variable pay is paid
   // to you but separately. Lumping it all under "not your bank account" would be wrong.
+  // Employer PF, ESI and gratuity belong in this table only when the offer counts them inside
+  // CTC; otherwise the rows would no longer add up to the total. Anything paid on top is still
+  // worth knowing about, so it is mentioned under the table instead.
+  const input = result.input;
+  const inCtc = {
+    pf: input.employerPfInCtc && a.employerPf > 0,
+    gratuity: input.gratuityInCtc && a.gratuity > 0,
+    esi: input.employerEsiInCtc && a.employerEsi > 0,
+  };
+  const onTop = [
+    !input.employerPfInCtc && a.employerPf > 0 ? `${formatRupees(a.employerPf)} into your PF` : '',
+    !input.gratuityInCtc && a.gratuity > 0
+      ? `${formatRupees(a.gratuity)} towards your gratuity`
+      : '',
+    !input.employerEsiInCtc && a.employerEsi > 0
+      ? `${formatRupees(a.employerEsi)} in ESI contributions`
+      : '',
+  ].filter(Boolean);
+
   const restOfCtc = [
     a.variable > 0
       ? row('Variable pay', formatRupees(a.variable), 'Paid to you separately, if fully earned')
       : '',
-    a.employerPf > 0
+    inCtc.pf
       ? row('Employer PF', formatRupees(a.employerPf), 'Yours, but locked in your PF account')
       : '',
     a.employerNps > 0
       ? row('Employer NPS', formatRupees(a.employerNps), 'Yours, but locked until retirement')
       : '',
-    a.gratuity > 0
+    inCtc.gratuity
       ? row('Gratuity provision', formatRupees(a.gratuity), 'Paid only when you leave, if eligible')
       : '',
-    a.employerEsi > 0
+    inCtc.esi
       ? row('Employer ESI (3.25%)', formatRupees(a.employerEsi), 'Buys insurance cover, not cash')
       : '',
   ]
@@ -390,16 +409,30 @@ export function renderDetails(result: CalculationResult): string {
     ${notices}
     <div class="grid gap-x-12 gap-y-10 lg:grid-cols-2">
       ${ledger('What you are paid', earnings, { label: 'Gross salary (fixed)', value: formatRupees(a.grossFixed) })}
-      ${ledger('What is deducted', deductions, {
-        label: 'Annual in-hand',
-        value: formatRupees(best.annualTakeHome - a.variable),
-      })}
+      ${ledger(
+        'What is deducted',
+        row('Gross salary (fixed)', formatRupees(a.grossFixed), undefined, true) + deductions,
+        {
+          label: 'Annual in-hand',
+          value: formatRupees(best.annualTakeHome - a.variable),
+        },
+      )}
       ${
-        restOfCtc
-          ? ledger('The rest of your CTC, and where it goes', restOfCtc, {
-              label: 'Total CTC',
-              value: formatRupees(a.ctcComponents),
-            })
+        restOfCtc || onTop.length
+          ? `<div>${
+              restOfCtc
+                ? ledger(
+                    'The rest of your CTC, and where it goes',
+                    row('Gross salary (fixed)', formatRupees(a.grossFixed), undefined, true) +
+                      restOfCtc,
+                    { label: 'Total CTC', value: formatRupees(a.ctcComponents) },
+                  )
+                : '<h3 class="text-base font-medium text-ink">Beyond your CTC</h3>'
+            }${
+              onTop.length
+                ? `<p class="mt-3 text-sm text-ink-2">On top of your CTC, your employer also pays ${joinList(onTop)} a year.</p>`
+                : ''
+            }</div>`
           : ''
       }
       <section aria-labelledby="gratuity-heading">
@@ -434,4 +467,11 @@ function ptHint(monthly: number[]): string | undefined {
     return `₹${usual} a month, ₹${february} in February`;
   }
   return 'Varies during the year';
+}
+
+/** "a", "a and b", "a, b and c" */
+function joinList(items: string[]): string {
+  return items.length <= 1
+    ? (items[0] ?? '')
+    : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
 }

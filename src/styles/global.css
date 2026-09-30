@@ -563,6 +563,11 @@
     text-align: right;
     white-space: nowrap;
   }
+  /* A figure brought forward from another table, so this one visibly adds up to its total. */
+  .ledger tbody tr.ledger-carry th,
+  .ledger tbody tr.ledger-carry td {
+    color: var(--color-ink-3);
+  }
   .ledger tfoot th,
   .ledger tfoot td {
     padding: 0.625rem 0 0;
