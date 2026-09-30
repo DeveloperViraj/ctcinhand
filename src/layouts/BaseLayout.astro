@@ -3,6 +3,17 @@ import { Font } from 'astro:assets';
 import { SITE } from '../config/site';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import { ogImagePath, OG_HEIGHT, OG_WIDTH } from '../lib/og';
+import {
+  absolute,
+  breadcrumbList,
+  pagePath,
+  organization,
+  webPage,
+  website,
+  type Crumb,
+  type JsonLdNode,
+} from '../lib/seo';
 import '../styles/global.css';
 
 interface Props {
@@ -11,12 +22,50 @@ interface Props {
   /** Error pages set this so they never enter the index. */
   noindex?: boolean;
   ogType?: 'website' | 'article';
+  /** Social card slug from src/lib/og-cards.ts. */
+  ogImage?: string;
+  /** Trail from the home page to this page, inclusive. Omit on the home page. */
+  breadcrumbs?: readonly Crumb[];
+  /** Page-specific structured data, merged into the site-wide graph. */
+  schema?: readonly JsonLdNode[];
+  datePublished?: string;
+  dateModified?: string;
 }
 
-const { title, description, noindex = false, ogType = 'website' } = Astro.props;
-const canonicalPath = Astro.url.pathname.replace(/(\.html|\/)$/, '') || '/';
-const canonical = new URL(canonicalPath, Astro.site);
+const {
+  title,
+  description,
+  noindex = false,
+  ogType = 'website',
+  ogImage = 'default',
+  breadcrumbs,
+  schema = [],
+  datePublished,
+  dateModified,
+} = Astro.props;
+const canonicalPath = pagePath(Astro.url.pathname);
+const canonical = absolute(canonicalPath);
 const fullTitle = title.includes(SITE.name) ? title : `${title} | ${SITE.name}`;
+const image = absolute(ogImagePath(ogImage));
+
+const graph = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    organization(),
+    website(),
+    webPage({
+      url: canonical,
+      title: fullTitle,
+      description,
+      hasBreadcrumb: Boolean(breadcrumbs?.length),
+      image,
+      datePublished,
+      dateModified,
+    }),
+    ...(breadcrumbs?.length ? [breadcrumbList(breadcrumbs, canonical)] : []),
+    ...schema,
+  ],
+};
 ---
 
 <!doctype html>
@@ -38,7 +87,15 @@ const fullTitle = title.includes(SITE.name) ? title : `${title} | ${SITE.name}`;
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:locale" content="en_IN" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content={image} />
+    <meta property="og:image:width" content={String(OG_WIDTH)} />
+    <meta property="og:image:height" content={String(OG_HEIGHT)} />
+    <meta property="og:image:alt" content={fullTitle} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={image} />
+    {!noindex && (
+      <script type="application/ld+json" set:html={JSON.stringify(graph)} is:inline></script>
+    )}
 
     <Font cssVariable="--font-plex" preload />
 

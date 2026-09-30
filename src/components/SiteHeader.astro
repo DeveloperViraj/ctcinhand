@@ -1,9 +1,10 @@
 ---
 import { SITE } from '../config/site';
+import { pagePath } from '../lib/seo';
 import ThemeToggle from './ThemeToggle.astro';
 import Logo from './Logo.astro';
 
-const path = Astro.url.pathname.replace(/(\.html|\/)$/, '') || '/';
+const path = pagePath(Astro.url.pathname);
 const nav = [
   { href: '/', label: 'Calculator' },
   { href: '/how-it-works', label: 'How it works' },

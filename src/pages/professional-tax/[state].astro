@@ -71,7 +71,14 @@ const rows = categories.flatMap((category) =>
 const title = `Professional tax in ${name} (${SITE.shortYearLabel})`;
 ---
 
-<DocLayout title={title} description={page.summary} updated="2026-09-25">
+<DocLayout
+  title={title}
+  description={page.summary}
+  updated="2026-09-25"
+  parents={[{ name: 'Professional tax', path: '/professional-tax' }]}
+  ogImage={`professional-tax-${page.code.toLowerCase()}`}
+  about={['Professional tax', name]}
+>
   <p>{page.summary}</p>
 
   <h2>How much you pay</h2>

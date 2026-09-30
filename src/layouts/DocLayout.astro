@@ -1,15 +1,41 @@
 ---
 import BaseLayout from './BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { absolute, article, pagePath, type Crumb, type JsonLdNode } from '../lib/seo';
+import { ogImagePath } from '../lib/og';
 
 interface Props {
   title: string;
   description: string;
   /** ISO date the content was last materially changed. */
   updated?: string;
+  /** ISO date the page first went live. Defaults to `updated`. */
+  published?: string;
   noindex?: boolean;
+  /** Trail above this page, e.g. [{ name: 'Professional tax', path: '/professional-tax' }]. */
+  parents?: readonly Crumb[];
+  ogImage?: string;
+  /** Extra structured data for this page (a Dataset, for example). */
+  schema?: readonly JsonLdNode[];
+  /** Topics for the Article node. */
+  about?: string[];
 }
 
-const { title, description, updated, noindex } = Astro.props;
+const {
+  title,
+  description,
+  updated,
+  published = updated,
+  noindex,
+  parents = [],
+  ogImage = 'default',
+  schema = [],
+  about,
+} = Astro.props;
+
+const path = pagePath(Astro.url.pathname);
+const breadcrumbs: Crumb[] = [{ name: 'Home', path: '/' }, ...parents, { name: title, path }];
+
 const updatedLabel = updated
   ? new Date(`${updated}T00:00:00+05:30`).toLocaleDateString('en-IN', {
       day: 'numeric',
@@ -18,12 +44,39 @@ const updatedLabel = updated
       timeZone: 'Asia/Kolkata',
     })
   : undefined;
+
+// Legal and contact pages carry no date and are not articles; explainers are.
+const articleNode =
+  updated && published
+    ? [
+        article({
+          url: absolute(path),
+          headline: title,
+          description,
+          image: absolute(ogImagePath(ogImage)),
+          datePublished: published,
+          dateModified: updated,
+          about,
+        }),
+      ]
+    : [];
 ---
 
-<BaseLayout title={title} description={description} noindex={noindex} ogType="article">
-  <article class="mx-auto max-w-6xl px-4 pt-10 pb-4 sm:px-6 sm:pt-14">
+<BaseLayout
+  title={title}
+  description={description}
+  noindex={noindex}
+  ogType="article"
+  ogImage={ogImage}
+  breadcrumbs={breadcrumbs}
+  schema={[...articleNode, ...schema]}
+  datePublished={published}
+  dateModified={updated}
+>
+  <article class="mx-auto max-w-6xl px-4 pt-8 pb-4 sm:px-6 sm:pt-12">
     <header class="max-w-[68ch]">
-      <h1 class="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{title}</h1>
+      <Breadcrumbs crumbs={breadcrumbs} />
+      <h1 class="mt-4 text-2xl font-medium tracking-tight text-ink sm:text-3xl">{title}</h1>
       {updatedLabel && (
         <p class="mt-2 text-sm text-ink-3">
           Last updated <time datetime={updated}>{updatedLabel}</time>

@@ -35,41 +35,34 @@ const faqs = [
   },
 ];
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'WebApplication',
-      name: `${SITE.name} CTC Calculator`,
-      url: SITE.url,
-      applicationCategory: 'FinanceApplication',
-      operatingSystem: 'Any',
-      description: `Convert CTC to monthly in-hand salary for ${SITE.shortYearLabel}, comparing the new and old tax regimes.`,
-      offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' },
-      isAccessibleForFree: true,
-    },
-    {
-      '@type': 'FAQPage',
-      mainEntity: faqs.map((f) => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
-  ],
-};
+const schema = [
+  {
+    '@type': 'WebApplication',
+    name: `${SITE.name} CTC Calculator`,
+    '@id': `${SITE.url}/#calculator`,
+    url: SITE.url,
+    applicationCategory: 'FinanceApplication',
+    operatingSystem: 'Any',
+    description: `Convert CTC to monthly in-hand salary for ${SITE.shortYearLabel}, comparing the new and old tax regimes.`,
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' },
+    isAccessibleForFree: true,
+  },
+  {
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
 ---
 
 <BaseLayout
   title={`CTC to In-Hand Salary Calculator ${SITE.shortYearLabel}`}
+  schema={schema}
   description="Work out your monthly in-hand salary from CTC for FY 2026-27. Both tax regimes side by side, with PF, ESI, gratuity, state professional tax and the Labour Code wage rule. Free, private, no sign-up."
 >
-  <script
-    type="application/ld+json"
-    slot="head"
-    set:html={JSON.stringify(jsonLd)}
-    is:inline
-  ></script>
   <section class="mx-auto max-w-6xl px-4 pt-8 pb-6 sm:px-6 sm:pt-12 sm:pb-8">
     <h1 class="max-w-3xl text-2xl font-medium tracking-tight text-ink sm:text-3xl">
       CTC to in-hand salary calculator
