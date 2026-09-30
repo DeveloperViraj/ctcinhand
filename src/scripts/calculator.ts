@@ -494,7 +494,7 @@ export function mountCalculator(): void {
   el.exportPdf.addEventListener('click', () =>
     busy(el.exportPdf, async () => {
       const { exportPdf } = await import('./export-pdf');
-      await exportPdf(calculate(state.input));
+      await exportPdf(calculate(state.input), { shareUrl: shareUrl() });
     }),
   );
 
