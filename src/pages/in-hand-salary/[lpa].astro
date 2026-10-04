@@ -5,6 +5,7 @@
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import Byline from '../../components/Byline.astro';
 import { SITE } from '../../config/site';
 import {
   bracketData,
@@ -92,6 +93,7 @@ const pfDifference = best.monthlyTakeHome - fullPf.monthly;
         <strong class="font-medium text-ink">{monthly} a month</strong>, or{' '}
         {formatRupees(best.annualTakeHome)} a year, under the {regimeName}.
       </p>
+      <Byline updated={UPDATED} />
       <p class="mt-3 text-sm text-ink-3">
         {SITE.taxYearLabel}. Assumes Basic at half of CTC, PF capped at the ₹15,000 wage ceiling,
         gratuity and employer PF inside the CTC, and Karnataka professional tax.{' '}

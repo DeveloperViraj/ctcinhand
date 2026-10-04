@@ -1,0 +1,37 @@
+---
+/**
+ * "By <author>. Last updated <date>." The author part appears only once src/config/author.ts names
+ * a real person; until then the line carries the date alone.
+ */
+import { AUTHOR } from '../config/author';
+import { authorPath } from '../lib/seo';
+
+interface Props {
+  /** ISO date the content last changed materially. */
+  updated: string;
+}
+
+const { updated } = Astro.props;
+const label = new Date(`${updated}T00:00:00+05:30`).toLocaleDateString('en-IN', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'Asia/Kolkata',
+});
+---
+
+<p class="mt-2 text-sm text-ink-3">
+  {AUTHOR && (
+    <>
+      By{' '}
+      <a
+        href={authorPath(AUTHOR)}
+        class="text-ink-2 underline decoration-dashed underline-offset-4 hover:text-ink"
+      >
+        {AUTHOR.name}
+      </a>
+      .{' '}
+    </>
+  )}
+  Last updated <time datetime={updated}>{label}</time>.
+</p>

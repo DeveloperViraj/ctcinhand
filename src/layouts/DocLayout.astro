@@ -1,6 +1,7 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
+import Byline from '../components/Byline.astro';
 import { absolute, article, pagePath, type Crumb, type JsonLdNode } from '../lib/seo';
 import { ogImagePath } from '../lib/og';
 
@@ -36,15 +37,6 @@ const {
 const path = pagePath(Astro.url.pathname);
 const breadcrumbs: Crumb[] = [{ name: 'Home', path: '/' }, ...parents, { name: title, path }];
 
-const updatedLabel = updated
-  ? new Date(`${updated}T00:00:00+05:30`).toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      timeZone: 'Asia/Kolkata',
-    })
-  : undefined;
-
 // Legal and contact pages carry no date and are not articles; explainers are.
 const articleNode =
   updated && published
@@ -77,11 +69,7 @@ const articleNode =
     <header class="max-w-[68ch]">
       <Breadcrumbs crumbs={breadcrumbs} />
       <h1 class="mt-4 text-2xl font-medium tracking-tight text-ink sm:text-3xl">{title}</h1>
-      {updatedLabel && (
-        <p class="mt-2 text-sm text-ink-3">
-          Last updated <time datetime={updated}>{updatedLabel}</time>
-        </p>
-      )}
+      {updated && <Byline updated={updated} />}
     </header>
     <div class="prose-doc mt-8">
       <slot />

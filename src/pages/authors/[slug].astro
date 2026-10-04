@@ -1,0 +1,81 @@
+---
+/**
+ * The author's profile page, marked up as a ProfilePage about a Person. Built only when
+ * src/config/author.ts names someone; otherwise this route produces no page at all.
+ */
+import DocLayout from '../../layouts/DocLayout.astro';
+import { AUTHOR, type Author } from '../../config/author';
+import { SITE } from '../../config/site';
+import { absolute, authorPath } from '../../lib/seo';
+
+export function getStaticPaths() {
+  return AUTHOR ? [{ params: { slug: AUTHOR.slug }, props: { author: AUTHOR } }] : [];
+}
+
+const { author } = Astro.props as { author: Author };
+const url = absolute(authorPath(author));
+const profile = {
+  '@type': 'ProfilePage',
+  '@id': `${url}#profile`,
+  url,
+  name: `${author.name}, ${SITE.name}`,
+  mainEntity: { '@id': `${url}#person` },
+};
+---
+
+<DocLayout
+  title={author.name}
+  description={`${author.name}: ${author.role}. How ${SITE.name}'s figures are researched and checked.`}
+  parents={[{ name: 'About', path: '/about' }]}
+  schema={[profile]}
+>
+  {author.image && (
+    <img
+      src={author.image}
+      alt=""
+      width="96"
+      height="96"
+      class="size-24 rounded-full object-cover"
+      loading="lazy"
+    />
+  )}
+  <p class="text-lg text-ink">{author.role}</p>
+  {author.bio.map((paragraph) => (
+    <p>{paragraph}</p>
+  ))}
+
+  {author.credentials?.length ? (
+    <>
+      <h2>Background</h2>
+      <ul>
+        {author.credentials.map((c) => (
+          <li>{c}</li>
+        ))}
+      </ul>
+    </>
+  ) : null}
+
+  <h2>How the figures are checked</h2>
+  <p>
+    Every rate in the calculator is traced to a primary source (the Income-tax Act, 2025, the
+    Finance Act, EPFO and ESIC notifications, and each state's professional tax law) and the
+    calculation engine is covered by automated tests worked out by hand. Where a figure could not be
+    confirmed from an official source, the site says so rather than guessing.{' '}
+    <a href="/how-it-works">The full method and sources</a>.
+  </p>
+
+  {author.sameAs?.length ? (
+    <>
+      <h2>Elsewhere</h2>
+      <ul>
+        {author.sameAs.map((link) => (
+          <li>
+            <a href={link} rel="me noopener">
+              {link.replace(/^https?:\/\/(www\.)?/, '')}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </>
+  ) : null}
+</DocLayout>

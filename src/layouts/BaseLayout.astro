@@ -1,5 +1,6 @@
 ---
 import { Font } from 'astro:assets';
+import { AUTHOR } from '../config/author';
 import { SITE } from '../config/site';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
@@ -9,6 +10,7 @@ import {
   breadcrumbList,
   pagePath,
   organization,
+  person,
   webPage,
   website,
   type Crumb,
@@ -53,6 +55,7 @@ const graph = {
   '@graph': [
     organization(),
     website(),
+    ...(AUTHOR ? [person(AUTHOR)] : []),
     webPage({
       url: canonical,
       title: fullTitle,
