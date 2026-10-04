@@ -176,3 +176,179 @@ describe('all states', () => {
     }
   });
 });
+
+const months = (code: string, overrides: Partial<PtInput>) =>
+  computeProfessionalTax(code, input(overrides)).monthly;
+const SEP = FY_MONTHS.indexOf('Sep');
+const MAR = FY_MONTHS.indexOf('Mar');
+
+describe('Gujarat (rates from 1 April 2022)', () => {
+  it('nil up to Rs 12,000 a month, then a flat Rs 200 with no February change', () => {
+    expect(computeProfessionalTax('GJ', input({ monthlyGross: 12_000 })).annual).toBe(0);
+    const r = computeProfessionalTax('GJ', input({ monthlyGross: 12_001 }));
+    expect(r.status).toBe('calculated');
+    expect(new Set(r.monthly)).toEqual(new Set([200]));
+    expect(r.annual).toBe(2_400);
+  });
+});
+
+describe('Madhya Pradesh: slabs on annual salary', () => {
+  it('nil up to Rs 2,25,000 a year', () => {
+    expect(computeProfessionalTax('MP', input({ monthlyGross: 18_750 })).annual).toBe(0);
+  });
+
+  it('Rs 125 a month between Rs 2.25 and 3 lakh', () => {
+    const r = computeProfessionalTax('MP', input({ monthlyGross: 20_000 }));
+    expect(new Set(r.monthly)).toEqual(new Set([125]));
+    expect(r.annual).toBe(1_500);
+  });
+
+  it('Rs 166 x 11 + Rs 174 in March between Rs 3 and 4 lakh', () => {
+    const m = months('MP', { monthlyGross: 30_000 });
+    expect(m[MAR]).toBe(174);
+    expect(m[0]).toBe(166);
+    expect(m.reduce((a, b) => a + b, 0)).toBe(2_000);
+  });
+
+  it('Rs 208 x 11 + Rs 212 in March above Rs 4 lakh', () => {
+    const m = months('MP', { monthlyGross: 50_000 });
+    expect(m[MAR]).toBe(212);
+    expect(m[FEB]).toBe(208);
+    expect(m.reduce((a, b) => a + b, 0)).toBe(2_500);
+  });
+});
+
+describe('Assam (Gazette of 2 April 2025)', () => {
+  it('nil up to Rs 15,000, Rs 180 below Rs 25,000, Rs 208 from Rs 25,000', () => {
+    expect(computeProfessionalTax('AS', input({ monthlyGross: 15_000 })).annual).toBe(0);
+    expect(months('AS', { monthlyGross: 15_001 })[0]).toBe(180);
+    expect(months('AS', { monthlyGross: 24_999 })[0]).toBe(180);
+    expect(months('AS', { monthlyGross: 25_000 })[0]).toBe(208);
+    expect(computeProfessionalTax('AS', input({ monthlyGross: 25_000 })).annual).toBe(2_496);
+  });
+
+  it('exempts people over 60 only while gross income stays within Rs 5 lakh', () => {
+    expect(computeProfessionalTax('AS', input({ age: 65, monthlyGross: 30_000 })).annual).toBe(0);
+    expect(computeProfessionalTax('AS', input({ age: 65, monthlyGross: 50_000 })).annual).toBe(
+      2_496,
+    );
+    expect(computeProfessionalTax('AS', input({ age: 59, monthlyGross: 30_000 })).annual).toBe(
+      2_496,
+    );
+  });
+});
+
+describe('Bihar: annual slabs, deducted from September salary', () => {
+  it('nil up to Rs 3 lakh a year', () => {
+    expect(computeProfessionalTax('BR', input({ monthlyGross: 25_000 })).annual).toBe(0);
+  });
+
+  it.each([
+    [30_000, 1_000],
+    [50_000, 2_000],
+    [1_00_000, 2_500],
+  ])('monthly Rs %i pays Rs %i, all of it in September', (monthlyGross, annual) => {
+    const m = months('BR', { monthlyGross });
+    expect(m[SEP]).toBe(annual);
+    expect(m.filter((x) => x > 0)).toHaveLength(1);
+  });
+});
+
+describe('Jharkhand: annual slabs, deducted quarterly', () => {
+  it.each([
+    [25_000, 0],
+    [30_000, 1_200],
+    [60_000, 1_800],
+    [80_000, 2_100],
+    [1_00_000, 2_500],
+  ])('monthly Rs %i pays Rs %i a year', (monthlyGross, annual) => {
+    expect(computeProfessionalTax('JH', input({ monthlyGross })).annual).toBe(annual);
+  });
+
+  it('splits the year into four equal quarterly deductions', () => {
+    const m = months('JH', { monthlyGross: 1_00_000 });
+    expect(m.filter((x) => x > 0)).toEqual([625, 625, 625, 625]);
+    expect(m[MAR]).toBe(625);
+  });
+
+  it('ignores bonus, which the Act excludes from salary', () => {
+    expect(
+      computeProfessionalTax('JH', input({ monthlyGross: 25_000, annualBonus: 3_00_000 })).annual,
+    ).toBe(0);
+  });
+});
+
+describe('Kerala: half-yearly slabs revised from 1 October 2024', () => {
+  it.each([
+    [1_999, 0],
+    [2_500, 640],
+    [6_000, 1_200],
+    [10_000, 1_500],
+    [20_000, 2_000],
+    [21_000, 2_500],
+  ])('monthly Rs %i pays Rs %i a year', (monthlyGross, annual) => {
+    expect(computeProfessionalTax('KL', input({ monthlyGross })).annual).toBe(annual);
+  });
+
+  it('charges once in each half-year', () => {
+    const m = months('KL', { monthlyGross: 50_000 });
+    expect(m[SEP]).toBe(1_250);
+    expect(m[MAR]).toBe(1_250);
+    expect(m.filter((x) => x > 0)).toHaveLength(2);
+  });
+});
+
+describe('Tamil Nadu: set by each local body', () => {
+  it('calculates Greater Chennai Corporation rates for Chennai', () => {
+    const r = computeProfessionalTax('TN', input({ city: 'Chennai', monthlyGross: 50_000 }));
+    expect(r.status).toBe('calculated');
+    expect(r.annual).toBe(2_500);
+    expect(r.monthly[SEP]).toBe(1_250);
+  });
+
+  it.each([
+    [3_500, 0],
+    [5_000, 360],
+    [7_500, 850],
+    [10_000, 1_860],
+    [12_500, 2_050],
+    [12_501, 2_500],
+  ])('Chennai, monthly Rs %i pays Rs %i a year', (monthlyGross, annual) => {
+    expect(computeProfessionalTax('TN', input({ city: 'Chennai', monthlyGross })).annual).toBe(
+      annual,
+    );
+  });
+
+  it('stays unverified for the rest of Tamil Nadu, and says why', () => {
+    const r = computeProfessionalTax('TN', input({ city: 'Other' }));
+    expect(r.status).toBe('unverified');
+    expect(r.note).toMatch(/each town sets its own/);
+  });
+});
+
+describe('Odisha', () => {
+  it('levies nothing from April 2026, after the repeal', () => {
+    const r = computeProfessionalTax('OR', input({ monthlyGross: 1_00_000 }));
+    expect(r.status).toBe('not-levied');
+    expect(r.annual).toBe(0);
+    expect(r.note).toMatch(/abolished professional tax from 1 April 2026/);
+    // Surfaced as a caveat so the calculator explains the zero.
+    expect(r.caveat).toMatch(/Repeal Ordinance/);
+  });
+});
+
+describe('the newly verified states', () => {
+  it('never exceed the Rs 2,500 constitutional cap at any salary or age', () => {
+    for (const state of ['GJ', 'MP', 'AS', 'BR', 'JH', 'KL', 'TN']) {
+      for (const age of [30, 65]) {
+        for (let gross = 0; gross <= 3_00_000; gross += 1_250) {
+          const r = computeProfessionalTax(
+            state,
+            input({ monthlyGross: gross, age, city: 'Chennai' }),
+          );
+          expect(r.annual).toBeLessThanOrEqual(2_500);
+        }
+      }
+    }
+  });
+});

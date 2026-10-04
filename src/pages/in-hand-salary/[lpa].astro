@@ -19,12 +19,14 @@ import { formatCompactRupees, formatNumber, formatRupees } from '../../lib/forma
 import { ogImagePath } from '../../lib/og';
 import { compositionBar, regimeComparison, renderDetails } from '../../lib/render-result';
 import { absolute, article, type Crumb } from '../../lib/seo';
+import { PT_STATE_PAGES } from '../../content/professional-tax';
 
 export function getStaticPaths() {
   return LPA_BRACKETS.map((lpa) => ({ params: { lpa: bracketSlug(lpa) }, props: { lpa } }));
 }
 
-const UPDATED = '2026-09-30';
+const UPDATED = '2026-10-04';
+const GUIDES = new Set(PT_STATE_PAGES.map((p) => p.code));
 const { lpa } = Astro.props;
 const data = bracketData(lpa);
 const { result, breakEven, metroRent, fullPf } = data;
@@ -102,7 +104,9 @@ const pfDifference = best.monthlyTakeHome - fullPf.monthly;
 
     <div class="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:gap-8">
       <section class="card p-5 sm:p-6" aria-labelledby="summary-heading">
-        <h2 id="summary-heading" class="sr-only">Summary</h2>
+        <h2 id="summary-heading" class="sr-only">
+          Summary
+        </h2>
         <p class="text-sm text-ink-2">In hand per month</p>
         <p class="mt-1 text-figure font-medium tabular-nums text-ink">
           <span class="cur">₹</span>
@@ -202,7 +206,7 @@ const pfDifference = best.monthlyTakeHome - fullPf.monthly;
             {data.states.map((row) => (
               <tr>
                 <td>
-                  {['MH', 'KA', 'TS', 'WB', 'AP', 'PB'].includes(row.code) ? (
+                  {GUIDES.has(row.code) ? (
                     <a href={`/professional-tax/${row.code.toLowerCase()}`}>{row.name}</a>
                   ) : (
                     row.name

@@ -39,11 +39,16 @@ const STATE_ROWS: { code: string; city: string }[] = [
   { code: 'MH', city: 'Mumbai' },
   { code: 'TS', city: 'Hyderabad' },
   { code: 'WB', city: 'Kolkata' },
+  { code: 'TN', city: 'Chennai' },
+  { code: 'GJ', city: 'Ahmedabad' },
+  { code: 'KL', city: 'Other' },
   { code: 'DL', city: 'Delhi' },
   { code: 'HR', city: 'Other' },
   { code: 'UP', city: 'Other' },
   { code: 'AP', city: 'Other' },
   { code: 'PB', city: 'Other' },
+  { code: 'MP', city: 'Other' },
+  { code: 'OR', city: 'Other' },
 ];
 
 export interface StateRow {

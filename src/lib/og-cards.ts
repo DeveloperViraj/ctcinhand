@@ -19,7 +19,7 @@ export function allOgCards(): OgCard[] {
     { slug: 'professional-tax', title: 'Professional tax by state, month by month' },
     ...PT_STATE_PAGES.map((page) => ({
       slug: `professional-tax-${page.code.toLowerCase()}`,
-      title: `Professional tax in ${names.get(page.code)}, month by month`,
+      title: `Professional tax in ${page.place ?? names.get(page.code)}, month by month`,
     })),
     { slug: 'in-hand-salary', title: 'In-hand salary for every CTC from 3 to 100 LPA' },
     { slug: 'marginal-relief', title: 'Marginal relief above ₹12 lakh, worked out to the rupee' },

@@ -10,7 +10,7 @@
 
 import type { CalculationResult, RegimeBreakdown } from './tax/calculate';
 import { formatCompactRupees, formatNumber, formatRupees } from './format';
-import { FY_MONTHS } from './tax/professional-tax';
+import { describePtPattern } from './pt-pattern';
 import type { Regime } from './tax/rates';
 
 const escape = (s: string) =>
@@ -340,7 +340,9 @@ export function renderDetails(result: CalculationResult): string {
         )
       : '',
     s.esi.applicable ? row('ESI (employee, 0.75%)', minus(s.esi.employee * 12)) : '',
-    pt.annual > 0 ? row(pt.label, minus(pt.annual), ptHint(pt.monthly)) : '',
+    pt.annual > 0
+      ? row(pt.label, minus(pt.annual), describePtPattern(pt.monthly, formatRupees))
+      : '',
     row(`Income tax (${REGIME_LABEL[result.better].toLowerCase()})`, minus(best.tax.totalTax)),
   ]
     .filter(Boolean)
@@ -455,20 +457,6 @@ export function renderDetails(result: CalculationResult): string {
       </div>
     </details>
   </div>`;
-}
-
-function ptHint(monthly: number[]): string | undefined {
-  const unique = [...new Set(monthly)];
-  if (unique.length <= 1) return undefined;
-  const february = monthly[FY_MONTHS.indexOf('Feb')];
-  const usual = monthly[0];
-  if (
-    february !== usual &&
-    new Set(monthly.filter((_, i) => i !== FY_MONTHS.indexOf('Feb'))).size === 1
-  ) {
-    return `₹${usual} a month, ₹${february} in February`;
-  }
-  return 'Varies during the year';
 }
 
 /** "a", "a and b", "a, b and c" */

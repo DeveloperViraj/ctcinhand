@@ -12,8 +12,8 @@ const unverified = STATES.filter((s) => s.pt === 'unverified');
 
 <DocLayout
   title={`Professional tax by state (${SITE.shortYearLabel})`}
-  description="Which Indian states charge professional tax, how much, and which charge nothing. Includes the February rule in Maharashtra and Karnataka, West Bengal's mid-year change, and Punjab's development tax."
-  updated="2026-09-25"
+  description="Which Indian states charge professional tax, how much, and which charge nothing in 2026-27. Includes the February rule in Maharashtra and Karnataka, West Bengal's mid-year change, Odisha's repeal and Bihar's September deduction."
+  updated="2026-10-04"
   ogImage="professional-tax"
   about={['Professional tax']}
 >
@@ -22,7 +22,7 @@ const unverified = STATES.filter((s) => s.pt === 'unverified');
     Constitution caps it at <strong>&#8377;2,500 a year</strong>, but the slabs, the exemptions and
     even the name differ from state to state.
   </p>
-  <p>Three things catch most calculators out:</p>
+  <p>A few things catch most calculators out:</p>
   <ul>
     <li>
       <strong>February is different</strong> in Maharashtra and Karnataka, where the monthly amount
@@ -35,6 +35,15 @@ const unverified = STATES.filter((s) => s.pt === 'unverified');
     <li>
       <strong>Punjab charges &#8377;200 a month</strong> under a differently named Act, and is often
       wrongly listed as a state with no professional tax.
+    </li>
+    <li>
+      <strong>Odisha abolished professional tax</strong> from 1 April 2026, by an Ordinance
+      published on 21 April 2026.
+    </li>
+    <li>
+      <strong>The calendar differs.</strong> Bihar takes the whole year's tax from September's
+      salary, Jharkhand deducts quarterly, Kerala and Chennai half-yearly, and Madhya Pradesh adds a
+      few rupees to the twelfth month.
     </li>
   </ul>
 
@@ -60,6 +69,12 @@ const unverified = STATES.filter((s) => s.pt === 'unverified');
             </td>
           </tr>
         ))}
+        <tr>
+          <td>Tamil Nadu (Chennai only)</td>
+          <td>
+            <a href="/professional-tax/tn">Slabs and examples</a>
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -70,6 +85,8 @@ const unverified = STATES.filter((s) => s.pt === 'unverified');
   <p>
     Himachal Pradesh is on that list deliberately. It is sometimes reported as having introduced
     professional tax, but the only instrument is a 2005 Bill whose levy was withdrawn that November.
+    Odisha joined the list on 1 April 2026; <a href="/professional-tax/or">what the repeal means</a>
+    .
   </p>
 
   <h2>States we do not calculate</h2>
@@ -80,8 +97,10 @@ const unverified = STATES.filter((s) => s.pt === 'unverified');
   </p>
   <p>{unverified.map((s) => s.name).join(', ')}.</p>
   <p>
-    Tamil Nadu and Kerala are the awkward ones: they levy half-yearly through local bodies rather
-    than on a state-wide monthly schedule, so a single monthly slab table would be wrong for them.
+    Tamil Nadu is the awkward one: each corporation, municipality and panchayat sets its own
+    half-yearly rates, and the state publishes no single table. We calculate Greater Chennai
+    Corporation's rates when you choose Chennai as your city. Kerala, by contrast, uses one
+    statewide table, so it is calculated everywhere.
   </p>
 
   <h2>Does professional tax reduce your income tax?</h2>

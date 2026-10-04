@@ -171,6 +171,7 @@ export function calculate(input: CalculatorInput): CalculationResult {
     // Punjab charges its development tax only to income-tax payers. The basic exemption limit is
     // the lowest threshold at which anyone becomes liable, so it is the safest test to apply.
     liableToIncomeTax: structure.annual.grossFixed + variableAnnual > 2_50_000,
+    city: input.city,
   });
   const professionalTax: PtResult =
     input.ptOverrideMonthly !== null && input.ptOverrideMonthly >= 0

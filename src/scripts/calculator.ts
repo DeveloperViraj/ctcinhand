@@ -11,7 +11,7 @@ import { morphInto } from '../lib/morph';
 import { renderDetails, renderSummary } from '../lib/render-result';
 import { fromPosition, toPosition, type SliderScale } from '../lib/slider-scale';
 import { calculate, type CalculatorInput, type ComponentValue } from '../lib/tax/calculate';
-import { STATES } from '../lib/tax/professional-tax';
+import { STATES, type PtResult } from '../lib/tax/professional-tax';
 import { clearState, loadState, saveState } from '../lib/storage';
 import { DEFAULT_STATE, decodeState, encodeState, type CalculatorState } from '../lib/url-state';
 
@@ -213,17 +213,20 @@ export function mountCalculator(): void {
     el.advanced.hidden = !advanced;
   }
 
-  function updatePtStatus() {
-    const info = stateByCode.get(state.input.stateCode);
-    if (!info) return;
-    el.ptStatus.textContent =
-      info.pt === 'not-levied'
+  /** Describes what was actually calculated, so Chennai reads as verified and the rest of Tamil Nadu does not. */
+  function updatePtStatus(pt: PtResult) {
+    const overridden = state.input.ptOverrideMonthly !== null;
+    el.ptStatus.textContent = overridden
+      ? 'Using the professional tax you entered.'
+      : pt.status === 'not-levied'
         ? 'No professional tax here.'
-        : info.pt === 'verified'
-          ? 'Professional tax slabs verified.'
-          : 'Slabs not verified: enter yours in advanced mode.';
+        : pt.status === 'unverified'
+          ? stateByCode.get(state.input.stateCode)?.code === 'TN'
+            ? 'Verified for Chennai only: enter yours in advanced mode.'
+            : 'Slabs not verified: enter yours in advanced mode.'
+          : 'Professional tax slabs verified.';
     el.ptStatus.className = `mt-1.5 min-h-[1.125rem] text-xs ${
-      info.pt === 'unverified' ? 'text-warn-ink' : 'text-ink-3'
+      pt.status === 'unverified' && !overridden ? 'text-warn-ink' : 'text-ink-3'
     }`;
   }
 
@@ -388,7 +391,7 @@ export function mountCalculator(): void {
     const next = computed.errors.length ? 0 : computed.regimes[computed.better].monthlyTakeHome;
     animateHeadline(next);
     showDelta(previous, next);
-    updatePtStatus();
+    updatePtStatus(computed.professionalTax);
     watchResultVisibility();
     el.special.disabled = el.specialUnit.value === 'balance';
 

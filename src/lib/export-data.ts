@@ -5,7 +5,7 @@
 
 import { SITE } from '../config/site';
 import type { CalculationResult } from './tax/calculate';
-import { FY_MONTHS } from './tax/professional-tax';
+import { describePtPattern } from './pt-pattern';
 import type { Regime } from './tax/rates';
 
 export interface ExportRow {
@@ -167,12 +167,5 @@ export function monthlyInHand(result: CalculationResult): number {
  * statute citation in `PtResult.note`. Undefined when every month is the same.
  */
 export function ptHint(monthly: number[]): string | undefined {
-  if (new Set(monthly).size <= 1) return undefined;
-  const feb = FY_MONTHS.indexOf('Feb');
-  const usual = monthly[0];
-  const onlyFebruaryDiffers =
-    monthly[feb] !== usual && new Set(monthly.filter((_, i) => i !== feb)).size === 1;
-  return onlyFebruaryDiffers
-    ? `Rs ${usual} a month, Rs ${monthly[feb]} in February`
-    : 'Varies during the year';
+  return describePtPattern(monthly, (amount) => `Rs ${amount.toLocaleString('en-IN')}`);
 }

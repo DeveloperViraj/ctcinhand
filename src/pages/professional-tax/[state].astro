@@ -2,19 +2,15 @@
 import DocLayout from '../../layouts/DocLayout.astro';
 import { SITE } from '../../config/site';
 import { PT_STATE_PAGES } from '../../content/professional-tax';
-import {
-  computeProfessionalTax,
-  FY_MONTHS,
-  STATES,
-  type PtCategory,
-} from '../../lib/tax/professional-tax';
+import { computeProfessionalTax, STATES, type PtCategory } from '../../lib/tax/professional-tax';
 import { formatRupees } from '../../lib/format';
+import { describePtPattern } from '../../lib/pt-pattern';
 
 export function getStaticPaths() {
   const byCode = new Map(STATES.map((s) => [s.code, s]));
   return PT_STATE_PAGES.map((page) => ({
     params: { state: page.code.toLowerCase() },
-    props: { page, name: byCode.get(page.code)!.name },
+    props: { page, name: page.place ?? byCode.get(page.code)!.name },
   }));
 }
 
@@ -23,46 +19,22 @@ const { page, name } = Astro.props;
 /** Example salaries, computed by the calculator itself so the table cannot drift from it. */
 const EXAMPLES = [15_000, 25_000, 50_000, 1_00_000];
 
-const FEB = FY_MONTHS.indexOf('Feb');
-const OCT = FY_MONTHS.indexOf('Oct');
-
-/** Turns twelve monthly amounts into a sentence, covering the February and mid-year cases. */
-function describePattern(monthly: number[]): string {
-  const distinct = new Set(monthly);
-  if (distinct.size === 1) return `${formatRupees(monthly[0])} a month`;
-
-  const withoutFeb = monthly.filter((_, i) => i !== FEB);
-  if (new Set(withoutFeb).size === 1) {
-    return `${formatRupees(withoutFeb[0])} a month, ${formatRupees(monthly[FEB])} in February`;
-  }
-
-  const firstHalf = new Set(monthly.slice(0, OCT));
-  const secondHalf = new Set(monthly.slice(OCT));
-  if (firstHalf.size === 1 && secondHalf.size === 1) {
-    const from = formatRupees(monthly[0]);
-    const to = monthly[OCT] === 0 ? 'nothing' : `${formatRupees(monthly[OCT])} a month`;
-    return `${from} a month until September, then ${to}`;
-  }
-
-  return FY_MONTHS.map((m, i) => `${m} ${formatRupees(monthly[i])}`)
-    .filter((_, i) => i === 0 || monthly[i] !== monthly[i - 1])
-    .join(', then ');
-}
 const categories: PtCategory[] = page.code === 'MH' ? ['men', 'women'] : ['men'];
 
 const rows = categories.flatMap((category) =>
-  EXAMPLES.map((monthlyGross) => {
+  (page.examples ?? EXAMPLES).map((monthlyGross) => {
     const result = computeProfessionalTax(page.code, {
       monthlyGross,
       annualBonus: 0,
       age: 30,
       category,
       liableToIncomeTax: monthlyGross * 12 > 2_50_000,
+      city: page.city,
     });
     return {
       category,
       monthlyGross,
-      pattern: describePattern(result.monthly),
+      pattern: describePtPattern(result.monthly, formatRupees, true),
       annual: result.annual,
     };
   }),
@@ -74,7 +46,7 @@ const title = `Professional tax in ${name} (${SITE.shortYearLabel})`;
 <DocLayout
   title={title}
   description={page.summary}
-  updated="2026-09-25"
+  updated="2026-10-04"
   parents={[{ name: 'Professional tax', path: '/professional-tax' }]}
   ogImage={`professional-tax-${page.code.toLowerCase()}`}
   about={['Professional tax', name]}

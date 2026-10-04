@@ -18,6 +18,12 @@ export interface PtStatePage {
   authority: string;
   /** Anything a reader should treat with caution. */
   caveat?: string;
+  /** Where the page is about one city rather than the whole state (Tamil Nadu: Chennai). */
+  place?: string;
+  /** City passed to the engine for the worked examples, for city-level rates. */
+  city?: string;
+  /** Monthly salaries for the worked examples, where the defaults would all land in one band. */
+  examples?: number[];
 }
 
 export const PT_STATE_PAGES: readonly PtStatePage[] = [
@@ -124,5 +130,173 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
       'Punjab State Development Tax Act 2018 (Punjab Act 11 of 2018), still in force in 2026.',
     caveat:
       'Punjab has not published a readable clarification of the income threshold since the Income-tax Act, 2025 replaced the 1961 Act. We apply the levy above the basic exemption limit.',
+  },
+  {
+    code: 'GJ',
+    examples: [12_000, 12_500, 50_000],
+    summary:
+      'Gujarat charges a flat Rs 200 a month on salaries above Rs 12,000 a month, and nothing below. There is no February adjustment, so a full year comes to Rs 2,400.',
+    salaryBasis:
+      'Monthly salary or wages. Where pay is not monthly, the amount actually paid for a month is used.',
+    rules: [
+      'Nothing on a monthly salary up to Rs 12,000.',
+      'Rs 200 a month above Rs 12,000, every month including February: Rs 2,400 a year.',
+      'These rates apply from 1 April 2022. The older Rs 80 and Rs 150 bands that many sites still show were removed then.',
+      'The same rates apply whether your employer is a government, a public sector undertaking or a private company.',
+    ],
+    exemptions: [
+      'We have not confirmed this state’s list of exempt employees from an official source. Your employer’s payroll team will know.',
+    ],
+    authority:
+      'Gujarat State Tax on Professions, Trades, Callings and Employments Act 1976, Schedule Entry 1, at the rates effective 1 April 2022 (Commercial Tax Department rate schedule, updated 27 June 2024).',
+  },
+  {
+    code: 'MP',
+    examples: [18_000, 20_000, 30_000, 50_000],
+    summary:
+      'Madhya Pradesh sets its slabs on your annual salary, not your monthly pay. Above Rs 4 lakh a year you pay Rs 2,500: Rs 208 a month for eleven months and Rs 212 in the twelfth.',
+    salaryBasis:
+      'Annual salary or wages. We use your regular salary for the year and leave out variable pay.',
+    rules: [
+      'Nothing on an annual salary up to Rs 2,25,000.',
+      'Rs 1,500 a year (Rs 125 a month) from Rs 2,25,001 to Rs 3,00,000.',
+      'Rs 2,000 a year from Rs 3,00,001 to Rs 4,00,000: Rs 166 a month for eleven months and Rs 174 in the twelfth.',
+      'Rs 2,500 a year above Rs 4,00,000: Rs 208 a month for eleven months and Rs 212 in the twelfth.',
+    ],
+    exemptions: [
+      'We have not confirmed this state’s list of exempt employees from an official source. Your employer’s payroll team will know.',
+    ],
+    authority:
+      'Madhya Pradesh Vritti Kar Adhiniyam 1995 (Act 16 of 1995), Schedule Entry 1, as published by the Commercial Tax Department.',
+    caveat:
+      'The schedule tests annual salary or wages. If your employer counts a large bonus as salary, you could fall in a higher band than shown here.',
+  },
+  {
+    code: 'AS',
+    examples: [15_000, 20_000, 25_000, 50_000],
+    summary:
+      'Assam raised its exemption limit to Rs 15,000 a month from April 2025. Above that it charges Rs 180 a month, and Rs 208 a month from Rs 25,000, for a yearly maximum of Rs 2,496.',
+    salaryBasis: 'Monthly salary or wages.',
+    rules: [
+      'Nothing on a monthly salary up to Rs 15,000.',
+      'Rs 180 a month from Rs 15,001 to just under Rs 25,000.',
+      'Rs 208 a month from Rs 25,000, every month: Rs 2,496 for a full year.',
+      'The April 2025 notification removed the old Rs 150 band for salaries between Rs 10,000 and Rs 15,000. Some sites misquote the top rate as Rs 200; the Gazette says Rs 208.',
+    ],
+    exemptions: [
+      'People above 60 whose gross income for the year does not exceed Rs 5 lakh (notification FTX.76/2006/2)',
+    ],
+    authority:
+      'Assam Professions, Trades, Callings and Employments Taxation Act 1947, Schedule Entry 1, as substituted by notification eCF No. 169350/124 of 1 April 2025 (Assam Gazette Extraordinary No. 139, 2 April 2025).',
+  },
+  {
+    code: 'BR',
+    examples: [25_000, 30_000, 50_000, 1_00_000],
+    summary:
+      'Bihar charges professional tax once a year, on your annual income: Rs 1,000, Rs 2,000 or Rs 2,500. Your employer takes the whole amount from your September salary.',
+    salaryBasis:
+      'Income for the year. We use your regular salary; other income could move you into a higher band.',
+    rules: [
+      'Nothing on income up to Rs 3,00,000 a year.',
+      'Rs 1,000 a year from Rs 3,00,001 to Rs 5,00,000.',
+      'Rs 2,000 a year from Rs 5,00,001 to Rs 10,00,000.',
+      'Rs 2,500 a year above Rs 10,00,000.',
+      'Under rule 5 of the 2011 Rules the employer deducts the full year’s tax from the salary for September and pays it in by 15 November, so one month’s pay is noticeably lower.',
+    ],
+    exemptions: [
+      'We have not confirmed this state’s list of exempt employees from an official source. Your employer’s payroll team will know.',
+    ],
+    authority:
+      'Bihar Tax on Professions, Trades, Callings and Employments Act 2011, Schedule, and the Bihar Professional Tax Rules 2011, rule 5.',
+    caveat:
+      'The Act taxes income rather than salary alone. We apply the bands to your salary; if you have other income, check your band with your employer.',
+  },
+  {
+    code: 'JH',
+    examples: [25_000, 30_000, 60_000, 80_000, 1_00_000],
+    summary:
+      'Jharkhand sets five bands on annual salary, from Rs 1,200 to Rs 2,500 a year, and collects the tax every quarter.',
+    salaryBasis:
+      'Annual salary or wages, including perquisites but excluding bonus in any form, gratuity and pension.',
+    rules: [
+      'Nothing on an annual salary up to Rs 3,00,000.',
+      'Rs 1,200 a year from Rs 3,00,001 to Rs 5,00,000.',
+      'Rs 1,800 a year from Rs 5,00,001 to Rs 8,00,000.',
+      'Rs 2,100 a year from Rs 8,00,001 to Rs 10,00,000.',
+      'Rs 2,500 a year above Rs 10,00,000.',
+      'Rule 15 of the 2012 Rules requires deduction every quarter, and the quarters end in June, September, December and March. Employers choose the month within each quarter.',
+    ],
+    exemptions: [
+      'We have not confirmed this state’s list of exempt employees from an official source. Your employer’s payroll team will know.',
+    ],
+    authority:
+      'Jharkhand Tax on Professions, Trades, Callings and Employments Act 2011, Schedule Entry 1 and section 2(p), with rule 15 of the 2012 Rules, as reproduced by the Commercial Taxes Department.',
+    caveat:
+      'Employers pick the month within each quarter, so your payslip may show the deduction earlier than in our examples. The yearly total is the same.',
+  },
+  {
+    code: 'KL',
+    examples: [1_500, 2_500, 6_000, 10_000, 20_000, 25_000],
+    summary:
+      'Kerala charges professional tax every half-year, on the salary for those six months. Rates at the lower end rose in October 2024; above Rs 1,25,000 a half-year you pay Rs 1,250 each half, Rs 2,500 a year.',
+    salaryBasis: 'Salary for each half-year: April to September, and October to March.',
+    rules: [
+      'Nothing on half-yearly income up to Rs 11,999.',
+      'Rs 320 from Rs 12,000 to Rs 17,999.',
+      'Rs 450 from Rs 18,000 to Rs 29,999.',
+      'Rs 600 from Rs 30,000 to Rs 44,999.',
+      'Rs 750 from Rs 45,000 to Rs 99,999.',
+      'Rs 1,000 from Rs 1,00,000 to Rs 1,24,999.',
+      'Rs 1,250 from Rs 1,25,000. These amounts are per half-year, so double them for the year.',
+      'The same table applies in every panchayat, municipality and corporation in the state.',
+    ],
+    exemptions: [
+      'We have not confirmed this state’s list of exempt employees from an official source. Your employer’s payroll team will know.',
+    ],
+    authority:
+      'Kerala Municipality Act 1994 and Kerala Panchayat Raj Act 1994, with rates revised by G.O.(Rt) No. 1149/2024/LSGD of 27 June 2024, effective 1 October 2024, on the Sixth State Finance Commission’s recommendation.',
+    caveat:
+      'Employers choose the month they deduct each half-year’s tax in. Our examples show it in September and March.',
+  },
+  {
+    code: 'TN',
+    examples: [3_500, 5_000, 7_500, 10_000, 12_500, 15_000],
+    place: 'Chennai',
+    city: 'Chennai',
+    summary:
+      'Chennai’s professional tax is set by the Greater Chennai Corporation and charged every half-year. On a salary above Rs 12,500 a month you pay Rs 1,250 each half, Rs 2,500 a year. Elsewhere in Tamil Nadu each town sets its own rates.',
+    salaryBasis: 'Average salary for each half-year: April to September, and October to March.',
+    rules: [
+      'Nothing on half-yearly income up to Rs 21,000.',
+      'Rs 180 from Rs 21,001 to Rs 30,000.',
+      'Rs 425 from Rs 30,001 to Rs 45,000.',
+      'Rs 930 from Rs 45,001 to Rs 60,000.',
+      'Rs 1,025 from Rs 60,001 to Rs 75,000.',
+      'Rs 1,250 above Rs 75,000. These amounts are per half-year; the lower bands rose by about 35% from October 2024.',
+    ],
+    exemptions: [
+      'We have not confirmed this state’s list of exempt employees from an official source. Your employer’s payroll team will know.',
+    ],
+    authority:
+      'Tamil Nadu Urban Local Bodies Act 1998 (as amended in 2022), sections 117-B and 117-C, at the Greater Chennai Corporation rates in its notice of 6 March 2025.',
+    caveat:
+      'Only Greater Chennai Corporation rates are verified. Other corporations, municipalities and panchayats in Tamil Nadu set their own, and the state publishes no single table. Employers choose the month for each half-year’s deduction; our examples show September and March.',
+  },
+  {
+    code: 'OR',
+    summary:
+      'Odisha abolished professional tax from 1 April 2026. Nothing should be deducted from your salary for 2026-27, whether you work for the government or a private company.',
+    salaryBasis: 'Not applicable: the levy no longer exists.',
+    rules: [
+      'The Odisha State Tax on Professions, Trades, Callings and Employments (Repeal) Ordinance, 2026 repealed the 2000 Act with effect from 1 April 2026.',
+      'It was published in the Odisha Gazette on 21 April 2026, and it covers April 2026 salaries even though it came later.',
+      'Tax for earlier years, and any assessments or penalties already raised, remain payable under its savings clause.',
+      'Until the repeal, Odisha charged Rs 125 a month on annual income from Rs 1.6 lakh to Rs 3 lakh, and Rs 200 a month (Rs 300 in the last month) above that.',
+    ],
+    exemptions: ['Everyone, from 1 April 2026'],
+    authority:
+      'Odisha State Tax on Professions, Trades, Callings and Employments (Repeal) Ordinance, 2026, promulgated under Article 213 of the Constitution and published in the Odisha Gazette on 21 April 2026.',
+    caveat:
+      'An Ordinance lapses unless the legislature replaces it with an Act within six weeks of reassembling. We found no report of a replacing Act yet. If your employer is still deducting professional tax in Odisha, ask why.',
   },
 ];

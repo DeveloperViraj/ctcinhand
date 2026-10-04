@@ -2,8 +2,9 @@
  * Professional tax (tax on employment, Constitution Art. 276(2), capped at Rs 2,500 a year).
  *
  * Amounts are computed month by month, April to March, because Indian schedules are not uniform
- * across the year: Maharashtra and Karnataka charge more in February, and West Bengal changes its
- * entire schedule mid-year on 1 October 2026.
+ * across the year: Maharashtra and Karnataka charge more in February, West Bengal changes its
+ * entire schedule mid-year on 1 October 2026, Bihar takes the whole year's tax from September's
+ * salary, Jharkhand collects quarterly, and Kerala and Chennai collect half-yearly.
  *
  * Only states whose current schedule was verified are calculated. Every other levying state returns
  * status 'unverified' so the UI can show Rs 0 with a warning and offer a manual override, rather
@@ -28,8 +29,12 @@ export const FY_MONTHS = [
   'Feb',
   'Mar',
 ] as const;
-const FEBRUARY = 10;
+const JUNE = 2;
+const SEPTEMBER = 5;
 const OCTOBER = 6;
+const DECEMBER = 8;
+const FEBRUARY = 10;
+const MARCH = 11;
 
 /** Maharashtra's schedule has separate "men" and "women" entries and no other category. */
 export type PtCategory = 'men' | 'women';
@@ -46,6 +51,11 @@ export interface PtInput {
    * Everywhere else this is ignored.
    */
   liableToIncomeTax: boolean;
+  /**
+   * The city the person lives in. Used only where professional tax is set by the local body rather
+   * than the state (Tamil Nadu), and only for cities whose rates we have verified.
+   */
+  city?: string;
 }
 
 export type PtStatus = 'calculated' | 'exempt' | 'not-levied' | 'unverified';
@@ -77,6 +87,23 @@ interface Schedule {
 
 const febRate = (normal: number, february: number) => (monthIndex: number) =>
   monthIndex === FEBRUARY ? february : normal;
+
+/**
+ * For states that charge a fixed amount a year but deduct it in instalments. The instalments land
+ * in the given months, and any remainder that does not divide evenly goes into the last one.
+ */
+const spread = (annual: number, months: readonly number[]) => (monthIndex: number) => {
+  const i = months.indexOf(monthIndex);
+  if (i === -1) return 0;
+  const each = Math.floor(annual / months.length);
+  return i === months.length - 1 ? annual - each * (months.length - 1) : each;
+};
+
+/** Half-yearly schedules (Kerala, Chennai) charge each half-year's tax once in that half. */
+const HALVES = [SEPTEMBER] as const;
+const SECOND_HALF = [MARCH] as const;
+const halfYearly = (charge: (halfYear: number) => number) => (halfYear: number, m: number) =>
+  spread(charge(halfYear), HALVES)(m) + spread(charge(halfYear), SECOND_HALF)(m);
 
 /** Picks the first band whose upper bound the salary does not exceed. */
 const band = (bands: readonly (readonly [upTo: number, amount: number])[]) => (salary: number) =>
@@ -162,12 +189,132 @@ const SCHEDULES: Record<string, Schedule> = {
     caveat:
       'Punjab charges this only to employees liable to income tax. We apply it above the basic exemption limit; the state has not published a readable clarification of the threshold under the Income-tax Act, 2025.',
   },
+  GJ: {
+    // Gujarat PT Act 1976, Schedule Entry 1, rates effective 1 April 2022 (Commercial Tax
+    // Department rate schedule, updated 27 June 2024). No February variation.
+    salaryBasis: (i) => i.monthlyGross,
+    monthly: (salary) => (salary > 12_000 ? 200 : 0),
+    source: 'Gujarat PT Act 1976, Schedule Entry 1 (rates from 1 April 2022)',
+  },
+  MP: {
+    // Madhya Pradesh Vritti Kar Adhiniyam 1995, Schedule Entry 1. The slabs are on ANNUAL salary;
+    // the schedule spreads the tax over the year with a slightly larger twelfth instalment.
+    salaryBasis: (i) => i.monthlyGross * 12,
+    monthly: (annual, m) => {
+      if (annual <= 2_25_000) return 0;
+      if (annual <= 3_00_000) return 125;
+      if (annual <= 4_00_000) return m === MARCH ? 174 : 166;
+      return m === MARCH ? 212 : 208;
+    },
+    source: 'Madhya Pradesh Vritti Kar Adhiniyam 1995, Schedule Entry 1',
+    caveat:
+      'Madhya Pradesh sets its slabs on annual salary. We use your regular salary for the year, without variable pay.',
+  },
+  AS: {
+    // Assam PT Act 1947, Schedule Entry 1 as substituted by notification eCF No. 169350/124 of
+    // 1 April 2025 (Assam Gazette Extraordinary No. 139, 2 April 2025).
+    salaryBasis: (i) => i.monthlyGross,
+    monthly: (salary, _m, input) => {
+      // Notification FTX.76/2006/2: people above 60 are exempt if gross income is at most Rs 5 lakh.
+      if (input.age >= 60 && input.monthlyGross * 12 + input.annualBonus <= 5_00_000) return 0;
+      if (salary <= 15_000) return 0;
+      if (salary < 25_000) return 180;
+      return 208;
+    },
+    source: 'Assam PT Act 1947, Schedule Entry 1 (revised 1 April 2025)',
+  },
+  BR: {
+    // Bihar Tax on Professions, Trades, Callings and Employments Act 2011, Schedule; rule 5 of the
+    // 2011 Rules has the employer deduct the whole year's tax from the salary for September.
+    salaryBasis: (i) => i.monthlyGross * 12,
+    monthly: (annual, m) =>
+      spread(
+        band([
+          [3_00_000, 0],
+          [5_00_000, 1_000],
+          [10_00_000, 2_000],
+          [Infinity, 2_500],
+        ])(annual),
+        [SEPTEMBER],
+      )(m),
+    source: 'Bihar Professions Tax Act 2011, Schedule; deducted from September salary (rule 5)',
+    caveat:
+      "Bihar's Act tests your income for the year. We use your regular salary; other income or a large bonus could move you to a higher slab.",
+  },
+  JH: {
+    // Jharkhand Tax on Professions, Trades, Callings and Employments Act 2011, Schedule Entry 1.
+    // s.2(p): salary excludes bonus in any form. Rule 15: deducted every quarter.
+    salaryBasis: (i) => i.monthlyGross * 12,
+    monthly: (annual, m) =>
+      spread(
+        band([
+          [3_00_000, 0],
+          [5_00_000, 1_200],
+          [8_00_000, 1_800],
+          [10_00_000, 2_100],
+          [Infinity, 2_500],
+        ])(annual),
+        [JUNE, SEPTEMBER, DECEMBER, MARCH],
+      )(m),
+    source: 'Jharkhand Professions Tax Act 2011, Schedule Entry 1; deducted quarterly (rule 15)',
+    caveat:
+      "Jharkhand's rules require the tax to be deducted every quarter but let employers choose the month, so we show each quarter's share at the end of the quarter.",
+  },
+  KL: {
+    // Kerala Municipality Act 1994 and Kerala Panchayat Raj Act 1994: one statewide table, revised by
+    // G.O.(Rt) No. 1149/2024/LSGD from 1 October 2024. Charged on each half-year's income.
+    salaryBasis: (i) => i.monthlyGross * 6,
+    monthly: halfYearly(
+      band([
+        [11_999, 0],
+        [17_999, 320],
+        [29_999, 450],
+        [44_999, 600],
+        [99_999, 750],
+        [1_24_999, 1_000],
+        [Infinity, 1_250],
+      ]),
+    ),
+    source: 'Kerala Municipality and Panchayat Raj Acts, rates revised by G.O. 1149/2024/LSGD',
+    caveat:
+      "Kerala charges professional tax for each half-year. Employers choose the month they deduct it in, so we show each half-year's tax in September and March.",
+  },
+};
+
+/**
+ * Professional tax set by a local body rather than the state. Tamil Nadu has no statewide table:
+ * each corporation, municipality and panchayat fixes its own, so only cities whose rates we have
+ * confirmed are calculated. Keyed by state code, then by city as used in the HRA city list.
+ */
+const LOCAL_SCHEDULES: Record<string, Record<string, Schedule>> = {
+  TN: {
+    Chennai: {
+      // Tamil Nadu Urban Local Bodies Act 1998 (amended 2022), s.117-B. Greater Chennai Corporation
+      // rates from the second half of 2024-25 (notice R.D.(HQ).C.No.PT/SPL/2024, 6 March 2025).
+      salaryBasis: (i) => i.monthlyGross * 6,
+      monthly: halfYearly(
+        band([
+          [21_000, 0],
+          [30_000, 180],
+          [45_000, 425],
+          [60_000, 930],
+          [75_000, 1_025],
+          [Infinity, 1_250],
+        ]),
+      ),
+      source: 'Greater Chennai Corporation, Tamil Nadu Urban Local Bodies Act 1998 s.117-B',
+      caveat:
+        "Chennai charges professional tax for each half-year, and employers choose the month they deduct it in, so we show each half-year's tax in September and March. Other Tamil Nadu towns set their own rates.",
+    },
+  },
 };
 
 export interface StateInfo {
   code: string;
   name: string;
   pt: 'verified' | 'not-levied' | 'unverified';
+  /** Replaces the standard explanation where a state needs its own. */
+  note?: string;
 }
 
 /** Every state and union territory, so the dropdown is complete. */
@@ -175,34 +322,44 @@ export const STATES: readonly StateInfo[] = [
   { code: 'AN', name: 'Andaman & Nicobar Islands', pt: 'not-levied' },
   { code: 'AP', name: 'Andhra Pradesh', pt: 'verified' },
   { code: 'AR', name: 'Arunachal Pradesh', pt: 'not-levied' },
-  { code: 'AS', name: 'Assam', pt: 'unverified' },
-  { code: 'BR', name: 'Bihar', pt: 'unverified' },
+  { code: 'AS', name: 'Assam', pt: 'verified' },
+  { code: 'BR', name: 'Bihar', pt: 'verified' },
   { code: 'CH', name: 'Chandigarh', pt: 'not-levied' },
   { code: 'CT', name: 'Chhattisgarh', pt: 'not-levied' },
   { code: 'DH', name: 'Dadra & Nagar Haveli and Daman & Diu', pt: 'not-levied' },
   { code: 'DL', name: 'Delhi', pt: 'not-levied' },
   { code: 'GA', name: 'Goa', pt: 'not-levied' },
-  { code: 'GJ', name: 'Gujarat', pt: 'unverified' },
+  { code: 'GJ', name: 'Gujarat', pt: 'verified' },
   { code: 'HR', name: 'Haryana', pt: 'not-levied' },
   { code: 'HP', name: 'Himachal Pradesh', pt: 'not-levied' },
   { code: 'JK', name: 'Jammu & Kashmir', pt: 'not-levied' },
-  { code: 'JH', name: 'Jharkhand', pt: 'unverified' },
+  { code: 'JH', name: 'Jharkhand', pt: 'verified' },
   { code: 'KA', name: 'Karnataka', pt: 'verified' },
-  { code: 'KL', name: 'Kerala', pt: 'unverified' },
+  { code: 'KL', name: 'Kerala', pt: 'verified' },
   { code: 'LA', name: 'Ladakh', pt: 'not-levied' },
   { code: 'LD', name: 'Lakshadweep', pt: 'not-levied' },
-  { code: 'MP', name: 'Madhya Pradesh', pt: 'unverified' },
+  { code: 'MP', name: 'Madhya Pradesh', pt: 'verified' },
   { code: 'MH', name: 'Maharashtra', pt: 'verified' },
   { code: 'MN', name: 'Manipur', pt: 'unverified' },
   { code: 'ML', name: 'Meghalaya', pt: 'unverified' },
   { code: 'MZ', name: 'Mizoram', pt: 'unverified' },
   { code: 'NL', name: 'Nagaland', pt: 'unverified' },
-  { code: 'OR', name: 'Odisha', pt: 'unverified' },
+  {
+    code: 'OR',
+    name: 'Odisha',
+    pt: 'not-levied',
+    note: 'Odisha abolished professional tax from 1 April 2026: the Repeal Ordinance, 2026 (Odisha Gazette, 21 April 2026) repealed its Professions Tax Act, so nothing is deducted this year.',
+  },
   { code: 'PY', name: 'Puducherry', pt: 'unverified' },
   { code: 'PB', name: 'Punjab', pt: 'verified' },
   { code: 'RJ', name: 'Rajasthan', pt: 'not-levied' },
   { code: 'SK', name: 'Sikkim', pt: 'unverified' },
-  { code: 'TN', name: 'Tamil Nadu', pt: 'unverified' },
+  {
+    code: 'TN',
+    name: 'Tamil Nadu',
+    pt: 'unverified',
+    note: 'In Tamil Nadu each town sets its own professional tax. We calculate Greater Chennai Corporation rates when you choose Chennai as your city; elsewhere, take-home is shown before it, so enter the amount from your payslip for an exact figure.',
+  },
   { code: 'TS', name: 'Telangana', pt: 'verified' },
   { code: 'TR', name: 'Tripura', pt: 'unverified' },
   { code: 'UP', name: 'Uttar Pradesh', pt: 'not-levied' },
@@ -215,7 +372,8 @@ const zeros = () => Array.from({ length: 12 }, () => 0);
 
 export function computeProfessionalTax(stateCode: string, input: PtInput): PtResult {
   const state = byCode.get(stateCode);
-  const schedule = SCHEDULES[stateCode];
+  const schedule =
+    SCHEDULES[stateCode] ?? (input.city ? LOCAL_SCHEDULES[stateCode]?.[input.city] : undefined);
   const label = schedule?.label ?? 'Professional tax';
 
   // Checked before the schedule lookup: states that levy nothing deliberately have no schedule.
@@ -225,16 +383,20 @@ export function computeProfessionalTax(stateCode: string, input: PtInput): PtRes
       monthly: zeros(),
       annual: 0,
       label,
-      note: `${state.name} does not levy professional tax on salaried employees.`,
+      note: state.note ?? `${state.name} does not levy professional tax on salaried employees.`,
+      // A state that stopped levying recently (Odisha) explains itself, so payslip readers know why.
+      caveat: state.note,
     };
   }
-  if (!state || state.pt === 'unverified' || !schedule) {
+  if (!state || !schedule) {
     return {
       status: 'unverified',
       monthly: zeros(),
       annual: 0,
       label,
-      note: `${state?.name ?? 'This state'} levies professional tax, but we have not verified its slabs, so take-home is shown before it. Enter the amount from your payslip for an exact figure (it can never exceed Rs 2,500 a year).`,
+      note:
+        state?.note ??
+        `${state?.name ?? 'This state'} levies professional tax, but we have not verified its slabs, so take-home is shown before it. Enter the amount from your payslip for an exact figure (it can never exceed Rs 2,500 a year).`,
     };
   }
   if (schedule.exemptAge !== undefined && input.age >= schedule.exemptAge) {
