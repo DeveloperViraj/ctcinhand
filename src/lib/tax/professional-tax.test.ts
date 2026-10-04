@@ -352,3 +352,113 @@ describe('the newly verified states', () => {
     }
   });
 });
+
+describe('Tripura (Gazette of 25 July 2018)', () => {
+  it.each([
+    [7_500, 0],
+    [7_501, 150],
+    [15_000, 150],
+    [15_001, 208],
+  ])('monthly Rs %i pays Rs %i a month', (monthlyGross, perMonth) => {
+    expect(new Set(months('TR', { monthlyGross }))).toEqual(new Set([perMonth]));
+  });
+});
+
+describe('Sikkim (Act of 2006)', () => {
+  it.each([
+    [20_000, 0],
+    [20_001, 125],
+    [30_000, 125],
+    [30_001, 150],
+    [40_001, 200],
+  ])('monthly Rs %i pays Rs %i a month', (monthlyGross, perMonth) => {
+    expect(new Set(months('SK', { monthlyGross }))).toEqual(new Set([perMonth]));
+  });
+
+  it('tops out at Rs 2,400 a year', () => {
+    expect(computeProfessionalTax('SK', input({ monthlyGross: 1_00_000 })).annual).toBe(2_400);
+  });
+});
+
+describe('Manipur: annual slabs (Eighth Amendment Act 2012)', () => {
+  it.each([
+    [4_000, 0],
+    [6_000, 1_200],
+    [8_000, 2_000],
+    [10_000, 2_400],
+    [50_000, 2_500],
+  ])('monthly Rs %i pays Rs %i a year', (monthlyGross, annual) => {
+    expect(computeProfessionalTax('MN', input({ monthlyGross })).annual).toBe(annual);
+  });
+
+  it('spreads Rs 2,500 as Rs 208 a month and Rs 212 in March', () => {
+    const m = months('MN', { monthlyGross: 50_000 });
+    expect(m[0]).toBe(208);
+    expect(m[MAR]).toBe(212);
+  });
+});
+
+describe('Mizoram (notification of 11 July 2024)', () => {
+  it.each([
+    [5_000, 0],
+    [8_000, 75],
+    [10_000, 120],
+    [12_000, 150],
+    [15_000, 180],
+    [20_000, 195],
+    [20_001, 208],
+  ])('monthly Rs %i pays Rs %i a month', (monthlyGross, perMonth) => {
+    expect(new Set(months('MZ', { monthlyGross }))).toEqual(new Set([perMonth]));
+  });
+});
+
+describe('Nagaland', () => {
+  it.each([
+    [3_999, 0],
+    [4_500, 35],
+    [6_000, 75],
+    [8_000, 110],
+    [10_000, 180],
+    [12_000, 208],
+  ])('monthly Rs %i pays Rs %i a month', (monthlyGross, perMonth) => {
+    expect(new Set(months('NL', { monthlyGross }))).toEqual(new Set([perMonth]));
+  });
+});
+
+describe('Puducherry: minimum half-yearly rates (2017)', () => {
+  it.each([
+    [16_000, 0],
+    [20_000, 500],
+    [50_000, 1_000],
+    [60_000, 1_500],
+    [80_000, 2_000],
+    [1_00_000, 2_500],
+  ])('monthly Rs %i pays Rs %i a year', (monthlyGross, annual) => {
+    expect(computeProfessionalTax('PY', input({ monthlyGross })).annual).toBe(annual);
+  });
+
+  it('says the rates are minimums', () => {
+    expect(computeProfessionalTax('PY', input({})).caveat).toMatch(/minimum/);
+  });
+});
+
+describe('Meghalaya', () => {
+  it('stays unverified and explains why', () => {
+    const r = computeProfessionalTax('ML', input({}));
+    expect(r.status).toBe('unverified');
+    expect(r.annual).toBe(0);
+    expect(r.note).toMatch(/by notification/);
+  });
+});
+
+describe('the north-eastern states and Puducherry', () => {
+  it('never exceed the Rs 2,500 constitutional cap', () => {
+    for (const state of ['TR', 'SK', 'MN', 'MZ', 'NL', 'PY']) {
+      for (let gross = 0; gross <= 3_00_000; gross += 750) {
+        expect(
+          computeProfessionalTax(state, input({ monthlyGross: gross })).annual,
+        ).toBeLessThanOrEqual(2_500);
+      }
+    }
+  });
+});

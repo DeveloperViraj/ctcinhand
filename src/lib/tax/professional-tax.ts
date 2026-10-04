@@ -279,6 +279,101 @@ const SCHEDULES: Record<string, Schedule> = {
     caveat:
       "Kerala charges professional tax for each half-year. Employers choose the month they deduct it in, so we show each half-year's tax in September and March.",
   },
+  TR: {
+    // Tripura PT Act 1997, Schedule Sl. 1 as revised by notification F.II-1(7)-TAX/99(P-I) of
+    // 25 July 2018 (Tripura Gazette No. 443) and its corrigendum of 30 October 2018 (No. 1031).
+    salaryBasis: (i) => i.monthlyGross,
+    monthly: (salary) =>
+      band([
+        [7_500, 0],
+        [15_000, 150],
+        [Infinity, 208],
+      ])(salary),
+    source: 'Tripura PT Act 1997, Schedule Sl. 1 (revised July 2018)',
+  },
+  SK: {
+    // Sikkim Tax on Professions, Trades, Callings and Employments Act 2006, Schedule Entry 1.
+    salaryBasis: (i) => i.monthlyGross,
+    monthly: (salary) =>
+      band([
+        [20_000, 0],
+        [30_000, 125],
+        [40_000, 150],
+        [Infinity, 200],
+      ])(salary),
+    source: 'Sikkim Tax on Professions Act 2006, Schedule Entry 1',
+    caveat:
+      "We confirmed Sikkim's slabs in the 2006 Act and found no later amendment, but could not reach the state's own rate page to check it is still current.",
+  },
+  MN: {
+    // Manipur PT Act 1981, Schedule Entry A as substituted by the Eighth Amendment Act 2012
+    // (Manipur Gazette Extraordinary No. 199, 31 August 2012). Slabs on annual gross income.
+    salaryBasis: (i) => i.monthlyGross * 12,
+    monthly: (annual, m) =>
+      spread(
+        band([
+          [50_000, 0],
+          [75_000, 1_200],
+          [1_00_000, 2_000],
+          [1_25_000, 2_400],
+          [Infinity, 2_500],
+        ])(annual),
+        FY_MONTHS.map((_, i) => i),
+      )(m),
+    source: 'Manipur PT Act 1981, Schedule Entry A (Eighth Amendment Act 2012)',
+    caveat:
+      'Manipur sets an annual amount and its Act does not fix the instalments, so we spread it evenly over the year with the remainder in March.',
+  },
+  MZ: {
+    // Mizoram PT Act 1995, Schedule Sl. 1 as modified by notification J.17011/1/2017-TAX of
+    // 11 July 2024, which added the Rs 195 band. The top band may instead be paid as Rs 2,500 a year.
+    salaryBasis: (i) => i.monthlyGross,
+    monthly: (salary) =>
+      band([
+        [5_000, 0],
+        [8_000, 75],
+        [10_000, 120],
+        [12_000, 150],
+        [15_000, 180],
+        [20_000, 195],
+        [Infinity, 208],
+      ])(salary),
+    source: 'Mizoram PT Act 1995, Schedule Sl. 1 (notification of 11 July 2024)',
+  },
+  NL: {
+    // Nagaland PT Act 1968, Schedule Sl. 1, as published by the Nagaland Taxes Department. The
+    // schedule says "more than X but less than Y"; an exact boundary is put in the higher band.
+    salaryBasis: (i) => i.monthlyGross,
+    monthly: (salary) => {
+      if (salary < 4_000) return 0;
+      if (salary < 5_000) return 35;
+      if (salary < 7_000) return 75;
+      if (salary < 9_000) return 110;
+      if (salary < 12_000) return 180;
+      return 208;
+    },
+    source: 'Nagaland PT Act 1968, Schedule Sl. 1 (Taxes Department schedule)',
+    caveat:
+      "Nagaland's published schedule is undated. We found no later revision, but check your payslip.",
+  },
+  PY: {
+    // Puducherry Municipalities Act 1973 and Village and Commune Panchayats Act 1973, as amended in
+    // 2017: minimum half-yearly rates, per Finance Department G.O.Ms.No.24/F3/2017 of 4 July 2017.
+    salaryBasis: (i) => i.monthlyGross * 6,
+    monthly: halfYearly(
+      band([
+        [99_999, 0],
+        [2_00_000, 250],
+        [3_00_000, 500],
+        [4_00_000, 750],
+        [5_00_000, 1_000],
+        [Infinity, 1_250],
+      ]),
+    ),
+    source: 'Puducherry Municipalities and Panchayats Acts (amended 2017), G.O.Ms.No.24/F3/2017',
+    caveat:
+      "These are the minimum half-yearly rates set by Puducherry's 2017 amendments; a local body may charge more. Government employees have the tax recovered quarterly; we show each half-year's tax in September and March.",
+  },
 };
 
 /**
@@ -340,20 +435,25 @@ export const STATES: readonly StateInfo[] = [
   { code: 'LD', name: 'Lakshadweep', pt: 'not-levied' },
   { code: 'MP', name: 'Madhya Pradesh', pt: 'verified' },
   { code: 'MH', name: 'Maharashtra', pt: 'verified' },
-  { code: 'MN', name: 'Manipur', pt: 'unverified' },
-  { code: 'ML', name: 'Meghalaya', pt: 'unverified' },
-  { code: 'MZ', name: 'Mizoram', pt: 'unverified' },
-  { code: 'NL', name: 'Nagaland', pt: 'unverified' },
+  { code: 'MN', name: 'Manipur', pt: 'verified' },
+  {
+    code: 'ML',
+    name: 'Meghalaya',
+    pt: 'unverified',
+    note: 'Meghalaya moved its professional tax rates out of its Act in 2022 and now sets them by notification, which we could not find on an official site. Take-home is shown before professional tax; enter the amount from your payslip for an exact figure (it can never exceed Rs 2,500 a year).',
+  },
+  { code: 'MZ', name: 'Mizoram', pt: 'verified' },
+  { code: 'NL', name: 'Nagaland', pt: 'verified' },
   {
     code: 'OR',
     name: 'Odisha',
     pt: 'not-levied',
     note: 'Odisha abolished professional tax from 1 April 2026: the Repeal Ordinance, 2026 (Odisha Gazette, 21 April 2026) repealed its Professions Tax Act, so nothing is deducted this year.',
   },
-  { code: 'PY', name: 'Puducherry', pt: 'unverified' },
+  { code: 'PY', name: 'Puducherry', pt: 'verified' },
   { code: 'PB', name: 'Punjab', pt: 'verified' },
   { code: 'RJ', name: 'Rajasthan', pt: 'not-levied' },
-  { code: 'SK', name: 'Sikkim', pt: 'unverified' },
+  { code: 'SK', name: 'Sikkim', pt: 'verified' },
   {
     code: 'TN',
     name: 'Tamil Nadu',
@@ -361,7 +461,7 @@ export const STATES: readonly StateInfo[] = [
     note: 'In Tamil Nadu each town sets its own professional tax. We calculate Greater Chennai Corporation rates when you choose Chennai as your city; elsewhere, take-home is shown before it, so enter the amount from your payslip for an exact figure.',
   },
   { code: 'TS', name: 'Telangana', pt: 'verified' },
-  { code: 'TR', name: 'Tripura', pt: 'unverified' },
+  { code: 'TR', name: 'Tripura', pt: 'verified' },
   { code: 'UP', name: 'Uttar Pradesh', pt: 'not-levied' },
   { code: 'UK', name: 'Uttarakhand', pt: 'not-levied' },
   { code: 'WB', name: 'West Bengal', pt: 'verified' },

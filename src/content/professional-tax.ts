@@ -299,4 +299,120 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
     caveat:
       'An Ordinance lapses unless the legislature replaces it with an Act within six weeks of reassembling. We found no report of a replacing Act yet. If your employer is still deducting professional tax in Odisha, ask why.',
   },
+  {
+    code: 'TR',
+    examples: [7_500, 10_000, 15_000, 50_000],
+    summary:
+      'Tripura charges Rs 150 a month on salaries from Rs 7,501 to Rs 15,000 and Rs 208 a month above that, for a yearly maximum of Rs 2,496.',
+    salaryBasis: 'Monthly gross income.',
+    rules: [
+      'Nothing on a monthly salary up to Rs 7,500.',
+      'Rs 150 a month (Rs 1,800 a year) from Rs 7,501 to Rs 15,000.',
+      'Rs 208 a month (Rs 2,496 a year) from Rs 15,001.',
+      'These rates have applied since July 2018 and replaced a five-band table from 2013.',
+    ],
+    exemptions: [
+      'We have not confirmed this state’s list of exempt employees from an official source. Your employer’s payroll team will know.',
+    ],
+    authority:
+      'Tripura Professions, Trades, Callings and Employments Taxation Act 1997, Schedule Sl. 1, as revised by notification F.II-1(7)-TAX/99(P-I) of 25 July 2018 (Tripura Gazette No. 443) and its corrigendum of 30 October 2018 (No. 1031).',
+  },
+  {
+    code: 'SK',
+    examples: [20_000, 25_000, 35_000, 50_000],
+    summary:
+      'Sikkim exempts monthly salaries up to Rs 20,000, one of the highest thresholds in India. Above that it charges Rs 125, Rs 150 or Rs 200 a month, so at most Rs 2,400 a year.',
+    salaryBasis: 'Monthly salary or wages.',
+    rules: [
+      'Nothing on a monthly salary up to Rs 20,000.',
+      'Rs 125 a month from Rs 20,001 to Rs 30,000.',
+      'Rs 150 a month from Rs 30,001 to Rs 40,000.',
+      'Rs 200 a month from Rs 40,001, every month: Rs 2,400 a year.',
+    ],
+    exemptions: [
+      'We have not confirmed this state’s list of exempt employees from an official source. Your employer’s payroll team will know.',
+    ],
+    authority:
+      'Sikkim Tax on Professions, Trades, Callings and Employments Act 2006 (Act 5 of 2006), Schedule Entry 1.',
+    caveat:
+      'We read these slabs in the 2006 Act and found no later amendment, but could not reach the Sikkim government’s own rate page to confirm they are still current.',
+  },
+  {
+    code: 'MN',
+    examples: [4_000, 6_000, 8_000, 10_000, 50_000],
+    summary:
+      'Manipur sets its slabs on annual income, and the top band starts at just Rs 1,25,000 a year, so almost every salaried person pays the full Rs 2,500.',
+    salaryBasis: 'Total gross annual income. We use your regular salary for the year.',
+    rules: [
+      'Nothing on annual income up to Rs 50,000.',
+      'Rs 1,200 a year from Rs 50,001 to Rs 75,000.',
+      'Rs 2,000 a year from Rs 75,001 to Rs 1,00,000.',
+      'Rs 2,400 a year from Rs 1,00,001 to Rs 1,25,000.',
+      'Rs 2,500 a year above Rs 1,25,000.',
+    ],
+    exemptions: ['Members of the armed forces of the Union serving in Manipur (section 5)'],
+    authority:
+      'Manipur Professions, Trades, Callings and Employments Taxation Act 1981, Schedule Entry A, as substituted by the Eighth Amendment Act 2012 (Manipur Gazette Extraordinary No. 199, 31 August 2012), in force from 1 September 2012.',
+    caveat:
+      'The Act fixes an annual amount but not the instalments. We spread it evenly over the year, with the remainder in March.',
+  },
+  {
+    code: 'MZ',
+    examples: [5_000, 9_000, 14_000, 18_000, 25_000],
+    summary:
+      'Mizoram added a new Rs 195 band in July 2024. Above Rs 20,000 a month you pay Rs 208 a month, or Rs 2,500 if you pay for the whole year at once.',
+    salaryBasis: 'Total gross monthly income.',
+    rules: [
+      'Nothing on a monthly salary up to Rs 5,000.',
+      'Rs 75 a month from Rs 5,001 to Rs 8,000, Rs 120 to Rs 10,000, Rs 150 to Rs 12,000 and Rs 180 to Rs 15,000.',
+      'Rs 195 a month from Rs 15,001 to Rs 20,000, a band added in July 2024.',
+      'Rs 208 a month above Rs 20,000. Each band can instead be paid as a yearly lump sum; for the top band that is Rs 2,500.',
+    ],
+    exemptions: [
+      'We have not confirmed this state’s list of exempt employees from an official source. Your employer’s payroll team will know.',
+    ],
+    authority:
+      'Mizoram Professions, Trades, Callings and Employments Taxation Act 1995, Schedule Sl. 1, as modified by Taxation Department notification J.17011/1/2017-TAX of 11 July 2024.',
+  },
+  {
+    code: 'NL',
+    examples: [4_500, 8_000, 10_000, 12_000, 50_000],
+    summary:
+      'Nagaland charges Rs 208 a month on salaries of Rs 12,000 or more, and smaller amounts below that, for a yearly maximum of Rs 2,496.',
+    salaryBasis: 'Monthly salary or wages.',
+    rules: [
+      'Nothing below Rs 4,000 a month.',
+      'Rs 35 a month up to Rs 5,000, Rs 75 up to Rs 7,000, Rs 110 up to Rs 9,000 and Rs 180 up to Rs 12,000.',
+      'Rs 208 a month from Rs 12,000: Rs 2,496 a year.',
+    ],
+    exemptions: [
+      'We have not confirmed this state’s list of exempt employees from an official source. Your employer’s payroll team will know.',
+    ],
+    authority:
+      'Nagaland Professions, Trades, Callings and Employments Taxation Act 1968, Schedule Sl. 1, as published by the Nagaland Taxes Department.',
+    caveat:
+      'The published schedule is undated and its bands are worded "more than X but less than Y", which leaves the exact boundary amounts unassigned. We put a salary exactly on a boundary in the higher band. This only matters below Rs 12,000 a month.',
+  },
+  {
+    code: 'PY',
+    examples: [16_000, 20_000, 50_000, 80_000, 1_00_000],
+    summary:
+      'Puducherry charges professional tax every half-year, through its municipalities and commune panchayats. On half-yearly income above Rs 5 lakh you pay Rs 1,250 each half, Rs 2,500 a year.',
+    salaryBasis: 'Income for each half-year: April to September, and October to March.',
+    rules: [
+      'Nothing on half-yearly income up to Rs 99,999.',
+      'Rs 250 from Rs 1,00,000 to Rs 2,00,000.',
+      'Rs 500 from Rs 2,00,001 to Rs 3,00,000.',
+      'Rs 750 from Rs 3,00,001 to Rs 4,00,000.',
+      'Rs 1,000 from Rs 4,00,001 to Rs 5,00,000.',
+      'Rs 1,250 above Rs 5,00,000. These amounts are per half-year.',
+    ],
+    exemptions: [
+      'We have not confirmed this state’s list of exempt employees from an official source. Your employer’s payroll team will know.',
+    ],
+    authority:
+      'Puducherry Municipalities Act 1973 and Puducherry Village and Commune Panchayats Act 1973, as amended in 2017, with the rates set out in Finance Department G.O.Ms.No.24/F3/2017 of 4 July 2017.',
+    caveat:
+      'The 2017 amendments set these as minimum rates, so a local body may charge more. Government employees have the tax recovered quarterly; our examples show each half-year’s tax in September and March.',
+  },
 ];
