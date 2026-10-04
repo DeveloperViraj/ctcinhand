@@ -1,0 +1,190 @@
+---
+/**
+ * HRA exemption and the eight 50% cities. Every figure is computed by the engine at build time.
+ */
+import DocLayout from '../layouts/DocLayout.astro';
+import { SITE } from '../config/site';
+import { PT_STATE_PAGES } from '../content/professional-tax';
+import { bracketPath } from '../lib/brackets';
+import { formatRupees } from '../lib/format';
+import { EXAMPLE_RENTS, HRA_CITIES, hraData } from '../lib/hra-cities';
+
+const data = hraData();
+const guides = new Set(PT_STATE_PAGES.map((p) => p.code));
+const newCities = HRA_CITIES.filter((c) => c.newThisYear).map((c) => c.city);
+const oldCities = HRA_CITIES.filter((c) => !c.newThisYear).map((c) => c.city);
+const list = (items: string[]) => `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
+---
+
+<DocLayout
+  title="HRA exemption and the eight 50% cities"
+  description={`How the HRA exemption is worked out for ${SITE.shortYearLabel}, why ${list(newCities)} now get the 50% limit, and exactly when rent makes the old regime worth it.`}
+  updated="2026-10-04"
+  ogImage="hra-exemption"
+  about={['House rent allowance', 'Income tax in India', 'Old tax regime']}
+>
+  <p>
+    If you pay rent and your salary includes house rent allowance, part of that allowance can be
+    tax-free under the old regime. From {SITE.taxYearLabel} the limit is higher in more places: Rule
+    279 of the Income-tax Rules 2026 puts <strong>eight cities</strong> on the 50% list, where it
+    used to be four. {list(newCities)} join {list(oldCities)}.
+  </p>
+  <p>
+    Many salary calculators still treat the four new cities as 40% cities. For anyone renting in
+    them that understates the exemption by up to a tenth of Basic, and can wrongly make the new
+    regime look like the only sensible choice.
+  </p>
+
+  <h2>How the exemption is worked out</h2>
+  <p>The exempt part of your HRA is the least of three amounts, all for the same year:</p>
+  <ol>
+    <li>The HRA you actually receive.</li>
+    <li>The rent you pay, minus 10% of your Basic and DA.</li>
+    <li>50% of Basic and DA in the eight cities, or 40% anywhere else.</li>
+  </ol>
+  <p>
+    "Basic" here means Basic plus any dearness allowance that counts for retirement benefits, and
+    nothing else. The exemption only exists in the old regime: the new regime ignores HRA entirely,
+    so it only helps if the old regime comes out cheaper overall.
+  </p>
+
+  <h2>The eight cities</h2>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">City</th>
+          <th scope="col">HRA limit</th>
+          <th scope="col">On the 50% list</th>
+          <th scope="col">Professional tax</th>
+        </tr>
+      </thead>
+      <tbody>
+        {HRA_CITIES.map((c) => (
+          <tr>
+            <td>{c.city}</td>
+            <td>50% of Basic</td>
+            <td>{c.newThisYear ? 'From 2026-27' : 'Long-standing'}</td>
+            <td>
+              {guides.has(c.stateCode) ? (
+                <a href={`/professional-tax/${c.stateCode.toLowerCase()}`}>
+                  {c.stateCode === 'TN' ? 'Chennai' : c.stateName}
+                </a>
+              ) : c.stateCode === 'DL' ? (
+                'None in Delhi'
+              ) : (
+                c.stateName
+              )}
+            </td>
+          </tr>
+        ))}
+        <tr>
+          <td>Everywhere else</td>
+          <td>40% of Basic</td>
+          <td>Not on the list</td>
+          <td>
+            <a href="/professional-tax">By state</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>What the 50% limit is worth</h2>
+  <p>
+    The yearly exemption at a few salaries and rents, using the calculator's standard structure
+    (Basic at half of CTC, HRA at half of Basic). The higher limit only matters once rent is high
+    enough for the percentage to be the binding limb; below that, rent minus 10% of Basic decides.
+  </p>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">CTC</th>
+          {EXAMPLE_RENTS.map((rent) => (
+            <th scope="col">{formatRupees(rent)} rent a month</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {data.grid.map((row) => (
+          <tr>
+            <td>
+              <a href={bracketPath(row.lpa)}>{row.lpa} LPA</a>
+            </td>
+            {row.cells.map((cell) => (
+              <td>
+                {formatRupees(cell.at50)}
+                {cell.at50 !== cell.at40 && (
+                  <span class="block text-xs text-ink-3">
+                    {formatRupees(cell.at40)} in a 40% city
+                  </span>
+                )}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <h2>When rent makes the old regime worth it</h2>
+  <p>
+    The exemption only saves tax if the old regime ends up cheaper than the new one. The table gives
+    the monthly rent at which that starts to happen, assuming you also fill section 123 (80C), the
+    extra ₹50,000 for NPS and ₹25,000 of health insurance, but have no home loan.
+  </p>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">CTC</th>
+          <th scope="col">In one of the eight cities</th>
+          <th scope="col">Anywhere else</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.tipping.map((row) => (
+          <tr>
+            <td>
+              <a href={bracketPath(row.lpa)}>{row.lpa} LPA</a>
+            </td>
+            <td>
+              {row.at50 === null ? 'No rent is enough' : `From ${formatRupees(row.at50)} a month`}
+            </td>
+            <td>
+              {row.at40 === null ? 'No rent is enough' : `From ${formatRupees(row.at40)} a month`}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    At these salaries the 40% limit is often not enough on its own: the exemption tops out before it
+    can close the gap to the new regime. That is the practical difference the eight-city rule makes,
+    and the reason a calculator that still uses four cities gets the regime choice wrong for people
+    renting in {list(newCities)}.
+  </p>
+
+  <h2>Rent receipts and your landlord's PAN</h2>
+  <p>
+    Your employer will ask for rent receipts or a rent agreement before applying the exemption to
+    your salary. If you pay more than ₹1,00,000 a year in rent, about{' '}
+    {formatRupees(data.panThresholdMonthly)} a month, you also have to give your landlord's PAN. If
+    your employer did not apply the exemption during the year, you can still claim it in your return
+    under the old regime.
+  </p>
+
+  <h2>Try it with your own figures</h2>
+  <p>
+    The <a href="/?m=advanced&ci=Bengaluru&rt=30000">calculator</a> applies the right limit for your
+    city automatically and shows both regimes side by side. Change the city and rent to see the
+    exemption move.
+  </p>
+  <p>
+    Sources: Income-tax Act, 2025, Schedule III Table Sl. No. 11, read with Rule 279 of the
+    Income-tax Rules 2026 (G.S.R. 198(E), 20 March 2026); section 202(2) for the new regime.{' '}
+    <a href="/how-it-works">Full method</a>.
+  </p>
+</DocLayout>

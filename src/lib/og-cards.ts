@@ -24,6 +24,7 @@ export function allOgCards(): OgCard[] {
     { slug: 'in-hand-salary', title: 'In-hand salary for every CTC from 3 to 100 LPA' },
     { slug: 'marginal-relief', title: 'Marginal relief above ₹12 lakh, worked out to the rupee' },
     { slug: 'old-vs-new-tax-regime', title: 'Old or new tax regime: the exact break-even' },
+    { slug: 'hra-exemption', title: 'HRA exemption: eight cities now get the 50% limit' },
     ...LPA_BRACKETS.map((lpa) => {
       const result = calculate({ ...DEFAULT_INPUT, ctc: lakhs(lpa) });
       const best = result.regimes[result.better];
