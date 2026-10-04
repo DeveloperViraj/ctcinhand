@@ -2,6 +2,9 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Calculator from '../components/Calculator.astro';
 import { SITE } from '../config/site';
+import { bracketLabel, bracketPath } from '../lib/brackets';
+
+const COMMON = [5, 6, 8, 10, 12, 14, 15, 18, 20, 25, 30, 40];
 
 const verifiedLabel = new Date(`${SITE.ratesVerifiedOn}T00:00:00+05:30`).toLocaleDateString(
   'en-IN',
@@ -23,7 +26,7 @@ const faqs = [
   },
   {
     q: 'Is income up to ₹12 lakh really tax-free?',
-    a: 'Under the new regime, a resident individual with ₹12 lakh of taxable income pays no tax, because the section 156 rebate of ₹60,000 cancels the tax due. With the ₹75,000 standard deduction, that corresponds to a gross salary of about ₹12.75 lakh. Just above ₹12 lakh, marginal relief caps the tax at the amount by which your income exceeds ₹12 lakh, so earning slightly more never leaves you worse off.',
+    a: 'Under the new regime, a resident individual with ₹12 lakh of taxable income pays no tax, because the section 156 rebate of ₹60,000 cancels the tax due. With the ₹75,000 standard deduction, that corresponds to a gross salary of about ₹12.75 lakh. Just above ₹12 lakh, marginal relief caps the tax at the amount by which your income exceeds ₹12 lakh. The 4% cess is still added, so between ₹12 lakh and about ₹12.71 lakh of taxable income a raise is almost entirely taxed away, but you never face the ₹62,400 cliff that a calculator without relief would show.',
   },
   {
     q: 'How much professional tax will I pay?',
@@ -68,7 +71,7 @@ const schema = [
       CTC to in-hand salary calculator
     </h1>
     <p class="mt-2 max-w-2xl text-ink-2">
-      What actually reaches your bank each month, with both tax regimes side by side.
+      What actually reaches your bank each month, with both tax regimes side by side.{' '}
       <span class="hidden sm:inline">
         Provident fund, ESI, gratuity, state professional tax and the Labour Code wage rule are all
         applied.
@@ -83,6 +86,26 @@ const schema = [
   <section class="mx-auto max-w-6xl px-4 sm:px-6">
     <Calculator />
   </section>
+
+  <nav class="mx-auto mt-16 max-w-6xl px-4 sm:px-6" aria-labelledby="common-heading">
+    <h2 id="common-heading" class="text-xl font-medium text-ink">
+      In-hand salary at common CTCs
+    </h2>
+    <ul class="mt-4 flex flex-wrap gap-2">
+      {COMMON.map((lpa) => (
+        <li>
+          <a href={bracketPath(lpa)} class="btn btn-secondary">
+            {bracketLabel(lpa)}
+          </a>
+        </li>
+      ))}
+      <li class="flex items-center">
+        <a href="/in-hand-salary" class="btn btn-tertiary ml-2">
+          Every salary
+        </a>
+      </li>
+    </ul>
+  </nav>
 
   <section class="mx-auto mt-20 max-w-6xl px-4 sm:px-6">
     <div class="grid gap-10 lg:grid-cols-2">
@@ -113,8 +136,9 @@ const schema = [
         <ul>
           <li>
             <strong>Marginal relief as a real cap.</strong> Just above &#8377;12 lakh, and at every
-            surcharge threshold, tax is clamped so that earning one rupee more never costs you more
-            than that rupee.
+            surcharge threshold, tax is capped at the income above the threshold, with the 4% cess
+            on top. Calculators that skip the cap show a cliff of tens of thousands of rupees.{' '}
+            <a href="/marginal-relief">Worked example</a>.
           </li>
           <li>
             <strong>Professional tax month by month.</strong> Maharashtra and Karnataka charge

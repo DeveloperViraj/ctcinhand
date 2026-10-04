@@ -1,0 +1,81 @@
+---
+import DocLayout from '../../layouts/DocLayout.astro';
+import { SITE } from '../../config/site';
+import { bracketLabel, bracketPath, lakhs, LPA_BRACKETS } from '../../lib/brackets';
+import { formatRupees } from '../../lib/format';
+import { absolute } from '../../lib/seo';
+import { calculate } from '../../lib/tax/calculate';
+import { DEFAULT_INPUT } from '../../lib/tax/defaults';
+
+const rows = LPA_BRACKETS.map((lpa) => {
+  const result = calculate({ ...DEFAULT_INPUT, ctc: lakhs(lpa) });
+  const best = result.regimes[result.better];
+  return {
+    lpa,
+    monthly: best.monthlyTakeHome,
+    tax: best.tax.totalTax,
+    better: result.better,
+  };
+});
+
+const itemList = {
+  '@type': 'ItemList',
+  name: `In-hand salary by CTC, ${SITE.shortYearLabel}`,
+  itemListElement: rows.map((row, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: `${bracketLabel(row.lpa)} in-hand salary`,
+    url: absolute(bracketPath(row.lpa)),
+  })),
+};
+---
+
+<DocLayout
+  title="In-hand salary for every CTC"
+  description={`Monthly in-hand salary for every CTC from 3 to 100 LPA in ${SITE.shortYearLabel}, with the cheaper tax regime and the income tax at each salary. Each page breaks the number down.`}
+  updated="2026-09-30"
+  ogImage="in-hand-salary"
+  schema={[itemList]}
+  about={['In-hand salary', 'Cost to company']}
+>
+  <p>
+    What reaches your bank each month at every common salary, for {SITE.taxYearLabel}. Each figure
+    uses the calculator's standard assumptions: Basic at half of CTC, PF capped at the ₹15,000 wage
+    ceiling, gratuity and employer PF inside the CTC, and Karnataka professional tax. Open any
+    salary for the full breakdown, the state-by-state difference and the point at which the old
+    regime would win.
+  </p>
+  <p>
+    Notice the stretch between 13.5 and 14 LPA, where take-home actually dips, by about ₹160 a
+    month: the ₹12 lakh rebate ends there, and marginal relief plus the 4% cess tax almost every
+    extra rupee. <a href="/marginal-relief">Why that happens</a>.
+  </p>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">CTC</th>
+          <th scope="col">In hand a month</th>
+          <th scope="col">Income tax a year</th>
+          <th scope="col">Cheaper regime</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <tr>
+            <td>
+              <a href={bracketPath(row.lpa)}>{bracketLabel(row.lpa)}</a>
+            </td>
+            <td>{formatRupees(row.monthly)}</td>
+            <td>{formatRupees(row.tax)}</td>
+            <td>{row.better === 'new' ? 'New' : 'Old'}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Your structure is probably different. <a href="/">Open the calculator</a> to set your own Basic,
+    HRA, variable pay, city and deductions.
+  </p>
+</DocLayout>

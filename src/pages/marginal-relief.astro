@@ -1,0 +1,267 @@
+---
+/**
+ * Marginal relief above Rs 12 lakh, worked through with the engine's own numbers. The band's upper
+ * end, every table row and the chart are computed at build time, so they cannot drift from the
+ * calculator.
+ */
+import DocLayout from '../layouts/DocLayout.astro';
+import { formatRupees } from '../lib/format';
+import { calculate } from '../lib/tax/calculate';
+import { DEFAULT_INPUT } from '../lib/tax/defaults';
+import { computeIncomeTax } from '../lib/tax/income-tax';
+import { CESS_RATE, REBATE } from '../lib/tax/rates';
+
+const LIMIT = REBATE.new.incomeLimit;
+const tax = (income: number) => computeIncomeTax('new', income);
+const withoutRelief = (income: number) =>
+  income <= LIMIT ? 0 : tax(income).slabTax * (1 + CESS_RATE);
+
+// Where the taper stops binding: the first income above the limit at which the ordinary slab tax
+// is no more than the income above the limit.
+let low = LIMIT;
+let high = LIMIT + 2_00_000;
+while (high - low > 1) {
+  const mid = Math.floor((low + high) / 2);
+  if (tax(mid).rebateIsMarginalRelief) low = mid;
+  else high = mid;
+}
+const bandEnd = low;
+const worstKeep = bandEnd - tax(bandEnd).totalTax;
+const worstLoss = LIMIT - worstKeep;
+const cliff = withoutRelief(LIMIT + 1);
+
+const TAXABLE_ROWS = [
+  11_90_000,
+  12_00_000,
+  12_00_001,
+  12_10_000,
+  12_25_000,
+  12_50_000,
+  12_60_000,
+  bandEnd,
+  12_75_000,
+  12_90_000,
+  13_00_000,
+];
+
+// The same band in CTC terms, using the calculator's standard structure.
+const CTC_ROWS = [13_00_000, 13_25_000, 13_50_000, 13_75_000, 14_00_000, 14_25_000, 14_50_000].map(
+  (ctc) => {
+    const r = calculate({ ...DEFAULT_INPUT, ctc });
+    return {
+      ctc,
+      taxable: r.regimes.new.taxableIncome,
+      tax: r.regimes.new.tax.totalTax,
+      relief: r.regimes.new.tax.rebateIsMarginalRelief,
+      monthly: r.regimes.new.monthlyTakeHome,
+    };
+  },
+);
+
+// Chart: what you keep (taxable income less tax) from Rs 11.8 lakh to Rs 13 lakh.
+const W = 640;
+const H = 260;
+const PAD = { left: 64, right: 16, top: 16, bottom: 36 };
+const X0 = 11_80_000;
+const X1 = 13_00_000;
+const Y0 = 11_30_000;
+const Y1 = 12_30_000;
+const x = (v: number) => PAD.left + ((v - X0) / (X1 - X0)) * (W - PAD.left - PAD.right);
+const y = (v: number) => PAD.top + (1 - (v - Y0) / (Y1 - Y0)) * (H - PAD.top - PAD.bottom);
+const points = (keep: (income: number) => number) => {
+  const out: string[] = [];
+  for (let v = X0; v <= X1; v += 2_500) {
+    // Draw the drop at the limit as a vertical step rather than a slope.
+    if (v === LIMIT + 2_500)
+      out.push(`${x(LIMIT + 1).toFixed(1)},${y(keep(LIMIT + 1)).toFixed(1)}`);
+    out.push(`${x(v).toFixed(1)},${y(keep(v)).toFixed(1)}`);
+  }
+  return out.join(' ');
+};
+const keptWith = points((v) => v - tax(v).totalTax);
+const keptWithout = points((v) => v - withoutRelief(v));
+const lakh = (v: number) => `₹${(v / 1_00_000).toFixed(v % 1_00_000 === 0 ? 0 : 1)}L`;
+---
+
+<DocLayout
+  title="Marginal relief above ₹12 lakh"
+  description="How the section 156 rebate and marginal relief work just above ₹12 lakh of taxable income in FY 2026-27, worked out to the rupee, including the 4% cess most explanations leave out."
+  updated="2026-09-30"
+  ogImage="marginal-relief"
+  about={['Marginal relief', 'Section 156 rebate', 'Income tax in India']}
+>
+  <p>
+    Under the new regime, the section 156 rebate (the old section 87A) cancels the tax on taxable
+    income up to {formatRupees(LIMIT)}. Without anything else, crossing that line by a single rupee
+    would take the rebate away entirely, and a salary with {formatRupees(LIMIT + 1)} of taxable
+    income would owe <strong>{formatRupees(cliff)}</strong> in tax and cess. Marginal relief exists
+    so that this cliff never happens.
+  </p>
+
+  <h2>What the relief does</h2>
+  <p>
+    Section 156(2)(b) of the Income-tax Act, 2025 caps the income-tax at the amount by which your
+    taxable income exceeds {formatRupees(LIMIT)}. At {formatRupees(12_10_000)} of taxable income,
+    the ordinary slab tax would be {formatRupees(tax(12_10_000).slabTax)}; the relief cuts it to{' '}
+    {formatRupees(tax(12_10_000).taxAfterRebate)}, the income above the limit.
+  </p>
+  <p>
+    The relief stops mattering once the ordinary slab tax falls below the income above the limit.
+    That happens at <strong>{formatRupees(bandEnd)}</strong> of taxable income. Above it, you simply
+    pay the slab tax.
+  </p>
+
+  <h2>The part most explanations leave out: the 4% cess</h2>
+  <p>
+    The health and education cess is charged on the tax after the rebate, so it applies to the
+    capped amount too. Inside the band, every extra rupee of taxable income therefore costs ₹1.04:
+    the rupee itself, plus 4 paise of cess. You are never hit by the cliff, but you are not quite
+    made whole either. At the top of the band you keep <strong>{formatRupees(worstLoss)}</strong>{' '}
+    less than someone with exactly {formatRupees(LIMIT)} of taxable income.
+  </p>
+
+  <figure class="my-8">
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      class="w-full"
+      role="img"
+      aria-label={`Income kept after tax, from ${lakh(X0)} to ${lakh(X1)} of taxable income. Without relief it drops by ${formatRupees(cliff)} at ${lakh(LIMIT)}. With relief it dips by at most ${formatRupees(worstLoss)}.`}
+    >
+      {[11_40_000, 11_70_000, 12_00_000, 12_30_000].map((v) => (
+        <g>
+          <line
+            x1={PAD.left}
+            x2={W - PAD.right}
+            y1={y(v)}
+            y2={y(v)}
+            stroke="var(--color-line)"
+            stroke-width="1"
+          />
+          <text
+            x={PAD.left - 8}
+            y={y(v) + 4}
+            text-anchor="end"
+            font-size="12"
+            fill="var(--color-ink-3)"
+          >
+            {lakh(v)}
+          </text>
+        </g>
+      ))}
+      {[11_80_000, 12_00_000, 12_20_000, 12_40_000, 12_60_000, 12_80_000, 13_00_000].map((v) => (
+        <text x={x(v)} y={H - 12} text-anchor="middle" font-size="12" fill="var(--color-ink-3)">
+          {lakh(v)}
+        </text>
+      ))}
+      <polyline
+        points={keptWithout}
+        fill="none"
+        stroke="var(--color-chart-tax)"
+        stroke-width="2"
+        stroke-dasharray="5 4"
+      />
+      <polyline points={keptWith} fill="none" stroke="var(--color-accent)" stroke-width="2" />
+      <text x={x(12_62_000)} y={y(12_10_000)} font-size="13" fill="var(--color-accent-ink)">
+        With relief
+      </text>
+      <text x={x(12_05_000)} y={y(11_40_000)} font-size="13" fill="var(--color-ink-2)">
+        Without relief
+      </text>
+    </svg>
+    <figcaption class="mt-2 text-sm text-ink-3">
+      Income kept after tax and cess, by taxable income under the new regime. The table below has
+      the exact figures.
+    </figcaption>
+  </figure>
+
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Taxable income</th>
+          <th scope="col">Tax without relief</th>
+          <th scope="col">Tax with relief</th>
+          <th scope="col">You keep</th>
+        </tr>
+      </thead>
+      <tbody>
+        {TAXABLE_ROWS.map((income) => (
+          <tr>
+            <td>{formatRupees(income)}</td>
+            <td>{formatRupees(withoutRelief(income))}</td>
+            <td>{formatRupees(tax(income).totalTax)}</td>
+            <td>{formatRupees(income - tax(income).totalTax)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <h2>The same band in salary terms</h2>
+  <p>
+    Taxable income is your salary less the ₹75,000 standard deduction and anything your employer
+    puts into NPS for you. With the calculator's standard structure (Basic at half of CTC, PF at the
+    ₹15,000 ceiling, gratuity and employer PF inside the CTC), the relief band covers CTCs from
+    roughly 13.3 to 14 lakh, and monthly take-home actually falls slightly across it.
+  </p>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">CTC</th>
+          <th scope="col">Taxable income</th>
+          <th scope="col">Tax and cess</th>
+          <th scope="col">In hand a month</th>
+        </tr>
+      </thead>
+      <tbody>
+        {CTC_ROWS.map((row) => (
+          <tr>
+            <td>{formatRupees(row.ctc)}</td>
+            <td>{formatRupees(row.taxable)}</td>
+            <td>
+              {formatRupees(row.tax)}
+              {row.relief ? ' (relief)' : ''}
+            </td>
+            <td>{formatRupees(row.monthly)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    If a raise lands you in this band, it is worth asking whether part of it can go into employer
+    NPS instead: the employer's contribution up to 14% of Basic is deductible under the new regime,
+    so it lowers taxable income rather than being taxed at ₹1.04 per rupee.
+  </p>
+
+  <h2>Surcharge thresholds work the same way</h2>
+  <p>
+    A surcharge of 10% starts above ₹50 lakh of taxable income, 15% above ₹1 crore and 25% above ₹2
+    crore (the old regime adds 37% above ₹5 crore). At each threshold, tax plus surcharge is capped
+    at the tax on the threshold plus the income above it, and the 4% cess is added on top, exactly
+    as above.
+  </p>
+
+  <h2>The old regime has no such relief</h2>
+  <p>
+    The old regime's rebate covers taxable income up to ₹5 lakh and stops dead above it. At{' '}
+    {formatRupees(5_00_001)} of taxable income the old regime charges{' '}
+    {formatRupees(computeIncomeTax('old', 5_00_001).totalTax)}, a genuine cliff that no taper
+    softens.
+  </p>
+
+  <h2>Why calculators get this wrong</h2>
+  <p>
+    Many salary calculators treat the rebate as a switch: full rebate up to ₹12 lakh, nothing above.
+    Just past the line they then show take-home falling by up to {formatRupees(cliff / 12)} a month,
+    as if a raise had made someone poorer. Others describe the relief correctly but forget the cess
+    and claim that earning more can never leave you worse off. Both are wrong. This calculator
+    applies the cap exactly as section 156(2)(b) reads, and the cess on top of it.
+  </p>
+  <p>
+    Sources: Income-tax Act, 2025, section 156 (rebate and marginal relief) and section 202 (new
+    regime slabs); Finance Act 2026, section 3 (surcharge and the 4% health and education cess).{' '}
+    <a href="/how-it-works">Full method</a>.
+  </p>
+</DocLayout>

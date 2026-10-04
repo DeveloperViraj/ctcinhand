@@ -401,7 +401,7 @@ function drawMarginalRelief(c: Canvas, result: CalculationResult): void {
   const pad = 14;
   const text = `Your income is just above ₹12 lakh, so your tax is capped at the amount by which it exceeds that. Without this relief you would pay ${money(
     best.tax.rebate * 1.04,
-  )} more a year, and a small raise could have left you worse off.`;
+  )} more a year. The 4% cess still applies on top, so until your taxable income passes about ₹12.71 lakh each extra rupee costs ₹1.04 in tax.`;
   const lines = c.wrap(text, T.body, WIDTH - 2 * pad);
   const height = snap(12 + 12 + 4 + lines.length * 12 + 12);
   const top = c.begin(height, 24);

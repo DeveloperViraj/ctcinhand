@@ -7,8 +7,9 @@ import Logo from './Logo.astro';
 const path = pagePath(Astro.url.pathname);
 const nav = [
   { href: '/', label: 'Calculator' },
+  { href: '/in-hand-salary', label: 'Salaries' },
+  { href: '/old-vs-new-tax-regime', label: 'Old vs new' },
   { href: '/how-it-works', label: 'How it works' },
-  { href: '/about', label: 'About' },
 ];
 ---
 
@@ -19,7 +20,7 @@ const nav = [
       <span>{SITE.name}</span>
     </a>
     <nav aria-label="Primary" class="flex items-center gap-1 text-sm">
-      <ul class="hidden items-center gap-1 sm:flex">
+      <ul class="hidden items-center gap-1 md:flex">
         {nav.map((item) => (
           <li>
             <a

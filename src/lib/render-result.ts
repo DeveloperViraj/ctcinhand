@@ -66,7 +66,7 @@ function ledger(
  * Both regimes, always in the same order so nothing jumps while you type. The cheaper one is
  * tagged; the saving is spelled out underneath in the money-went-up colour.
  */
-function regimeComparison(result: CalculationResult): string {
+export function regimeComparison(result: CalculationResult): string {
   const cell = (r: RegimeBreakdown) => {
     const isBetter = r.regime === result.better && result.savingByChoosingBetter > 0;
     return `<div class="inset p-3">
@@ -107,7 +107,7 @@ function regimeComparison(result: CalculationResult): string {
  * All three segments are always rendered (an empty one is hidden) so the bar keeps its shape
  * between keystrokes and each segment can glide to its new share.
  */
-function compositionBar(result: CalculationResult): string {
+export function compositionBar(result: CalculationResult): string {
   const total = result.structure.annual.ctcComponents;
   if (total <= 0) return '';
 
@@ -183,7 +183,9 @@ export function renderSummary(result: CalculationResult): string {
           Your income is just above &#8377;12 lakh, so your tax is capped at the amount by which it
           exceeds that. Without this relief you would pay
           <strong class="font-medium text-ink">${formatRupees(best.tax.rebate * 1.04)}</strong> more
-          a year, and a small raise could have left you worse off.
+          a year. The 4% cess still applies on top, so until your taxable income passes about
+          &#8377;12.71 lakh each extra rupee costs &#8377;1.04 in tax.
+          <a href="/marginal-relief" class="underline">Why</a>
         </p>
       </div>`
     : '';

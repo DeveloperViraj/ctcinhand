@@ -1,0 +1,190 @@
+---
+/**
+ * Old versus new regime for salaried people. The slab tables come from rates.ts and every
+ * break-even figure from break-even.ts, so the page moves when the law (and the engine) does.
+ */
+import DocLayout from '../layouts/DocLayout.astro';
+import { SITE } from '../config/site';
+import { bracketLabel, bracketPath, bracketInput } from '../lib/brackets';
+import { formatRupees } from '../lib/format';
+import { breakEven, rentToBreakEven } from '../lib/tax/break-even';
+import {
+  NEW_REGIME_SLABS,
+  OLD_REGIME_SLABS,
+  REBATE,
+  STANDARD_DEDUCTION,
+  type Slab,
+} from '../lib/tax/rates';
+
+const slabRows = (slabs: readonly Slab[]) =>
+  slabs.map((slab, i) => {
+    const from = i === 0 ? 0 : slabs[i - 1].upTo;
+    return {
+      band:
+        slab.upTo === Infinity
+          ? `Above ${formatRupees(from)}`
+          : `${formatRupees(from === 0 ? 0 : from + 1)} to ${formatRupees(slab.upTo)}`,
+      rate: slab.rate === 0 ? 'Nil' : `${Math.round(slab.rate * 100)}%`,
+    };
+  });
+
+const SALARIES = [14, 16, 18, 20, 24, 30, 40, 50];
+const rows = SALARIES.map((lpa) => {
+  const input = bracketInput(lpa);
+  return { lpa, even: breakEven(input), rent: rentToBreakEven(input) };
+});
+const plateau = rows.find((r) => r.lpa === 40)!.even.extraNeeded!;
+const taxFreeUpTo = REBATE.new.incomeLimit + STANDARD_DEDUCTION.new;
+---
+
+<DocLayout
+  title={`Old or new tax regime in ${SITE.shortYearLabel}`}
+  description={`Old versus new income tax regime for salaried people in ${SITE.shortYearLabel}: both slab tables, and exactly how much in deductions the old regime needs to win at every salary.`}
+  updated="2026-09-30"
+  ogImage="old-vs-new-tax-regime"
+  about={['Old tax regime', 'New tax regime', 'Income tax in India']}
+>
+  <p>
+    The new regime is the default for {SITE.taxYearLabel}, and for most salaried people it is also
+    the cheaper one. It has lower rates across the middle, a {formatRupees(STANDARD_DEDUCTION.new)}{' '}
+    standard deduction, and a rebate that makes a salary of up to about {formatRupees(taxFreeUpTo)}{' '}
+    tax-free. The old regime keeps its deductions (HRA, section 123 which was 80C, health insurance,
+    home loan interest) but charges more on the income that is left.
+  </p>
+  <p>
+    The useful question is not which regime is better in general, but how much you would have to
+    claim for the old one to win at your salary. That number is below.
+  </p>
+
+  <h2>The two slab tables</h2>
+  <div class="grid gap-8 sm:grid-cols-2">
+    <div>
+      <h3>New regime (section 202)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Taxable income</th>
+            <th scope="col">Rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          {slabRows(NEW_REGIME_SLABS).map((r) => (
+            <tr>
+              <td>{r.band}</td>
+              <td>{r.rate}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p>
+        Standard deduction {formatRupees(STANDARD_DEDUCTION.new)}. A rebate of up to{' '}
+        {formatRupees(REBATE.new.maxRebate)} makes taxable income up to{' '}
+        {formatRupees(REBATE.new.incomeLimit)} tax-free, with{' '}
+        <a href="/marginal-relief">marginal relief</a> just above it.
+      </p>
+    </div>
+    <div>
+      <h3>Old regime, below 60</h3>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Taxable income</th>
+            <th scope="col">Rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          {slabRows(OLD_REGIME_SLABS.below60).map((r) => (
+            <tr>
+              <td>{r.band}</td>
+              <td>{r.rate}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p>
+        Standard deduction {formatRupees(STANDARD_DEDUCTION.old)}. A rebate of up to{' '}
+        {formatRupees(REBATE.old.maxRebate)} covers taxable income up to{' '}
+        {formatRupees(REBATE.old.incomeLimit)}, with no relief above it. Senior citizens get higher
+        exemption limits.
+      </p>
+    </div>
+  </div>
+  <p>Both regimes add a 4% health and education cess, and a surcharge above ₹50 lakh.</p>
+
+  <h2>What still counts in the new regime</h2>
+  <ul>
+    <li>The {formatRupees(STANDARD_DEDUCTION.new)} standard deduction.</li>
+    <li>
+      Your employer's NPS contribution, up to 14% of Basic plus DA for every employee. This is the
+      one real planning lever left in the new regime.
+    </li>
+  </ul>
+  <p>
+    HRA, section 123 (80C), health insurance, 80CCD(1B), home loan interest on a self-occupied house
+    and professional tax are all ignored.
+  </p>
+
+  <h2>How much the old regime needs, salary by salary</h2>
+  <p>
+    The table uses the calculator's standard structure (Basic at half of CTC, PF at the ₹15,000
+    ceiling, Karnataka professional tax). "Extra needed" is how much you would have to claim on top
+    of what the old regime already gives you, which is the ₹50,000 standard deduction, professional
+    tax and your PF under section 123. The capped deductions without HRA (the rest of section 123,
+    ₹50,000 of NPS, ₹25,000 of health insurance and ₹2 lakh of home loan interest) can add at most
+    about {formatRupees(rows[0].even.cappedHeadroom)}.
+  </p>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">CTC</th>
+          <th scope="col">New regime tax</th>
+          <th scope="col">Extra needed</th>
+          <th scope="col">Without HRA?</th>
+          <th scope="col">Rent that tips it</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map(({ lpa, even, rent }) => (
+          <tr>
+            <td>
+              <a href={bracketPath(lpa)}>{bracketLabel(lpa)}</a>
+            </td>
+            <td>{formatRupees(even.newTax)}</td>
+            <td>{even.extraNeeded === null ? 'n/a' : formatRupees(even.extraNeeded)}</td>
+            <td>{even.reachableWithoutHra ? 'Possible' : 'No'}</td>
+            <td>
+              {rent.monthlyRent === null
+                ? 'No rent does'
+                : `${formatRupees(rent.monthlyRent)} a month`}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    "Rent that tips it" assumes you live in one of the eight cities with the 50% HRA limit and have
+    also filled section 123, the extra NPS and health insurance, but have no home loan.
+  </p>
+
+  <h2>Why the bar stops rising at {formatRupees(plateau)}</h2>
+  <p>
+    Above ₹24 lakh of taxable income both regimes charge 30% on each extra rupee, so the gap between
+    them stops growing. From there on the old regime needs the same {formatRupees(plateau)} of extra
+    deductions whatever you earn, until the ₹50 lakh surcharge threshold changes the picture again.
+    Because the capped deductions cannot reach that on their own, a high earner only benefits from
+    the old regime with a large HRA exemption or a big home loan, and usually both.
+  </p>
+
+  <h2>Switching</h2>
+  <p>
+    A salaried person can choose each year: tell your employer at the start of the year so the right
+    tax is deducted from your salary, and you can still pick the other regime when you file your
+    return. <a href="/">Try both with your own figures</a>.
+  </p>
+  <p>
+    Sources: Income-tax Act, 2025, sections 19, 123 to 126, 156 and 202; Finance Act 2026, First
+    Schedule. <a href="/how-it-works">Full method</a>.
+  </p>
+</DocLayout>
