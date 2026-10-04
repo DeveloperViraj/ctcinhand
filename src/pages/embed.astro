@@ -1,0 +1,100 @@
+---
+/**
+ * The embeddable calculator: CTC, state and city in, the summary out. Meant to be framed by other
+ * sites (see /embed-calculator for the snippet), so it has no site header or footer, is never
+ * indexed, and opens the full breakdown on this site in a new tab.
+ */
+import { Font } from 'astro:assets';
+import { SITE } from '../config/site';
+import NumberField from '../components/form/NumberField.astro';
+import SelectField from '../components/form/SelectField.astro';
+import { renderSummary } from '../lib/render-result';
+import { calculate } from '../lib/tax/calculate';
+import { DEFAULT_INPUT } from '../lib/tax/defaults';
+import { HRA_CITY_OPTIONS } from '../lib/tax/hra';
+import { STATES } from '../lib/tax/professional-tax';
+import '../styles/global.css';
+
+const summary = renderSummary(calculate(DEFAULT_INPUT));
+---
+
+<!doctype html>
+<html lang="en-IN" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{`CTC calculator by ${SITE.name}`}</title>
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <Font cssVariable="--font-plex" preload />
+    <script is:inline>
+      // ?theme=light|dark pins the theme; otherwise follow the visitor's system setting.
+      (() => {
+        const wanted = new URLSearchParams(location.search).get('theme');
+        const dark =
+          wanted === 'dark' ||
+          (wanted !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      })();
+    </script>
+  </head>
+  <body class="bg-canvas">
+    <style>
+      /* The notes live on the full page, not in the widget. */
+      #e-summary a[href='#notes'] {
+        display: none;
+      }
+    </style>
+    <main class="mx-auto max-w-xl p-3">
+      <h1 class="sr-only">CTC to in-hand salary calculator</h1>
+      <form id="embed" class="card" novalidate>
+        <div class="space-y-5 p-5">
+          <NumberField
+            id="e-ctc"
+            label="Annual CTC"
+            value="12,00,000"
+            prefix="₹"
+            width="7.75rem"
+            slider={{
+              kind: 'log',
+              min: 1_00_000,
+              max: 2_00_00_000,
+              minLabel: '₹1 L',
+              maxLabel: '₹2 Cr',
+            }}
+            money
+          />
+          <div class="grid grid-cols-2 gap-3">
+            <SelectField id="e-state" label="Work state">
+              {STATES.map((s) => (
+                <option value={s.code} selected={s.code === DEFAULT_INPUT.stateCode}>
+                  {s.name}
+                </option>
+              ))}
+            </SelectField>
+            <SelectField id="e-city" label="City">
+              {HRA_CITY_OPTIONS.map((c) => (
+                <option value={c} selected={c === DEFAULT_INPUT.city}>
+                  {c === 'Other' ? 'Anywhere else' : c}
+                </option>
+              ))}
+            </SelectField>
+          </div>
+        </div>
+        <output id="e-summary" class="block border-t border-line" set:html={summary} />
+        <div class="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-3 text-sm">
+          <a id="e-full" href={SITE.url} target="_blank" rel="noopener" class="btn btn-secondary">
+            Full breakdown
+          </a>
+          <a href={SITE.url} target="_blank" rel="noopener" class="text-ink-3 hover:text-ink">
+            {SITE.name}, {SITE.shortYearLabel}
+          </a>
+        </div>
+      </form>
+    </main>
+    <script>
+      import { mountEmbed } from '../scripts/embed';
+      mountEmbed();
+    </script>
+  </body>
+</html>

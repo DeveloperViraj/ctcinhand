@@ -1,0 +1,69 @@
+---
+import DocLayout from '../layouts/DocLayout.astro';
+import { SITE } from '../config/site';
+
+const snippet = `<iframe src="${SITE.url}/embed" title="CTC to in-hand salary calculator" width="100%" height="840" style="border:0;max-width:560px" loading="lazy"></iframe>
+<p><a href="${SITE.url}/">CTC to in-hand salary calculator</a> by ${SITE.name}</p>`;
+---
+
+<DocLayout
+  title="Embed the calculator on your site"
+  description={`Add a free CTC to in-hand salary calculator to your blog or HR site. One snippet, both tax regimes, ${SITE.shortYearLabel} rates, kept up to date for you.`}
+  updated="2026-10-04"
+>
+  <p>
+    If you write about salaries, offers or payroll, you can put a working CTC calculator on your own
+    page. It uses the same engine as this site, compares both tax regimes and applies your reader's
+    state professional tax. When the law changes, the embedded calculator updates on its own.
+  </p>
+
+  <h2>The snippet</h2>
+  <p>Paste this where you want the calculator to appear:</p>
+  <pre
+    class="overflow-x-auto rounded-sm bg-sunken p-4 text-xs leading-5 text-ink"
+    tabindex="0"
+    aria-label="Embed snippet"
+  ><code id="embed-snippet">{snippet}</code></pre>
+  <p>
+    <button type="button" class="btn btn-primary" data-copy-snippet>
+      Copy the snippet
+    </button>
+  </p>
+  <p>
+    Add <code>?theme=dark</code> or <code>?theme=light</code> to the address to fix the colour
+    scheme; otherwise it follows your reader's system setting. In a column narrower than 400px,
+    raise the height to about 920.
+  </p>
+
+  <h2>What it costs</h2>
+  <p>
+    Nothing. Please keep the credit line under the calculator: it is how people find the full
+    breakdown, and how we keep this free. The calculator collects nothing, sets no cookies and sends
+    nothing anywhere; everything is worked out in your reader's browser.
+  </p>
+
+  <h2>Preview</h2>
+  <iframe
+    src="/embed"
+    title="CTC to in-hand salary calculator"
+    width="100%"
+    height="840"
+    style="border:0;max-width:560px"
+    loading="lazy"
+  ></iframe>
+</DocLayout>
+
+<script>
+  const button = document.querySelector<HTMLButtonElement>('[data-copy-snippet]');
+  const code = document.getElementById('embed-snippet');
+  button?.addEventListener('click', async () => {
+    const text = code?.textContent ?? '';
+    try {
+      await navigator.clipboard.writeText(text);
+      button.textContent = 'Copied';
+    } catch {
+      window.prompt('Copy the snippet', text);
+    }
+    window.setTimeout(() => (button.textContent = 'Copy the snippet'), 2000);
+  });
+</script>

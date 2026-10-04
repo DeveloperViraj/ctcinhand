@@ -54,7 +54,7 @@ export default defineConfig({
   integrations: [
     icon(),
     sitemap({
-      filter: (page) => !/\/(404|500)$/.test(page),
+      filter: (page) => !/\/(404|500|embed)$/.test(page),
     }),
   ],
   vite: {
