@@ -101,7 +101,8 @@ const pfDifference = best.monthlyTakeHome - fullPf.monthly;
     </header>
 
     <div class="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:gap-8">
-      <section class="card p-5 sm:p-6" aria-label="Summary">
+      <section class="card p-5 sm:p-6" aria-labelledby="summary-heading">
+        <h2 id="summary-heading" class="sr-only">Summary</h2>
         <p class="text-sm text-ink-2">In hand per month</p>
         <p class="mt-1 text-figure font-medium tabular-nums text-ink">
           <span class="cur">₹</span>
