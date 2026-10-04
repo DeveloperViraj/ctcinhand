@@ -175,9 +175,10 @@ const SCHEDULES: Record<string, Schedule> = {
             [1_00_000, 170],
             [Infinity, 208],
           ])(salary),
-    source: 'West Bengal PT Act 1979, Schedule (revised with effect from 1 October 2026)',
+    source:
+      'West Bengal PT Act 1979, Schedule substituted by Notification 1407-F.T. (from 1 October 2026)',
     caveat:
-      'West Bengal replaced its professional tax slabs from 1 October 2026, so April-September and October-March are charged differently. The new rates come from compliance advisories; we could not open a West Bengal gazette to confirm them.',
+      'West Bengal replaced its professional tax slabs from 1 October 2026, so April-September and October-March are charged differently. The new table is from Notification 1407-F.T. (Kolkata Gazette, 18 August 2026), published as a draft for objections; we have not found the final version, so if it changed, the October-March figures may differ.',
   },
   PB: {
     // Punjab State Development Tax Act 2018: a flat Rs 200/month deducted by the employer from

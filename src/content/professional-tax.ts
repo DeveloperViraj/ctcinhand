@@ -111,9 +111,9 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
     ],
     exemptions: ['People with a permanent physical disability, and blind, deaf or mute employees'],
     authority:
-      'West Bengal State Tax on Professions, Trades, Callings and Employments Act 1979, as revised with effect from 1 October 2026.',
+      'West Bengal State Tax on Professions, Trades, Callings and Employments Act 1979, as amended by the Act notified as 756-L of 7 August 2026, with the new Schedule set out in Finance Department Notification 1407-F.T. of 18 August 2026 (Kolkata Gazette Extraordinary, SAR-470).',
     caveat:
-      'Two independent compliance advisories agree on the new table and the 1 October 2026 start date, but they cite different notification numbers and no West Bengal government source would load for us. Treat the October figures as probable rather than confirmed.',
+      'The new Schedule was published on 18 August 2026 as a draft inviting objections within 14 days, with salaried employees covered from 1 October 2026. We have not found the final notification. If the final version changed anything, the October to March figures may differ; your October payslip will show it.',
   },
   {
     code: 'PB',

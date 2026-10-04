@@ -122,8 +122,9 @@ describe('West Bengal: schedule changes on 1 October 2026, mid-year', () => {
     expect(wb(22_000).annual).toBe(1_380); // 6 x 130 + 6 x 100
   });
 
-  it('carries a caveat because the new table is not gazette-confirmed', () => {
-    expect(wb(50_000).caveat).toMatch(/1 October 2026/);
+  it('carries a caveat because the gazetted schedule was a draft for objections', () => {
+    expect(wb(50_000).caveat).toMatch(/1407-F.T./);
+    expect(wb(50_000).caveat).toMatch(/draft for objections/);
   });
 
   it('has no February variation', () => {
