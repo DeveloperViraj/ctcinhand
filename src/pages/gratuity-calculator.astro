@@ -1,0 +1,229 @@
+---
+/**
+ * Gratuity under the Code on Social Security: a small calculator plus the rules, with every table
+ * computed at build time by the engine.
+ */
+import DocLayout from '../layouts/DocLayout.astro';
+import NumberField from '../components/form/NumberField.astro';
+import Segmented from '../components/form/Segmented.astro';
+import { bracketPath } from '../lib/brackets';
+import { gratuityData } from '../lib/explainers';
+import { formatRupees } from '../lib/format';
+import { renderGratuity } from '../lib/gratuity-result';
+
+const data = gratuityData();
+const initial = renderGratuity({
+  wages: data.serviceWages,
+  years: 5,
+  months: 0,
+  employment: 'permanent',
+});
+const lakh = (ctc: number) => `₹${(ctc / 1_00_000).toFixed(2).replace(/\.?0+$/, '')} lakh`;
+const perYear = (data.serviceWages * 15) / 26;
+const maximum = formatRupees(data.maximum);
+---
+
+<DocLayout
+  title="Gratuity calculator and the rules behind it"
+  description="Work out your gratuity under the Code on Social Security: 15/26 of a month's wages for each year, payable after five years, or one year for fixed-term staff, up to ₹20 lakh."
+  updated="2026-10-09"
+  ogImage="gratuity-calculator"
+  about={['Gratuity', 'Code on Social Security 2020', 'Fixed-term employment']}
+>
+  <p>
+    Gratuity is a lump sum your employer pays when you leave after enough years of service. Since 21
+    November 2025 it is governed by the Code on Social Security, which brought in two changes: it is
+    worked out on Labour Code wages rather than Basic alone, and fixed-term employees now qualify
+    after one year instead of five.
+  </p>
+
+  <form id="gratuity" class="card" novalidate aria-label="Gratuity calculator">
+    <div class="grid gap-x-8 gap-y-5 p-5 sm:grid-cols-2">
+      <NumberField
+        id="g-wages"
+        label="Wages a month"
+        value={data.serviceWages.toLocaleString('en-IN')}
+        prefix="₹"
+        width="7rem"
+        hint="Basic and DA, plus anything the 50% rule adds back"
+        money
+      />
+      <Segmented
+        name="g-type"
+        legend="Employment"
+        options={[
+          { value: 'permanent', label: 'Permanent' },
+          { value: 'fixed-term', label: 'Fixed-term' },
+        ]}
+        value="permanent"
+      />
+      <NumberField id="g-years" label="Years of service" value="5" width="3.5rem" />
+      <NumberField id="g-months" label="And months" value="0" width="3.5rem" />
+    </div>
+    <output
+      id="g-result"
+      for="g-wages g-years g-months"
+      class="block border-t border-line p-5"
+      aria-live="polite"
+      set:html={initial}
+    />
+  </form>
+
+  <h2>The formula</h2>
+  <p>
+    For each year of service you get <strong>15 days' wages</strong>, worked out on your last
+    month's wages. For someone paid monthly, 15 days' wages is the monthly figure times 15/26,
+    because a month is treated as 26 working days.
+  </p>
+  <p>
+    At {formatRupees(data.serviceWages)} of wages a month, as at {data.serviceLpa} LPA with Basic at
+    half of CTC, one year is worth {formatRupees(perYear)}. Five years is{' '}
+    {formatRupees(perYear * 5)}.
+  </p>
+  <p>
+    The wages are Labour Code wages: Basic and DA, plus whatever the{' '}
+    <a href="/labour-code-wages">50% rule</a> adds back when allowances are more than half of your
+    pay. A calculator that uses Basic alone will understate gratuity whenever Basic is below half of
+    CTC.
+  </p>
+
+  <h2>When you qualify</h2>
+  <ul>
+    <li>
+      <strong>Permanent employees</strong> need five years of continuous service.
+    </li>
+    <li>
+      <strong>Fixed-term employees</strong> engaged directly by the employer qualify after one year
+      and are paid pro rata for the time they actually served.
+    </li>
+    <li>
+      <strong>Contract workers</strong> engaged through a contractor still need five years.
+    </li>
+    <li>
+      On <strong>death or disablement</strong> there is no minimum period.
+    </li>
+  </ul>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Service</th>
+          <th scope="col">Permanent</th>
+          <th scope="col">Fixed-term</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.service.map((s) => (
+          <tr>
+            <td>{s.label}</td>
+            <td>{s.permanent > 0 ? formatRupees(s.permanent) : 'Nothing yet'}</td>
+            <td>{s.fixedTerm > 0 ? formatRupees(s.fixedTerm) : 'Nothing yet'}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    On wages of {formatRupees(data.serviceWages)} a month. For a permanent employee a part year
+    counts as a full year only when it is more than six months: 5 years 6 months pays{' '}
+    {formatRupees(data.rounding.atSixMonths)}, but 5 years 7 months pays{' '}
+    {formatRupees(data.rounding.atSevenMonths)}. Some courts treated 4 years and 240 days as five
+    years under the old Payment of Gratuity Act; whether that carries over under the Code is not
+    settled, so the calculator counts full years.
+  </p>
+
+  <h2>What it adds up to</h2>
+  <p>
+    Gratuity on leaving after each length of service, using the calculator's standard structure with
+    Basic at half of CTC, and assuming your salary stays the same throughout. In practice it is
+    worked out on your last wages, so pay rises raise it for every year you have served.
+  </p>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">CTC</th>
+          {data.years.map((y) => (
+            <th scope="col">{y} years</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {data.rows.map((r) => (
+          <tr>
+            <td>
+              <a href={bracketPath(r.lpa)}>{r.lpa} LPA</a>
+            </td>
+            {r.byYears.map((y) => (
+              <td>
+                {formatRupees(y.amount)}
+                {y.capped && <span class="block text-xs text-ink-3">The maximum</span>}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    The Code caps gratuity at {maximum}. With this structure, 20 years of service reaches the cap
+    from a CTC of about {lakh(data.capReachedAt20Years)}.
+  </p>
+
+  <h2>Gratuity inside your CTC</h2>
+  <p>
+    Most offer letters include a gratuity line in CTC: 15/26 of a month's wages for every year,
+    about 4.8% of wages. It is not paid to you each month. It is what your employer sets aside, and
+    you only receive gratuity when you leave after qualifying, so the calculator leaves it out of
+    in-hand pay.
+  </p>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">CTC</th>
+          <th scope="col">Wages a month</th>
+          <th scope="col">Gratuity in CTC a year</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.rows.map((r) => (
+          <tr>
+            <td>
+              <a href={bracketPath(r.lpa)}>{r.lpa} LPA</a>
+            </td>
+            <td>{formatRupees(r.wages)}</td>
+            <td>{formatRupees(r.provision)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Tax on gratuity</h2>
+  <p>
+    For most private-sector employees, gratuity is tax-free up to {maximum} across your whole
+    working life; anything above that is taxed as salary in the year you receive it. Gratuity paid
+    to Central and State Government employees is fully exempt. The exact exempt amount depends on a
+    formula in the Income-tax Act, 2025, so if your gratuity is large, check the figure on your Form
+    16.
+  </p>
+
+  <h2>Try it with your full salary</h2>
+  <p>
+    The <a href="/">calculator</a> works out your Labour Code wages from your CTC and shows gratuity
+    alongside PF and ESI. In advanced mode you can set your years of service and whether you are on
+    a fixed-term contract.
+  </p>
+  <p>
+    Sources: Code on Social Security, 2020, s.53, in force from 21 November 2025; Industrial
+    Relations Code, 2020, s.2(o) on fixed-term employment; Ministry of Labour and Employment FAQs of
+    30 December 2025 (Q12, the maximum) and Additional FAQs of 16 March 2026 (Q10, Q14 and Q16).{' '}
+    <a href="/how-it-works">Full method</a>.
+  </p>
+</DocLayout>
+
+<script>
+  import { mountGratuity } from '../scripts/gratuity';
+  mountGratuity();
+</script>

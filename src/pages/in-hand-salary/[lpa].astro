@@ -270,7 +270,7 @@ const pfDifference = best.monthlyTakeHome - fullPf.monthly;
         <p>
           Your Basic is {formatRupees(a.basic / 12)} a month, under the PF wage ceiling, so it makes
           no difference whether your employer caps PF: 12% of your full Basic is already what you
-          pay.
+          pay. <a href="/provident-fund">How the PF ceiling works</a>.
         </p>
       ) : (
         <p>
@@ -280,7 +280,8 @@ const pfDifference = best.monthlyTakeHome - fullPf.monthly;
           {formatRupees(fullPf.monthly)} a month, {formatRupees(pfDifference)} less: your own
           contribution rises, and so does your employer's, which comes out of your CTC, partly
           offset by lower tax. In exchange {formatRupees(fullPf.employeePfYear)} a year goes into
-          your PF from your side, matched by your employer. Your payslip will say which applies.
+          your PF from your side, matched by your employer. Your payslip will say which applies.{' '}
+          <a href="/provident-fund">How the PF ceiling works</a>.
         </p>
       )}
     </div>

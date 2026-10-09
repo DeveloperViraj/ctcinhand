@@ -25,6 +25,12 @@ export function allOgCards(): OgCard[] {
     { slug: 'marginal-relief', title: 'Marginal relief above ₹12 lakh, worked out to the rupee' },
     { slug: 'old-vs-new-tax-regime', title: 'Old or new tax regime: the exact break-even' },
     { slug: 'hra-exemption', title: 'HRA exemption: eight cities now get the 50% limit' },
+    { slug: 'labour-code-wages', title: 'The Labour Code 50% wage rule, worked out' },
+    { slug: 'provident-fund', title: 'Provident fund: the new ₹25,000 ceiling, month by month' },
+    {
+      slug: 'gratuity-calculator',
+      title: 'Gratuity: 15/26 a year, from one year for fixed-term staff',
+    },
     ...LPA_BRACKETS.map((lpa) => {
       const result = calculate({ ...DEFAULT_INPUT, ctc: lakhs(lpa) });
       const best = result.regimes[result.better];

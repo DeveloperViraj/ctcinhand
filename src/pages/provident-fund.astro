@@ -1,0 +1,236 @@
+---
+/**
+ * Provident fund for Tax Year 2026-27: the mid-year ceiling change, the pension split and the
+ * ceiling-or-full-wages choice. Every figure is computed at build time by the engine.
+ */
+import DocLayout from '../layouts/DocLayout.astro';
+import { bracketPath } from '../lib/brackets';
+import { pfGuideData } from '../lib/explainers';
+import { formatRupees } from '../lib/format';
+import { DEDUCTION_CAPS, EMPLOYER_CONTRIBUTION_PERQUISITE_LIMIT } from '../lib/tax/deductions';
+
+const data = pfGuideData();
+const top = data.wageRows.at(-1)!;
+const twenty = data.modeRows.find((r) => r.lpa === 20)!;
+const lakh = (ctc: number) => `₹${(ctc / 1_00_000).toFixed(2).replace(/\.?0+$/, '')} lakh`;
+const ceiling = formatRupees(data.ceiling);
+const previous = formatRupees(data.previousCeiling);
+---
+
+<DocLayout
+  title="Provident fund: the new ₹25,000 ceiling, month by month"
+  description="The EPF wage ceiling rose from ₹15,000 to ₹25,000 on 17 September 2026. What comes out of your salary each month this year, how your employer's share splits into pension, and what PF on full wages costs."
+  updated="2026-10-09"
+  ogImage="provident-fund"
+  about={['Employees Provident Fund', 'EPF wage ceiling', 'Employees Pension Scheme']}
+>
+  <p>
+    You and your employer each pay 12% of your wages into the Employees' Provident Fund. Most
+    employers pay only up to the statutory wage ceiling, and on 17 September 2026 that ceiling rose
+    from {previous} to {ceiling} a month. If your wages are above {previous}, your PF deduction goes
+    up from October, and so does your employer's contribution.
+  </p>
+  <p>
+    Many salary calculators still use {previous} for the whole year. This one applies the change
+    month by month.
+  </p>
+
+  <h2>The ceiling changed in September</h2>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Wage months</th>
+          <th scope="col">Wage ceiling</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>April to August 2026</td>
+          <td>{previous}</td>
+        </tr>
+        <tr>
+          <td>September 2026</td>
+          <td>
+            {previous} for 16 days, {ceiling} for 14 days
+            <span class="block text-xs text-ink-3">
+              {formatRupees(data.septemberCeiling)} for the month
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td>October 2026 to March 2027</td>
+          <td>{ceiling}</td>
+        </tr>
+        <tr>
+          <td>From April 2027</td>
+          <td>{ceiling}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    S.O. 2702(E) of 29 May 2026 had re-notified the ceiling at {previous} under the Code on Social
+    Security. S.O. 5109(E) of 17 September 2026 replaced it with {ceiling} from the date of
+    publication, for the provident fund, the pension scheme and EDLI insurance alike.
+  </p>
+
+  <h2>What comes out of your salary</h2>
+  <p>
+    Your own 12%, when your employer contributes up to the ceiling. "Wages" here are Labour Code
+    wages: Basic and DA, plus anything the <a href="/labour-code-wages">50% rule</a> adds back.
+  </p>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Wages a month</th>
+          <th scope="col">April to August</th>
+          <th scope="col">September</th>
+          <th scope="col">October to March</th>
+          <th scope="col">This year</th>
+          <th scope="col">From 2027-28, a year</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.wageRows.map((r) => (
+          <tr>
+            <td>
+              {formatRupees(r.wages)}
+              {r === top && ' or more'}
+            </td>
+            <td>{formatRupees(r.beforeChange)}</td>
+            <td>{formatRupees(r.september)}</td>
+            <td>{formatRupees(r.afterChange)}</td>
+            <td>{formatRupees(r.thisYear)}</td>
+            <td>{formatRupees(r.nextYear)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    At {previous} or less nothing changes. Between the two ceilings the deduction rises to 12% of
+    your wages. At {ceiling} or more it goes from {formatRupees(top.beforeChange)} to{' '}
+    {formatRupees(top.afterChange)} a month, and next year's total is{' '}
+    {formatRupees(top.nextYear - top.thisYear)} higher than this year's.
+  </p>
+  <p>
+    Your employer pays the same amount again. If your offer letter counts employer PF inside your
+    CTC, as most do, that extra contribution can also come out of your CTC, usually by trimming
+    special allowance. The drop in in-hand from October is then up to twice the rise in your own
+    deduction, before tax.
+  </p>
+
+  <h2>Your employer's 12% and the pension split</h2>
+  <p>
+    Part of the employer's contribution goes to the Employees' Pension Scheme: 8.33% of wages up to
+    the ceiling. The rest goes into your PF account.
+  </p>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Wages of {ceiling} or more</th>
+          <th scope="col">Employer's 12%</th>
+          <th scope="col">To the pension scheme</th>
+          <th scope="col">To your PF account</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Ceiling of {previous}</td>
+          <td>{formatRupees(top.beforeChange)}</td>
+          <td>{formatRupees(data.epsBefore, true)}</td>
+          <td>{formatRupees(top.beforeChange - data.epsBefore, true)}</td>
+        </tr>
+        <tr>
+          <td>Ceiling of {ceiling}</td>
+          <td>{formatRupees(top.afterChange)}</td>
+          <td>{formatRupees(data.epsAfter, true)}</td>
+          <td>{formatRupees(top.afterChange - data.epsAfter, true)}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    The pension share does not sit in your PF balance and does not earn PF interest; it counts
+    toward a pension under the scheme instead. With the higher ceiling both parts grow, so more goes
+    to the pension scheme and more to your PF account.
+  </p>
+
+  <h2>PF on the ceiling or on full wages</h2>
+  <p>
+    Some employers contribute 12% of your full wages instead of stopping at the ceiling. That is
+    allowed when you and your employer agree to it, and it puts much more into PF, but it costs
+    monthly in-hand. Here is the difference using the calculator's standard structure, with Basic at
+    half of CTC and employer PF inside it.
+  </p>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">CTC</th>
+          <th scope="col">In hand, PF at the ceiling</th>
+          <th scope="col">In hand, PF on full wages</th>
+          <th scope="col">Into PF a year, at the ceiling</th>
+          <th scope="col">On full wages</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.modeRows.map((r) => (
+          <tr>
+            <td>
+              <a href={bracketPath(r.lpa)}>{r.lpa} LPA</a>
+            </td>
+            <td>{formatRupees(r.takeHomeAtCeiling)}</td>
+            <td>{formatRupees(r.takeHomeOnFull)}</td>
+            <td>{formatRupees(r.pfAtCeiling)}</td>
+            <td>{formatRupees(r.pfOnFull)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    In-hand figures are a month, on the cheaper regime and averaged across this year's ceiling
+    change; PF is your share and your employer's together. At {twenty.lpa} LPA, PF on full wages
+    puts {formatRupees(twenty.pfOnFull - twenty.pfAtCeiling)} more a year into PF and costs{' '}
+    {formatRupees(twenty.takeHomeAtCeiling - twenty.takeHomeOnFull)} a month in hand. That money is
+    still yours, as long-term savings rather than salary.
+  </p>
+
+  <h2>Tax on PF</h2>
+  <ul>
+    <li>
+      <strong>Your contribution</strong> counts toward the {formatRupees(DEDUCTION_CAPS.sec80C)}{' '}
+      limit under section 123 (the old 80C), but only in the old regime. The new regime gives no
+      deduction for it.
+    </li>
+    <li>
+      <strong>Your employer's contribution</strong> is not taxed, unless employer contributions to
+      PF, NPS and superannuation together exceed{' '}
+      {formatRupees(EMPLOYER_CONTRIBUTION_PERQUISITE_LIMIT)} a year. The excess is taxed as part of
+      your salary; the calculator includes it.
+    </li>
+    <li>
+      <strong>Interest</strong> on your own contributions above{' '}
+      {formatRupees(data.interestThreshold)} in a year is taxable every year, or above ₹5,00,000 if
+      your employer does not contribute. With PF on full wages and Basic at half of CTC, your own
+      share passes {formatRupees(data.interestThreshold)} from a CTC of about{' '}
+      {lakh(data.interestThresholdCtc)}. The calculator does not include this interest, because it
+      depends on your PF balance and the rate declared each year.
+    </li>
+  </ul>
+
+  <h2>Try it with your own figures</h2>
+  <p>
+    The <a href="/">calculator</a> uses the ceiling by default. To see PF on full wages, open{' '}
+    <a href="/?m=advanced&pf=actual">advanced mode with full-wage PF</a>, and compare the two.
+  </p>
+  <p>
+    Sources: Employees' Provident Funds Scheme, 2026 (G.S.R. 525(E), 29 June 2026) under the Code on
+    Social Security, 2020; S.O. 2702(E) of 29 May 2026 and S.O. 5109(E) of 17 September 2026 on the
+    wage ceiling. <a href="/how-it-works">Full method</a>.
+  </p>
+</DocLayout>

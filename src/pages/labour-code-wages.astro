@@ -1,0 +1,242 @@
+---
+/**
+ * The Labour Code wage rule, worked through with the engine's own numbers. Every table is computed
+ * at build time from the same functions the calculator runs.
+ */
+import DocLayout from '../layouts/DocLayout.astro';
+import { bracketPath } from '../lib/brackets';
+import { labourCodeData } from '../lib/explainers';
+import { formatPercent, formatRupees } from '../lib/format';
+
+const data = labourCodeData();
+const low = data.rows.find((r) => r.basicPercent === data.lowBasicPercent)!;
+const full = data.rows.find((r) => r.basicPercent === 50)!;
+const lowest = data.rows[0];
+const twelve = data.gratuityShift.find((r) => r.lpa === data.exampleLpa)!;
+const esiTop = data.esi.filter((r) => r.covered).at(-1)!;
+const understatement = 1 - twelve.onBasic / twelve.onWages;
+const lakh = (ctc: number) => `₹${(ctc / 1_00_000).toFixed(2).replace(/\.?0+$/, '')} lakh`;
+---
+
+<DocLayout
+  title="The Labour Code 50% wage rule, worked out"
+  description="Since 21 November 2025, PF, ESI and gratuity are worked out on Labour Code wages. What the 50% rule adds back, why a low Basic no longer lowers them, and who it brings into ESI."
+  updated="2026-10-09"
+  ogImage="labour-code-wages"
+  about={['Labour Codes', 'Code on Wages 2019', 'Provident fund', 'Gratuity', 'ESI']}
+>
+  <p>
+    The four Labour Codes came into force across India on 21 November 2025. They give PF, ESI and
+    gratuity one shared definition of <strong>wages</strong>, and with it a rule: if your allowances
+    and the other payments left out of wages come to more than half of your total pay, the excess is
+    counted as wages anyway.
+  </p>
+  <p>
+    That rule is often summarised as "Basic must be at least 50% of CTC". It says nothing of the
+    sort. Your employer can still pay a small Basic and a large special allowance, and your payslip
+    need not change. What changes is the figure PF, ESI and gratuity are calculated on.
+  </p>
+
+  <h2>How the rule works</h2>
+  <ol>
+    <li>
+      <strong>Wages</strong> start as Basic pay, dearness allowance and retaining allowance.
+    </li>
+    <li>
+      <strong>Excluded payments</strong> are the things the definition leaves out: HRA, conveyance,
+      travel concessions, your employer's PF and pension contributions, statutory bonus, overtime
+      and commission. The Ministry of Labour also treats special allowance and other general
+      allowances this way.
+    </li>
+    <li>
+      <strong>Total remuneration</strong> is the two together. Gratuity and ESI are not part of it.
+    </li>
+    <li>
+      If excluded payments are more than <strong>half of total remuneration</strong>, the excess is
+      added to wages.
+    </li>
+  </ol>
+  <p>
+    At {data.exampleLpa} LPA with Basic at {data.lowBasicPercent}% of CTC, Basic is{' '}
+    {formatRupees(low.basicMonthly)} a month and total remuneration is{' '}
+    {formatRupees(low.remuneration)}. The excluded payments come to{' '}
+    {formatRupees(low.excludedPayments)}, which is {formatPercent(low.excludedShare)} of the total.
+    Half of the total is {formatRupees(low.remuneration / 2)}, so {formatRupees(low.addBack)} is
+    added back and wages for PF, ESI and gratuity become{' '}
+    <strong>{formatRupees(low.wages)} a month</strong>.
+  </p>
+
+  <h2>A lower Basic no longer means lower PF or gratuity</h2>
+  <p>
+    The same {data.exampleLpa} LPA CTC with Basic set at different shares, special allowance taking
+    up the rest. Below half of CTC the rule pulls wages back to the same level every time.
+  </p>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Basic</th>
+          <th scope="col">Excluded share</th>
+          <th scope="col">Added back</th>
+          <th scope="col">Wages</th>
+          <th scope="col">Gratuity a year</th>
+          <th scope="col">PF on full wages</th>
+          <th scope="col">In hand a month</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.rows.map((r) => (
+          <tr>
+            <td>
+              {r.basicPercent}%
+              <span class="block text-xs text-ink-3">{formatRupees(r.basicMonthly)}</span>
+            </td>
+            <td>{formatPercent(r.excludedShare)}</td>
+            <td>{r.addBack > 0 ? formatRupees(r.addBack) : 'Nothing'}</td>
+            <td>{formatRupees(r.wages)}</td>
+            <td>{formatRupees(r.gratuityYearly)}</td>
+            <td>{formatRupees(r.fullPfMonthly)}</td>
+            <td>{formatRupees(r.takeHome)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Monthly figures except gratuity. "PF on full wages" is your own 12% if your employer contributes
+    on full wages rather than up to the wage ceiling. In-hand assumes PF at the ceiling, gratuity
+    and employer PF inside CTC, and the cheaper tax regime.
+  </p>
+  <p>
+    Whether Basic is {lowest.basicPercent}% or {data.rows[2].basicPercent}% of CTC, wages come out
+    at {formatRupees(low.wages)} and monthly in-hand at {formatRupees(low.takeHome)}. With Basic at
+    half of CTC the structure passes the test on its own, nothing is added back, and in-hand is{' '}
+    {formatRupees(full.takeHome)}. Restructuring pay to keep Basic low no longer saves anything on
+    PF or gratuity.
+  </p>
+
+  <h2>What it does to gratuity</h2>
+  <p>
+    Gratuity is 15/26 of a month's wages for each year of service, and since November 2025 those are
+    Labour Code wages. Many calculators still use Basic alone. With Basic at {data.lowBasicPercent}%
+    of CTC, here is one year's gratuity both ways.
+  </p>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">CTC</th>
+          <th scope="col">Basic a month</th>
+          <th scope="col">Wages a month</th>
+          <th scope="col">A year's gratuity on Basic</th>
+          <th scope="col">On Labour Code wages</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.gratuityShift.map((r) => (
+          <tr>
+            <td>
+              <a href={bracketPath(r.lpa)}>{r.lpa} LPA</a>
+            </td>
+            <td>{formatRupees(r.basicMonthly)}</td>
+            <td>{formatRupees(r.wages)}</td>
+            <td>{formatRupees(r.onBasic)}</td>
+            <td>{formatRupees(r.onWages)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Using Basic alone understates gratuity by {formatPercent(understatement, 0)} for this structure.
+    The <a href="/gratuity-calculator">gratuity guide</a> covers the formula, the one-year rule for
+    fixed-term staff and the ₹20 lakh maximum.
+  </p>
+
+  <h2>Who it brings into ESI</h2>
+  <p>
+    ESI applies when wages are no more than {formatRupees(data.esiCeiling)} a month. That ceiling is
+    now tested on Labour Code wages, not gross pay, and for most salaried people wages are only
+    about half of gross. So ESI reaches much further up the pay scale than it used to.
+  </p>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">CTC</th>
+          <th scope="col">Gross pay a month</th>
+          <th scope="col">Wages a month</th>
+          <th scope="col">ESI</th>
+          <th scope="col">Your ESI a month</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.esi.map((r) => (
+          <tr>
+            <td>
+              <a href={bracketPath(r.lpa)}>{r.lpa} LPA</a>
+            </td>
+            <td>{formatRupees(r.grossMonthly)}</td>
+            <td>{formatRupees(r.wages)}</td>
+            <td>{r.covered ? 'Applies' : 'Does not apply'}</td>
+            <td>
+              {r.covered ? formatRupees(r.employeeMonthly, r.employeeMonthly % 1 !== 0) : 'None'}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    With Basic at half of CTC, ESI applies up to a CTC of about {lakh(data.esiEndsAt)}. At{' '}
+    {esiTop.lpa} LPA your gross pay is {formatRupees(esiTop.grossMonthly)} a month and ESI still
+    applies. You pay 0.75% of wages and your employer 3.25%, and in return you get ESI medical
+    cover. Not every employer has caught up with this, so check your payslip if you are in this
+    range.
+  </p>
+
+  <h2>The two choices we had to make</h2>
+  <p>The rule leaves two questions open, and the answers change the numbers:</p>
+  <ul>
+    <li>
+      <strong>What counts as total remuneration.</strong> We follow the Ministry of Labour's FAQs of
+      16 March 2026: employer PF and pension contributions are included, gratuity and ESI are not.
+      An earlier FAQ of 30 December 2025 included gratuity in a worked example; the later, more
+      specific answer is used.
+    </li>
+    <li>
+      <strong>Special allowance.</strong> Neither list names it. The Ministry tests every payment
+      other than Basic, DA and retaining allowance against the 50% limit, and that is our default.
+      Read literally, the statute could make such allowances wages in full, which raises gratuity
+      and can change ESI. The calculator's advanced mode has a switch for that reading.
+    </li>
+  </ul>
+
+  <h2>What to check in your offer letter</h2>
+  <ul>
+    <li>
+      Whether PF is on the wage ceiling or on full wages. The difference is large; see the{' '}
+      <a href="/provident-fund">provident fund guide</a>.
+    </li>
+    <li>
+      Whether employer PF and gratuity are inside your CTC. If they are, any increase in wages comes
+      out of the rest of your CTC, usually special allowance.
+    </li>
+    <li>
+      Whether Basic is below half of CTC. If it is, your PF, gratuity and ESI should still be worked
+      out on the higher Labour Code wages.
+    </li>
+  </ul>
+
+  <h2>Try it with your own structure</h2>
+  <p>
+    The <a href={`/?m=advanced&b=${data.lowBasicPercent}p`}>calculator in advanced mode</a> takes
+    your actual Basic, HRA and allowances, applies the rule, and tells you when something has been
+    added back.
+  </p>
+  <p>
+    Sources: Code on Wages, 2019, s.2(y), and Code on Social Security, 2020, s.2(88), in force from
+    21 November 2025; Ministry of Labour and Employment FAQs of 30 December 2025 and Additional FAQs
+    of 16 March 2026. <a href="/how-it-works">Full method</a>.
+  </p>
+</DocLayout>
