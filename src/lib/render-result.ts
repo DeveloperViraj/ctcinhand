@@ -11,6 +11,7 @@
 import type { CalculationResult, RegimeBreakdown } from './tax/calculate';
 import { formatCompactRupees, formatNumber, formatRupees } from './format';
 import { describePtPattern } from './pt-pattern';
+import { pfCeilingNote } from './pf-note';
 import type { Regime } from './tax/rates';
 
 const escape = (s: string) =>
@@ -188,15 +189,15 @@ export function renderSummary(result: CalculationResult): string {
           <a href="/marginal-relief" class="underline">Why</a>
         </p>
       </div>`
-    : '';
+    : '<div class="callout mt-6 p-4" hidden></div>';
 
-  const notes = result.notices.length
-    ? `<p class="mt-4 text-sm"><a href="#notes" class="text-warn-ink underline decoration-dashed underline-offset-4 hover:text-ink">${
-        result.notices.length === 1
-          ? 'One note about these numbers'
-          : `${result.notices.length} notes about these numbers`
-      }</a></p>`
-    : '';
+  const notes = `<p class="mt-4 text-sm"${
+    result.notices.length ? '' : ' hidden'
+  }><a href="#notes" class="text-warn-ink underline decoration-dashed underline-offset-4 hover:text-ink">${
+    result.notices.length === 1
+      ? 'One note about these numbers'
+      : `${result.notices.length} notes about these numbers`
+  }</a></p>`;
 
   return `<h2 class="sr-only">Your salary breakdown</h2>
   <div class="p-5 sm:p-6" data-result-card>
@@ -335,7 +336,7 @@ export function renderDetails(result: CalculationResult): string {
           'Provident fund (employee)',
           minus(s.pf.employee * 12),
           result.input.pfMode === 'ceiling'
-            ? 'Capped at 12% of the ₹15,000 wage ceiling'
+            ? pfCeilingNote(s.pf.employeeByMonth, formatRupees)
             : 'On full Labour Code wages',
         )
       : '',
@@ -390,8 +391,12 @@ export function renderDetails(result: CalculationResult): string {
     .filter(Boolean)
     .join('');
 
-  const notices = result.notices.length
-    ? `<section id="notes" aria-labelledby="notes-heading" class="scroll-mt-6">
+  // Always rendered (hidden when empty) so the blocks after it keep their positions: the page is
+  // patched in place by position, and a section that comes and goes would make the patch replace,
+  // and so close, the "How the tax was worked out" panel below.
+  const notices = `<section id="notes" aria-labelledby="notes-heading" class="scroll-mt-6"${
+    result.notices.length ? '' : ' hidden'
+  }>
         <h3 id="notes-heading" class="text-base font-medium text-ink">Notes on your numbers</h3>
         <ul class="mt-3 space-y-2">${result.notices
           .map(
@@ -399,8 +404,7 @@ export function renderDetails(result: CalculationResult): string {
               `<li class="rounded-sm border-l-2 border-warn-line bg-warn-soft px-4 py-3 text-sm text-warn-ink">${forScreen(n)}</li>`,
           )
           .join('')}</ul>
-      </section>`
-    : '';
+      </section>`;
 
   const gratuity = result.gratuityProjection;
   const gratuityNote = gratuity.eligible

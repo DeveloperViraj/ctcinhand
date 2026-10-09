@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
+import { morphInto } from './morph';
 import { renderDetails, renderSummary } from './render-result';
 import { calculate, type CalculatorInput } from './tax/calculate';
 import { DEFAULT_INPUT } from './tax/defaults';
@@ -91,5 +92,24 @@ describe('renderSummary', () => {
     document.body.innerHTML = renderSummary(result);
     expect(document.querySelector('[role="alert"]')).not.toBeNull();
     expect(document.querySelector('[data-headline-num]')).toBeNull();
+  });
+});
+
+describe('in-place updates', () => {
+  it('keep the tax-working panel open when notes appear or disappear', () => {
+    // Delhi with PF on full wages has no notes; capping PF at the ceiling adds one.
+    const quiet = calculate(scenario({ stateCode: 'DL', city: 'Delhi', pfMode: 'actual' }));
+    const noisy = calculate(scenario({ stateCode: 'DL', city: 'Delhi', pfMode: 'ceiling' }));
+    expect(quiet.notices).toEqual([]);
+    expect(noisy.notices.length).toBeGreaterThan(0);
+
+    document.body.innerHTML = '<div id="d"></div>';
+    const root = document.getElementById('d')!;
+    root.innerHTML = renderDetails(quiet);
+    root.querySelector('details')!.open = true;
+    for (const next of [noisy, quiet, noisy]) {
+      morphInto(root, renderDetails(next));
+      expect(root.querySelector('details')!.open).toBe(true);
+    }
   });
 });
