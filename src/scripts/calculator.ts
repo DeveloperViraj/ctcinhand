@@ -13,7 +13,13 @@ import { fromPosition, toPosition, type SliderScale } from '../lib/slider-scale'
 import { calculate, type CalculatorInput, type ComponentValue } from '../lib/tax/calculate';
 import { STATES, type PtResult } from '../lib/tax/professional-tax';
 import { clearState, loadState, saveState } from '../lib/storage';
-import { DEFAULT_STATE, decodeState, encodeState, type CalculatorState } from '../lib/url-state';
+import {
+  DEFAULT_STATE,
+  decodeState,
+  effectiveInput,
+  encodeState,
+  type CalculatorState,
+} from '../lib/url-state';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) =>
   document.getElementById(id) as T | null;
@@ -94,9 +100,17 @@ export function mountCalculator(): void {
   let lastHeadline = 0;
 
   function initialState(): CalculatorState {
+    const stored = loadState();
     const fromUrl = window.location.search.slice(1);
-    if (fromUrl) return decodeState(fromUrl);
-    return loadState() ?? structuredClone(DEFAULT_STATE);
+    if (!fromUrl) return stored ?? structuredClone(DEFAULT_STATE);
+    const linked = decodeState(fromUrl);
+    // A Quick-mode link carries only the Quick fields. Keep any Advanced settings saved on this
+    // device underneath, so switching to Advanced brings them back instead of wiping them.
+    if (linked.mode === 'quick' && stored) {
+      const { ctc, stateCode, city, monthlyRent } = linked.input;
+      return { mode: 'quick', input: { ...stored.input, ctc, stateCode, city, monthlyRent } };
+    }
+    return linked;
   }
 
   /** Every number field accepts what people type: "1,50,000", "1.5L", "12.5". */
@@ -196,14 +210,37 @@ export function mountCalculator(): void {
     };
   }
 
-  /** A chip whose text cannot be read as a number swaps to the error tint. */
-  function flagUnreadable() {
+  /**
+   * A chip whose text cannot be read as a number swaps to the error tint. Returns the labels of
+   * the unreadable fields currently in use, so the result can wait for them instead of quietly
+   * treating them as zero.
+   */
+  function flagUnreadable(): string[] {
+    const problems: string[] = [];
     for (const input of form!.querySelectorAll<HTMLInputElement>('.chip input')) {
       const text = input.value.trim();
       const unreadable = text !== '' && parseRupees(text) === null;
       input.closest('.chip')?.toggleAttribute('data-invalid', unreadable);
       input.setAttribute('aria-invalid', String(unreadable));
+      const inUse = state.mode === 'advanced' || !el.advanced.contains(input);
+      if (unreadable && inUse) {
+        const label = form!.querySelector(`label[for="${input.id}"]`)?.textContent?.trim();
+        problems.push(label ?? 'this field');
+      }
     }
+    return problems;
+  }
+
+  /** Errors about the input itself, shown in place of a result. */
+  function inputErrors(unreadable: string[]): string[] {
+    const ctcLabel = el.ctc.labels?.[0]?.textContent?.trim() ?? '';
+    const errors = unreadable
+      .filter((label) => label !== ctcLabel)
+      .map((label) => `Enter a number for ${label}.`);
+    if (unreadable.includes(ctcLabel) || state.input.ctc <= 0) {
+      errors.unshift('Enter your annual CTC as a number, for example 12,00,000 or 12L.');
+    }
+    return errors;
   }
 
   function setMode(mode: CalculatorState['mode']) {
@@ -379,11 +416,13 @@ export function mountCalculator(): void {
   /* ---------------------------------------------------------------------------------------- */
 
   let urlTimer: number | undefined;
+  let lastGood: CalculatorState = structuredClone(state);
   let liveTimer: number | undefined;
   function render() {
     state.input = readFromForm();
-    flagUnreadable();
-    const computed = calculate(state.input);
+    const problems = inputErrors(flagUnreadable());
+    const computed = calculate(effectiveInput(state));
+    computed.errors.unshift(...problems);
     morphInto(summary!, renderSummary(computed));
     morphInto(details!, renderDetails(computed));
 
@@ -395,15 +434,23 @@ export function mountCalculator(): void {
     watchResultVisibility();
     el.special.disabled = el.specialUnit.value === 'balance';
 
-    // Debounced so typing does not spam history or storage.
-    window.clearTimeout(urlTimer);
-    urlTimer = window.setTimeout(() => {
-      const query = encodeState(state);
-      window.history.replaceState(null, '', query ? `?${query}` : window.location.pathname);
-      saveState(state);
-    }, 250);
+    // Debounced so typing does not spam history or storage. Unreadable input is never saved: the
+    // last good state stays in the address and in storage until the field reads as a number again.
+    if (!problems.length) {
+      lastGood = structuredClone(state);
+      window.clearTimeout(urlTimer);
+      urlTimer = window.setTimeout(() => {
+        const query = encodeState(lastGood);
+        window.history.replaceState(null, '', query ? `?${query}` : window.location.pathname);
+        saveState(lastGood);
+      }, 250);
+    }
 
-    // Announce a one-line summary once typing pauses, rather than the whole breakdown per keystroke.
+    announce(computed);
+  }
+
+  /** Announces a one-line summary once typing pauses, rather than the whole breakdown per keystroke. */
+  function announce(computed: ReturnType<typeof calculate>) {
     window.clearTimeout(liveTimer);
     liveTimer = window.setTimeout(() => {
       if (!live) return;
@@ -497,14 +544,14 @@ export function mountCalculator(): void {
   el.exportPdf.addEventListener('click', () =>
     busy(el.exportPdf, async () => {
       const { exportPdf } = await import('./export-pdf');
-      await exportPdf(calculate(state.input), { shareUrl: shareUrl() });
+      await exportPdf(calculate(effectiveInput(state)), { shareUrl: shareUrl() });
     }),
   );
 
   el.exportXlsx.addEventListener('click', () =>
     busy(el.exportXlsx, async () => {
       const { exportExcel } = await import('./export-excel');
-      await exportExcel(calculate(state.input));
+      await exportExcel(calculate(effectiveInput(state)));
     }),
   );
 

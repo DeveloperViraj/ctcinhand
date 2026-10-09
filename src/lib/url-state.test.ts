@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { decodeState, encodeState, DEFAULT_STATE, type CalculatorState } from './url-state';
+import { DEFAULT_INPUT } from './tax/defaults';
+import {
+  decodeState,
+  effectiveInput,
+  encodeState,
+  DEFAULT_STATE,
+  type CalculatorState,
+} from './url-state';
 
 const state = (
   o: Partial<CalculatorState['input']> = {},
@@ -57,6 +64,17 @@ describe('URL encoding', () => {
     expect(decodeState(encodeState(custom))).toEqual(custom);
   });
 
+  it('leaves hidden Advanced settings out of a Quick-mode link', () => {
+    const quick = state({
+      ctc: 18_00_000,
+      basic: { unit: 'percent', value: 40 },
+      pfMode: 'actual',
+    });
+    expect(encodeState(quick)).toBe('c=1800000');
+    // Storage keeps them, so Advanced comes back as it was left.
+    expect(decodeState(encodeState(quick, true)).input).toEqual(quick.input);
+  });
+
   it('keeps shared links short', () => {
     const typical = state({ ctc: 18_00_000, stateCode: 'MH', city: 'Mumbai', monthlyRent: 35_000 });
     expect(encodeState(typical).length).toBeLessThan(60);
@@ -93,5 +111,30 @@ describe('URL decoding is defensive, because a link is untrusted input', () => {
   it('treats a missing PT override as null, not zero', () => {
     expect(decodeState('').input.ptOverrideMonthly).toBeNull();
     expect(decodeState('po=0').input.ptOverrideMonthly).toBe(0);
+  });
+});
+
+describe('effectiveInput', () => {
+  it('uses the defaults for everything Quick mode does not show', () => {
+    const quick = state({
+      ctc: 18_00_000,
+      stateCode: 'MH',
+      city: 'Mumbai',
+      monthlyRent: 30_000,
+      basic: { unit: 'percent', value: 40 },
+      deductions: { ...DEFAULT_INPUT.deductions, sec80C: 1_50_000 },
+    });
+    expect(effectiveInput(quick)).toEqual({
+      ...DEFAULT_INPUT,
+      ctc: 18_00_000,
+      stateCode: 'MH',
+      city: 'Mumbai',
+      monthlyRent: 30_000,
+    });
+  });
+
+  it('uses every setting in Advanced mode', () => {
+    const advanced = state({ basic: { unit: 'percent', value: 40 } }, 'advanced');
+    expect(effectiveInput(advanced)).toBe(advanced.input);
   });
 });

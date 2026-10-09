@@ -21,6 +21,17 @@ export interface CalculatorState {
 
 export const DEFAULT_STATE: CalculatorState = { mode: 'quick', input: DEFAULT_INPUT };
 
+/**
+ * What is actually calculated. Quick mode shows only CTC, state, city and rent, so everything else
+ * uses the defaults while it is on, even if Advanced settings were changed earlier: nothing hidden
+ * may shape the result. The Advanced values stay in the state so switching back restores them.
+ */
+export function effectiveInput(state: CalculatorState): CalculatorInput {
+  if (state.mode === 'advanced') return state.input;
+  const { ctc, stateCode, city, monthlyRent } = state.input;
+  return { ...DEFAULT_INPUT, ctc, stateCode, city, monthlyRent };
+}
+
 const STATE_CODES = new Set(STATES.map((s) => s.code));
 const CITY_NAMES = new Set<string>(HRA_CITY_OPTIONS);
 
@@ -53,10 +64,15 @@ const num = (raw: string | null, fallback: number, min: number, max: number) => 
 };
 const bool = (raw: string | null, fallback: boolean) => (raw === null ? fallback : raw === '1');
 
-export function encodeState(state: CalculatorState): string {
+/**
+ * `everything` keeps settings Quick mode is not using. Storage wants them, so Advanced comes back
+ * as the person left it; a share link does not.
+ */
+export function encodeState(state: CalculatorState, everything = false): string {
   const p = new URLSearchParams();
   const d = DEFAULT_STATE.input;
-  const i = state.input;
+  // A link carries only what is in use, so a Quick-mode link never smuggles in hidden settings.
+  const i = everything ? state.input : effectiveInput(state);
   const put = (key: string, value: string, fallback: string) => {
     if (value !== fallback) p.set(key, value);
   };

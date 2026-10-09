@@ -165,7 +165,7 @@ export function renderSummary(result: CalculationResult): string {
       <p class="text-sm text-ink-2">In hand per month</p>
       <p class="mt-1 text-figure font-medium tabular-nums text-ink-3" aria-hidden="true">&mdash;</p>
       <div class="mt-4 rounded-sm bg-danger-soft p-4 text-sm text-ink">
-        <p class="font-medium">This structure does not add up</p>
+        <p class="font-medium">Check these figures</p>
         <ul class="mt-2 list-disc space-y-1 pl-5 text-ink-2">
           ${result.errors.map((e) => `<li>${forScreen(e)}</li>`).join('')}
         </ul>

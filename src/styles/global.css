@@ -788,6 +788,16 @@
 }
 
 /* Printing a salary breakdown is a real thing people do, and the PDF export is not always at hand. */
+/*
+ * Below lg the calculator page keeps an "In hand per month" bar fixed to the bottom of the screen.
+ * Reserve its height under the footer so the last links are never hidden behind it.
+ */
+@media (width < 64rem) {
+  body:has([data-sticky-total]) > footer {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  }
+}
+
 @media print {
   :root {
     color-scheme: light;

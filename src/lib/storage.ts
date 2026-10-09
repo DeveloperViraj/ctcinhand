@@ -12,7 +12,7 @@ const KEY = 'inhand:inputs';
 
 export function saveState(state: CalculatorState): void {
   try {
-    localStorage.setItem(KEY, encodeState(state));
+    localStorage.setItem(KEY, encodeState(state, true));
   } catch {
     /* storage unavailable: the calculator still works, it just will not remember */
   }
