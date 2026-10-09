@@ -18,6 +18,10 @@ export interface Author {
   slug: string;
   /** One honest line, e.g. "Software engineer; builds and maintains InHand". */
   role: string;
+  /** Short job title for structured data. Defaults to `role`. */
+  jobTitle?: string;
+  /** Where the author studied, for schema.org alumniOf. */
+  alumniOf?: string;
   /** Two to four short paragraphs: background, why you built this, how you keep it accurate. */
   bio: string[];
   /** Verifiable qualifications or experience, if any. Leave empty rather than stretch. */

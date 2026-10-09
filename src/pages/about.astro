@@ -1,6 +1,8 @@
 ---
 import DocLayout from '../layouts/DocLayout.astro';
+import { AUTHOR } from '../config/author';
 import { SITE } from '../config/site';
+import { authorPath } from '../lib/seo';
 ---
 
 <DocLayout
@@ -50,6 +52,17 @@ import { SITE } from '../config/site';
     calculation code is covered by tests built from hand-worked examples. The full method, including
     what we could not verify, is on the <a href="/how-it-works">How it works</a> page.
   </p>
+
+  {AUTHOR && (
+    <>
+      <h2>Who builds it</h2>
+      <p>
+        {SITE.name} is built and maintained by <a href={authorPath(AUTHOR)}>{AUTHOR.name}</a> with
+        the help of AI coding tools. Every figure is traced to the law or notification that sets it.
+        It is an independent project with no sponsors.
+      </p>
+    </>
+  )}
 
   <h2>Private by design</h2>
   <p>

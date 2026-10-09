@@ -9,9 +9,11 @@ import { authorPath } from '../lib/seo';
 interface Props {
   /** ISO date the content last changed materially. */
   updated: string;
+  /** Name the author. Off for pages that speak for the site, such as the privacy policy. */
+  credit?: boolean;
 }
 
-const { updated } = Astro.props;
+const { updated, credit = true } = Astro.props;
 const label = new Date(`${updated}T00:00:00+05:30`).toLocaleDateString('en-IN', {
   day: 'numeric',
   month: 'long',
@@ -21,7 +23,7 @@ const label = new Date(`${updated}T00:00:00+05:30`).toLocaleDateString('en-IN', 
 ---
 
 <p class="mt-2 text-sm text-ink-3">
-  {AUTHOR && (
+  {AUTHOR && credit && (
     <>
       By{' '}
       <a

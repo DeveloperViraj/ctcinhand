@@ -23,7 +23,11 @@ interface Props {
   description: string;
   /** Error pages set this so they never enter the index. */
   noindex?: boolean;
-  ogType?: 'website' | 'article';
+  ogType?: 'website' | 'article' | 'profile';
+  /** Schema.org type of the page node. */
+  pageType?: 'WebPage' | 'ProfilePage';
+  /** @id of the page's main entity, e.g. the author on a profile page. */
+  mainEntity?: string;
   /** Social card slug from src/lib/og-cards.ts. */
   ogImage?: string;
   /** Trail from the home page to this page, inclusive. Omit on the home page. */
@@ -44,6 +48,8 @@ const {
   schema = [],
   datePublished,
   dateModified,
+  pageType,
+  mainEntity,
 } = Astro.props;
 const canonicalPath = pagePath(Astro.url.pathname);
 const canonical = absolute(canonicalPath);
@@ -64,6 +70,8 @@ const graph = {
       image,
       datePublished,
       dateModified,
+      type: pageType,
+      mainEntity,
     }),
     ...(breadcrumbs?.length ? [breadcrumbList(breadcrumbs, canonical)] : []),
     ...schema,

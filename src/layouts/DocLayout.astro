@@ -20,6 +20,14 @@ interface Props {
   schema?: readonly JsonLdNode[];
   /** Topics for the Article node. */
   about?: string[];
+  /**
+   * Legal pages (privacy, terms) keep their "Last updated" date but are not articles: they speak
+   * for the site, so they credit no individual author.
+   */
+  legal?: boolean;
+  ogType?: 'article' | 'profile';
+  pageType?: 'WebPage' | 'ProfilePage';
+  mainEntity?: string;
 }
 
 const {
@@ -32,6 +40,10 @@ const {
   ogImage = 'default',
   schema = [],
   about,
+  legal = false,
+  ogType = 'article',
+  pageType,
+  mainEntity,
 } = Astro.props;
 
 const path = pagePath(Astro.url.pathname);
@@ -39,7 +51,7 @@ const breadcrumbs: Crumb[] = [{ name: 'Home', path: '/' }, ...parents, { name: t
 
 // Legal and contact pages carry no date and are not articles; explainers are.
 const articleNode =
-  updated && published
+  updated && published && !legal
     ? [
         article({
           url: absolute(path),
@@ -58,7 +70,9 @@ const articleNode =
   title={title}
   description={description}
   noindex={noindex}
-  ogType="article"
+  ogType={ogType}
+  pageType={pageType}
+  mainEntity={mainEntity}
   ogImage={ogImage}
   breadcrumbs={breadcrumbs}
   schema={[...articleNode, ...schema]}
@@ -69,7 +83,7 @@ const articleNode =
     <header class="max-w-[68ch]">
       <Breadcrumbs crumbs={breadcrumbs} />
       <h1 class="mt-4 text-2xl font-medium tracking-tight text-ink sm:text-3xl">{title}</h1>
-      {updated && <Byline updated={updated} />}
+      {updated && <Byline updated={updated} credit={!legal} />}
     </header>
     <div class="prose-doc mt-8">
       <slot />

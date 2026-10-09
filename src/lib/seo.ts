@@ -94,9 +94,13 @@ export function webPage(opts: {
   image: string;
   datePublished?: string;
   dateModified?: string;
+  /** A more specific page type, e.g. 'ProfilePage' for the author page. */
+  type?: 'WebPage' | 'ProfilePage';
+  /** @id of the thing the page is about, e.g. the Person on a profile page. */
+  mainEntity?: string;
 }): JsonLdNode {
   return {
-    '@type': 'WebPage',
+    '@type': opts.type ?? 'WebPage',
     '@id': `${opts.url}#webpage`,
     url: opts.url,
     name: opts.title,
@@ -108,6 +112,7 @@ export function webPage(opts: {
     ...(opts.hasBreadcrumb ? { breadcrumb: { '@id': `${opts.url}#breadcrumb` } } : {}),
     ...(opts.datePublished ? { datePublished: opts.datePublished } : {}),
     ...(opts.dateModified ? { dateModified: opts.dateModified } : {}),
+    ...(opts.mainEntity ? { mainEntity: { '@id': opts.mainEntity } } : {}),
   };
 }
 
@@ -117,9 +122,13 @@ export function person(author: Author): JsonLdNode {
     '@type': 'Person',
     '@id': personId(author),
     name: author.name,
+    description: author.role,
     url: absolute(authorPath(author)),
-    jobTitle: author.role,
+    jobTitle: author.jobTitle ?? author.role,
     worksFor: { '@id': ORGANIZATION_ID },
+    ...(author.alumniOf
+      ? { alumniOf: { '@type': 'EducationalOrganization', name: author.alumniOf } }
+      : {}),
     ...(author.knowsAbout?.length ? { knowsAbout: author.knowsAbout } : {}),
     ...(author.sameAs?.length ? { sameAs: author.sameAs } : {}),
     ...(author.image ? { image: absolute(author.image) } : {}),

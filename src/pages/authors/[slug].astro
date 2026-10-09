@@ -14,20 +14,23 @@ export function getStaticPaths() {
 
 const { author } = Astro.props as { author: Author };
 const url = absolute(authorPath(author));
-const profile = {
-  '@type': 'ProfilePage',
-  '@id': `${url}#profile`,
-  url,
-  name: `${author.name}, ${SITE.name}`,
-  mainEntity: { '@id': `${url}#person` },
-};
+
+/** "GitHub", "LinkedIn", or the bare host for a personal site. */
+function linkLabel(link: string): string {
+  const host = new URL(link).hostname.replace(/^www\./, '');
+  if (host === 'github.com') return 'GitHub';
+  if (host === 'linkedin.com') return 'LinkedIn';
+  return `Website (${host})`;
+}
 ---
 
 <DocLayout
   title={author.name}
   description={`${author.name}: ${author.role}. How ${SITE.name}'s figures are researched and checked.`}
   parents={[{ name: 'About', path: '/about' }]}
-  schema={[profile]}
+  ogType="profile"
+  pageType="ProfilePage"
+  mainEntity={`${url}#person`}
 >
   {author.image && (
     <img
@@ -59,9 +62,9 @@ const profile = {
   <p>
     Every rate in the calculator is traced to a primary source (the Income-tax Act, 2025, the
     Finance Act, EPFO and ESIC notifications, and each state's professional tax law) and the
-    calculation engine is covered by automated tests worked out by hand. Where a figure could not be
-    confirmed from an official source, the site says so rather than guessing.{' '}
-    <a href="/how-it-works">The full method and sources</a>.
+    calculation engine is covered by automated tests whose expected results were worked out by hand.
+    Where a figure could not be confirmed from an official source, the site says so rather than
+    guessing. <a href="/how-it-works">The full method and sources</a>.
   </p>
 
   {author.sameAs?.length ? (
@@ -71,7 +74,7 @@ const profile = {
         {author.sameAs.map((link) => (
           <li>
             <a href={link} rel="me noopener">
-              {link.replace(/^https?:\/\/(www\.)?/, '')}
+              {linkLabel(link)}
             </a>
           </li>
         ))}
