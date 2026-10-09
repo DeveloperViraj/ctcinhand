@@ -8,17 +8,17 @@ Everything runs in the browser. No backend, no database, no API keys, no analyti
 
 ## Commands
 
-| Command              | What it does                                                      |
-| -------------------- | ----------------------------------------------------------------- |
-| `npm run dev`        | Dev server on http://localhost:4321                               |
-| `npm run build`      | Static build into `dist/`                                         |
-| `npm run preview`    | Serve the built site locally                                      |
-| `npm test`           | Run the calculation test suite (Vitest)                           |
-| `npm run check`      | Astro + TypeScript type check                                     |
-| `npm run lint`       | ESLint                                                            |
-| `npm run format`     | Prettier, write mode                                              |
-| `npm run verify`     | Lint, format check, types, tests and build — run before deploying |
-| `npm run lighthouse` | Build, preview and audit (needs Chrome installed)                 |
+| Command              | What it does                                                       |
+| -------------------- | ------------------------------------------------------------------ |
+| `npm run dev`        | Dev server on http://localhost:4321                                |
+| `npm run build`      | Static build into `dist/`                                          |
+| `npm run preview`    | Serve the built site locally                                       |
+| `npm test`           | Run the calculation test suite (Vitest)                            |
+| `npm run check`      | Astro + TypeScript type check                                      |
+| `npm run lint`       | ESLint                                                             |
+| `npm run format`     | Prettier, write mode                                               |
+| `npm run verify`     | Lint, format check, types, tests and build — run before deploying  |
+| `npm run lighthouse` | Build, serve and audit key pages; reports in `lighthouse-reports/` |
 
 On Windows, if npm fails with `spawn cmd ENOENT`, the sandbox has stripped `ComSpec`; run
 `$env:ComSpec="C:\Windows\System32\cmd.exe"` first.
