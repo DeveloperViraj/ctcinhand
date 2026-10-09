@@ -2,7 +2,9 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Calculator from '../components/Calculator.astro';
 import { SITE } from '../config/site';
-import { bracketLabel, bracketPath } from '../lib/brackets';
+import { bracketLabel, bracketPath, lakhs } from '../lib/brackets';
+import { calculate } from '../lib/tax/calculate';
+import { DEFAULT_INPUT } from '../lib/tax/defaults';
 
 const COMMON = [5, 6, 8, 10, 12, 14, 15, 18, 20, 25, 30, 40];
 
@@ -11,10 +13,16 @@ const verifiedLabel = new Date(`${SITE.ratesVerifiedOn}T00:00:00+05:30`).toLocal
   { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' },
 );
 
+/** Share of CTC that reaches the bank in a year, with the calculator's standard structure. */
+const reaches = (lpa: number) => {
+  const r = calculate({ ...DEFAULT_INPUT, ctc: lakhs(lpa) });
+  return `${Math.round((r.regimes[r.better].annualTakeHome / r.input.ctc) * 100)}%`;
+};
+
 const faqs = [
   {
     q: 'Why is my in-hand salary so much lower than my CTC?',
-    a: 'CTC includes money that never reaches your bank account: your employer’s provident fund contribution, the gratuity provision, employer ESI, and any variable pay you only receive if targets are met. Add income tax, your own PF contribution and professional tax, and the gap between CTC and what is credited is typically 25–30%.',
+    a: `CTC includes money that never reaches your bank account: your employer’s provident fund contribution, the gratuity provision, employer ESI, and any variable pay you only receive if targets are met. Add income tax, your own PF contribution and professional tax. With a typical structure, about ${reaches(6)} of a ₹6 lakh CTC reaches your bank, ${reaches(12)} of ₹12 lakh, ${reaches(20)} of ₹20 lakh and ${reaches(50)} of ₹50 lakh. Below about ₹12 lakh provident fund and gratuity make up most of the gap; above it, income tax does. Variable pay widens it further.`,
   },
   {
     q: 'Which tax regime should I choose for FY 2026-27?',
@@ -26,7 +34,7 @@ const faqs = [
   },
   {
     q: 'Is income up to ₹12 lakh really tax-free?',
-    a: 'Under the new regime, a resident individual with ₹12 lakh of taxable income pays no tax, because the section 156 rebate of ₹60,000 cancels the tax due. With the ₹75,000 standard deduction, that corresponds to a gross salary of about ₹12.75 lakh. Just above ₹12 lakh, marginal relief caps the tax at the amount by which your income exceeds ₹12 lakh. The 4% cess is still added, so between ₹12 lakh and about ₹12.71 lakh of taxable income a raise is almost entirely taxed away, but you never face the ₹62,400 cliff that a calculator without relief would show.',
+    a: 'Under the new regime, a resident individual with ₹12 lakh of taxable income pays no tax, because the section 156 rebate of ₹60,000 cancels the tax due. With the ₹75,000 standard deduction, that corresponds to a gross salary of about ₹12.75 lakh. Just above ₹12 lakh, marginal relief caps the tax at the amount by which your income exceeds ₹12 lakh. The 4% cess is still added on top, so between ₹12 lakh and about ₹12.71 lakh of taxable income each extra rupee costs ₹1.04 in tax and take-home dips slightly, but you never face the ₹62,400 cliff that a calculator without relief would show.',
   },
   {
     q: 'How much professional tax will I pay?',
@@ -34,7 +42,7 @@ const faqs = [
   },
   {
     q: 'Does this calculator store my salary?',
-    a: 'No. Everything is calculated in your browser. Your figures are never sent to a server. Your last inputs are saved in your own browser so you do not have to retype them, and a share link carries the inputs in the address itself.',
+    a: 'No. Everything is calculated in your browser and we keep no record of your figures. Your last inputs are saved in your own browser so you do not have to retype them. They also appear in the page address, so a result can be bookmarked or shared; anyone you send that link to can see them.',
   },
 ];
 
@@ -135,9 +143,10 @@ const schema = [
         <h2>What this calculator gets right</h2>
         <ul>
           <li>
-            <strong>Marginal relief as a real cap.</strong> Just above &#8377;12 lakh, and at every
-            surcharge threshold, tax is capped at the income above the threshold, with the 4% cess
-            on top. Calculators that skip the cap show a cliff of tens of thousands of rupees.{' '}
+            <strong>Marginal relief as a real cap.</strong> Just above &#8377;12 lakh, tax is capped
+            at the income above &#8377;12 lakh, and at every surcharge threshold the extra tax is
+            capped at the income above the threshold, with the 4% cess on top. Calculators that skip
+            the cap show a cliff of tens of thousands of rupees.{' '}
             <a href="/marginal-relief">Worked example</a>.
           </li>
           <li>

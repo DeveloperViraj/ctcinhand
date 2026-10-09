@@ -15,6 +15,7 @@ const rows = LPA_BRACKETS.map((lpa) => {
     monthly: best.monthlyTakeHome,
     tax: best.tax.totalTax,
     better: result.better,
+    noTax: result.regimes.new.tax.totalTax < 0.5 && result.regimes.old.tax.totalTax < 0.5,
   };
 });
 
@@ -33,7 +34,8 @@ const itemList = {
 <DocLayout
   title="In-hand salary for every CTC"
   description={`Monthly in-hand salary for every CTC from 3 to 100 LPA in ${SITE.shortYearLabel}, with the cheaper tax regime and the income tax at each salary. Each page breaks the number down.`}
-  updated="2026-09-30"
+  updated="2026-10-09"
+  published="2026-10-04"
   ogImage="in-hand-salary"
   schema={[itemList]}
   about={['In-hand salary', 'Cost to company']}
@@ -47,8 +49,8 @@ const itemList = {
   </p>
   <p>
     Notice the stretch between 13.5 and 14 LPA, where take-home actually dips, by about ₹160 a
-    month: the ₹12 lakh rebate ends there, and marginal relief plus the 4% cess tax almost every
-    extra rupee. <a href="/marginal-relief">Why that happens</a>.
+    month: the ₹12 lakh rebate ends there, and marginal relief plus the 4% cess take ₹1.04 of tax
+    for every extra rupee. <a href="/marginal-relief">Why that happens</a>.
   </p>
   <div class="overflow-x-auto">
     <table>
@@ -68,7 +70,7 @@ const itemList = {
             </td>
             <td>{formatRupees(row.monthly)}</td>
             <td>{formatRupees(row.tax)}</td>
-            <td>{row.better === 'new' ? 'New' : 'Old'}</td>
+            <td>{row.noTax ? 'Either' : row.better === 'new' ? 'New' : 'Old'}</td>
           </tr>
         ))}
       </tbody>

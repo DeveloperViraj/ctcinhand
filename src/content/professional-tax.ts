@@ -30,13 +30,13 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
   {
     code: 'MH',
     summary:
-      'Maharashtra charges professional tax on a sliding scale, with a higher exemption for women and an extra Rs 100 in February. The annual maximum is Rs 2,500.',
+      'Maharashtra charges professional tax on a sliding scale, with a higher exemption for women and an extra ₹100 in February. The annual maximum is ₹2,500.',
     salaryBasis:
       'Monthly gross salary, including dearness allowance and perquisites, but excluding bonus of any kind and gratuity.',
     rules: [
-      'Men: nothing up to Rs 7,500 a month; Rs 175 a month from Rs 7,501 to Rs 10,000; Rs 200 a month above Rs 10,000.',
-      'Women: nothing up to Rs 25,000 a month; Rs 200 a month above that. The threshold was raised from Rs 10,000 in April 2023.',
-      'February is charged at Rs 300 instead of Rs 200, which brings the year to exactly Rs 2,500. This applies to women above Rs 25,000 as well as to men, and not to the Rs 175 band.',
+      'Men: nothing up to ₹7,500 a month; ₹175 a month from ₹7,501 to ₹10,000; ₹200 a month above ₹10,000.',
+      'Women: nothing up to ₹25,000 a month; ₹200 a month above that. The threshold was raised from ₹10,000 in April 2023.',
+      'February is charged at ₹300 instead of ₹200, which brings the year to exactly ₹2,500. This applies to women above ₹25,000 as well as to men, and not to the ₹175 band.',
     ],
     exemptions: [
       'People aged 65 or over',
@@ -50,13 +50,13 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
   {
     code: 'KA',
     summary:
-      'Karnataka exempts salaries below Rs 25,000 a month entirely. Above that it is Rs 200 a month, rising to Rs 300 in February, for a yearly total of Rs 2,500.',
+      'Karnataka exempts salaries below ₹25,000 a month entirely. Above that it is ₹200 a month, rising to ₹300 in February, for a yearly total of ₹2,500.',
     salaryBasis:
       'Monthly salary or wage including bonus, arrears and perquisites. A bonus is spread across the months it relates to, so a large annual bonus can push a salary over the threshold.',
     rules: [
-      'Nothing below Rs 25,000 a month. Exactly Rs 25,000 is taxable, because the schedule reads "Rs 25,000 and above".',
-      'Rs 200 a month from April to January and in March.',
-      'Rs 300 in February, added by Karnataka Act 33 of 2025 with effect from April 2025. The year therefore comes to Rs 2,500, not the Rs 2,400 many calculators still show.',
+      'Nothing below ₹25,000 a month. Exactly ₹25,000 is taxable, because the schedule reads "₹25,000 and above".',
+      '₹200 a month from April to January and in March.',
+      '₹300 in February, added by Karnataka Act 33 of 2025 with effect from April 2025. The year therefore comes to ₹2,500, not the ₹2,400 many calculators still show.',
     ],
     exemptions: [
       'People aged 60 or over',
@@ -71,12 +71,12 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
   {
     code: 'TS',
     summary:
-      'Telangana uses three simple bands and has no February adjustment. The most anyone pays is Rs 2,400 a year.',
+      'Telangana uses three simple bands and has no February adjustment. The most anyone pays is ₹2,400 a year.',
     salaryBasis: 'Monthly gross salary.',
     rules: [
-      'Nothing up to Rs 15,000 a month.',
-      'Rs 150 a month from Rs 15,001 to Rs 20,000.',
-      'Rs 200 a month above Rs 20,000, every month including February, so Rs 2,400 for a full year.',
+      'Nothing up to ₹15,000 a month.',
+      '₹150 a month from ₹15,001 to ₹20,000.',
+      '₹200 a month above ₹20,000, every month including February, so ₹2,400 for a full year.',
     ],
     exemptions: ['People with 40% or more disability, across all categories'],
     authority:
@@ -85,12 +85,12 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
   {
     code: 'AP',
     summary:
-      'Andhra Pradesh still uses the same table as Telangana: nothing up to Rs 15,000 a month, then Rs 150, then Rs 200. The yearly maximum is Rs 2,400.',
+      'Andhra Pradesh still uses the same table as Telangana: nothing up to ₹15,000 a month, then ₹150, then ₹200. The yearly maximum is ₹2,400.',
     salaryBasis: 'Monthly gross salary.',
     rules: [
-      'Nothing up to Rs 15,000 a month.',
-      'Rs 150 a month from Rs 15,001 to Rs 20,000.',
-      'Rs 200 a month above Rs 20,000, with no February adjustment.',
+      'Nothing up to ₹15,000 a month.',
+      '₹150 a month from ₹15,001 to ₹20,000.',
+      '₹200 a month above ₹20,000, with no February adjustment.',
     ],
     exemptions: ['People with 40% or more disability, as under the shared 1987 Act'],
     authority:
@@ -104,10 +104,10 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
       'West Bengal replaced its entire professional tax schedule on 1 October 2026. April to September is charged on the old table and October to March on the new one, so a single yearly figure is wrong for 2026-27.',
     salaryBasis: 'Monthly gross salary.',
     rules: [
-      'Until 30 September 2026: nothing up to Rs 10,000 a month, then Rs 110, Rs 130, Rs 150 and Rs 200 as salary rises past Rs 15,000, Rs 25,000 and Rs 40,000.',
-      'From 1 October 2026: nothing up to Rs 20,000 a month, then Rs 100 to Rs 30,000, Rs 140 to Rs 50,000, Rs 170 to Rs 1,00,000, and Rs 208 above that.',
+      'Until 30 September 2026: nothing up to ₹10,000 a month, then ₹110, ₹130, ₹150 and ₹200 as salary rises past ₹15,000, ₹25,000 and ₹40,000.',
+      'From 1 October 2026: nothing up to ₹20,000 a month, then ₹100 to ₹30,000, ₹140 to ₹50,000, ₹170 to ₹1,00,000, and ₹208 above that.',
       'The exemption threshold doubles, so many lower and middle salaries stop paying entirely from October.',
-      'There is no February adjustment. The Rs 208 top rate reaches the Rs 2,500 annual ceiling by arithmetic instead.',
+      'There is no February adjustment. The ₹208 top rate comes to ₹2,496 over a full year, just under the ₹2,500 ceiling.',
     ],
     exemptions: ['People with a permanent physical disability, and blind, deaf or mute employees'],
     authority:
@@ -118,11 +118,11 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
   {
     code: 'PB',
     summary:
-      'Punjab is often listed as a state with no professional tax. It is not. It charges a flat Rs 200 a month under a differently named Act, which your employer deducts from your salary.',
+      'Punjab is often listed as a state with no professional tax. It is not. It charges a flat ₹200 a month under a differently named Act, which your employer deducts from your salary.',
     salaryBasis: 'Applies to employees liable to income tax, regardless of the exact salary.',
     rules: [
-      'Rs 200 every month, including February, for a yearly total of Rs 2,400.',
-      'It is called the Punjab State Development Tax, but it is a tax on professions, trades, callings and employments under Article 276, which is why the annual figure sits just under the Rs 2,500 constitutional ceiling.',
+      '₹200 every month, including February, for a yearly total of ₹2,400.',
+      'It is called the Punjab State Development Tax, but it is a tax on professions, trades, callings and employments under Article 276, which is why the annual figure sits just under the ₹2,500 constitutional ceiling.',
       'Employers deduct it at source, and it is deductible from taxable salary in the old regime like any other professional tax.',
     ],
     exemptions: ['People whose income is below the threshold at which income tax is payable'],
@@ -135,13 +135,13 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
     code: 'GJ',
     examples: [12_000, 12_500, 50_000],
     summary:
-      'Gujarat charges a flat Rs 200 a month on salaries above Rs 12,000 a month, and nothing below. There is no February adjustment, so a full year comes to Rs 2,400.',
+      'Gujarat charges a flat ₹200 a month on salaries above ₹12,000 a month, and nothing below. There is no February adjustment, so a full year comes to ₹2,400.',
     salaryBasis:
       'Monthly salary or wages. Where pay is not monthly, the amount actually paid for a month is used.',
     rules: [
-      'Nothing on a monthly salary up to Rs 12,000.',
-      'Rs 200 a month above Rs 12,000, every month including February: Rs 2,400 a year.',
-      'These rates apply from 1 April 2022. The older Rs 80 and Rs 150 bands that many sites still show were removed then.',
+      'Nothing on a monthly salary up to ₹12,000.',
+      '₹200 a month above ₹12,000, every month including February: ₹2,400 a year.',
+      'These rates apply from 1 April 2022. The older ₹80 and ₹150 bands that many sites still show were removed then.',
       'The same rates apply whether your employer is a government, a public sector undertaking or a private company.',
     ],
     exemptions: [
@@ -154,14 +154,14 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
     code: 'MP',
     examples: [18_000, 20_000, 30_000, 50_000],
     summary:
-      'Madhya Pradesh sets its slabs on your annual salary, not your monthly pay. Above Rs 4 lakh a year you pay Rs 2,500: Rs 208 a month for eleven months and Rs 212 in the twelfth.',
+      'Madhya Pradesh sets its slabs on your annual salary, not your monthly pay. Above ₹4 lakh a year you pay ₹2,500: ₹208 a month for eleven months and ₹212 in the twelfth.',
     salaryBasis:
       'Annual salary or wages. We use your regular salary for the year and leave out variable pay.',
     rules: [
-      'Nothing on an annual salary up to Rs 2,25,000.',
-      'Rs 1,500 a year (Rs 125 a month) from Rs 2,25,001 to Rs 3,00,000.',
-      'Rs 2,000 a year from Rs 3,00,001 to Rs 4,00,000: Rs 166 a month for eleven months and Rs 174 in the twelfth.',
-      'Rs 2,500 a year above Rs 4,00,000: Rs 208 a month for eleven months and Rs 212 in the twelfth.',
+      'Nothing on an annual salary up to ₹2,25,000.',
+      '₹1,500 a year (₹125 a month) from ₹2,25,001 to ₹3,00,000.',
+      '₹2,000 a year from ₹3,00,001 to ₹4,00,000: ₹166 a month for eleven months and ₹174 in the twelfth.',
+      '₹2,500 a year above ₹4,00,000: ₹208 a month for eleven months and ₹212 in the twelfth.',
     ],
     exemptions: [
       'We have not confirmed this state’s list of exempt employees from an official source. Your employer’s payroll team will know.',
@@ -175,16 +175,16 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
     code: 'AS',
     examples: [15_000, 20_000, 25_000, 50_000],
     summary:
-      'Assam raised its exemption limit to Rs 15,000 a month from April 2025. Above that it charges Rs 180 a month, and Rs 208 a month from Rs 25,000, for a yearly maximum of Rs 2,496.',
+      'Assam raised its exemption limit to ₹15,000 a month from April 2025. Above that it charges ₹180 a month, and ₹208 a month from ₹25,000, for a yearly maximum of ₹2,496.',
     salaryBasis: 'Monthly salary or wages.',
     rules: [
-      'Nothing on a monthly salary up to Rs 15,000.',
-      'Rs 180 a month from Rs 15,001 to just under Rs 25,000.',
-      'Rs 208 a month from Rs 25,000, every month: Rs 2,496 for a full year.',
-      'The April 2025 notification removed the old Rs 150 band for salaries between Rs 10,000 and Rs 15,000. Some sites misquote the top rate as Rs 200; the Gazette says Rs 208.',
+      'Nothing on a monthly salary up to ₹15,000.',
+      '₹180 a month from ₹15,001 to just under ₹25,000.',
+      '₹208 a month from ₹25,000, every month: ₹2,496 for a full year.',
+      'The April 2025 notification removed the old ₹150 band for salaries between ₹10,000 and ₹15,000. Some sites misquote the top rate as ₹200; the Gazette says ₹208.',
     ],
     exemptions: [
-      'People above 60 whose gross income for the year does not exceed Rs 5 lakh (notification FTX.76/2006/2)',
+      'People above 60 whose gross income for the year does not exceed ₹5 lakh (notification FTX.76/2006/2)',
     ],
     authority:
       'Assam Professions, Trades, Callings and Employments Taxation Act 1947, Schedule Entry 1, as substituted by notification eCF No. 169350/124 of 1 April 2025 (Assam Gazette Extraordinary No. 139, 2 April 2025).',
@@ -193,14 +193,14 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
     code: 'BR',
     examples: [25_000, 30_000, 50_000, 1_00_000],
     summary:
-      'Bihar charges professional tax once a year, on your annual income: Rs 1,000, Rs 2,000 or Rs 2,500. Your employer takes the whole amount from your September salary.',
+      'Bihar charges professional tax once a year, on your annual income: ₹1,000, ₹2,000 or ₹2,500. Your employer takes the whole amount from your September salary.',
     salaryBasis:
       'Income for the year. We use your regular salary; other income could move you into a higher band.',
     rules: [
-      'Nothing on income up to Rs 3,00,000 a year.',
-      'Rs 1,000 a year from Rs 3,00,001 to Rs 5,00,000.',
-      'Rs 2,000 a year from Rs 5,00,001 to Rs 10,00,000.',
-      'Rs 2,500 a year above Rs 10,00,000.',
+      'Nothing on income up to ₹3,00,000 a year.',
+      '₹1,000 a year from ₹3,00,001 to ₹5,00,000.',
+      '₹2,000 a year from ₹5,00,001 to ₹10,00,000.',
+      '₹2,500 a year above ₹10,00,000.',
       'Under rule 5 of the 2011 Rules the employer deducts the full year’s tax from the salary for September and pays it in by 15 November, so one month’s pay is noticeably lower.',
     ],
     exemptions: [
@@ -215,15 +215,15 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
     code: 'JH',
     examples: [25_000, 30_000, 60_000, 80_000, 1_00_000],
     summary:
-      'Jharkhand sets five bands on annual salary, from Rs 1,200 to Rs 2,500 a year, and collects the tax every quarter.',
+      'Jharkhand sets five bands on annual salary, from ₹1,200 to ₹2,500 a year, and collects the tax every quarter.',
     salaryBasis:
       'Annual salary or wages, including perquisites but excluding bonus in any form, gratuity and pension.',
     rules: [
-      'Nothing on an annual salary up to Rs 3,00,000.',
-      'Rs 1,200 a year from Rs 3,00,001 to Rs 5,00,000.',
-      'Rs 1,800 a year from Rs 5,00,001 to Rs 8,00,000.',
-      'Rs 2,100 a year from Rs 8,00,001 to Rs 10,00,000.',
-      'Rs 2,500 a year above Rs 10,00,000.',
+      'Nothing on an annual salary up to ₹3,00,000.',
+      '₹1,200 a year from ₹3,00,001 to ₹5,00,000.',
+      '₹1,800 a year from ₹5,00,001 to ₹8,00,000.',
+      '₹2,100 a year from ₹8,00,001 to ₹10,00,000.',
+      '₹2,500 a year above ₹10,00,000.',
       'Rule 15 of the 2012 Rules requires deduction every quarter, and the quarters end in June, September, December and March. Employers choose the month within each quarter.',
     ],
     exemptions: [
@@ -238,16 +238,16 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
     code: 'KL',
     examples: [1_500, 2_500, 6_000, 10_000, 20_000, 25_000],
     summary:
-      'Kerala charges professional tax every half-year, on the salary for those six months. Rates at the lower end rose in October 2024; above Rs 1,25,000 a half-year you pay Rs 1,250 each half, Rs 2,500 a year.',
+      'Kerala charges professional tax every half-year, on the salary for those six months. Rates at the lower end rose in October 2024; above ₹1,25,000 a half-year you pay ₹1,250 each half, ₹2,500 a year.',
     salaryBasis: 'Salary for each half-year: April to September, and October to March.',
     rules: [
-      'Nothing on half-yearly income up to Rs 11,999.',
-      'Rs 320 from Rs 12,000 to Rs 17,999.',
-      'Rs 450 from Rs 18,000 to Rs 29,999.',
-      'Rs 600 from Rs 30,000 to Rs 44,999.',
-      'Rs 750 from Rs 45,000 to Rs 99,999.',
-      'Rs 1,000 from Rs 1,00,000 to Rs 1,24,999.',
-      'Rs 1,250 from Rs 1,25,000. These amounts are per half-year, so double them for the year.',
+      'Nothing on half-yearly income up to ₹11,999.',
+      '₹320 from ₹12,000 to ₹17,999.',
+      '₹450 from ₹18,000 to ₹29,999.',
+      '₹600 from ₹30,000 to ₹44,999.',
+      '₹750 from ₹45,000 to ₹99,999.',
+      '₹1,000 from ₹1,00,000 to ₹1,24,999.',
+      '₹1,250 from ₹1,25,000. These amounts are per half-year, so double them for the year.',
       'The same table applies in every panchayat, municipality and corporation in the state.',
     ],
     exemptions: [
@@ -264,15 +264,15 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
     place: 'Chennai',
     city: 'Chennai',
     summary:
-      'Chennai’s professional tax is set by the Greater Chennai Corporation and charged every half-year. On a salary above Rs 12,500 a month you pay Rs 1,250 each half, Rs 2,500 a year. Elsewhere in Tamil Nadu each town sets its own rates.',
+      'Chennai’s professional tax is set by the Greater Chennai Corporation and charged every half-year. On a salary above ₹12,500 a month you pay ₹1,250 each half, ₹2,500 a year. Elsewhere in Tamil Nadu each town sets its own rates.',
     salaryBasis: 'Average salary for each half-year: April to September, and October to March.',
     rules: [
-      'Nothing on half-yearly income up to Rs 21,000.',
-      'Rs 180 from Rs 21,001 to Rs 30,000.',
-      'Rs 425 from Rs 30,001 to Rs 45,000.',
-      'Rs 930 from Rs 45,001 to Rs 60,000.',
-      'Rs 1,025 from Rs 60,001 to Rs 75,000.',
-      'Rs 1,250 above Rs 75,000. These amounts are per half-year; the lower bands rose by about 35% from October 2024.',
+      'Nothing on half-yearly income up to ₹21,000.',
+      '₹180 from ₹21,001 to ₹30,000.',
+      '₹425 from ₹30,001 to ₹45,000.',
+      '₹930 from ₹45,001 to ₹60,000.',
+      '₹1,025 from ₹60,001 to ₹75,000.',
+      '₹1,250 above ₹75,000. These amounts are per half-year; the lower bands rose by about 35% from October 2024.',
     ],
     exemptions: [
       'We have not confirmed this state’s list of exempt employees from an official source. Your employer’s payroll team will know.',
@@ -291,7 +291,7 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
       'The Odisha State Tax on Professions, Trades, Callings and Employments (Repeal) Ordinance, 2026 repealed the 2000 Act with effect from 1 April 2026.',
       'It was published in the Odisha Gazette on 21 April 2026, and it covers April 2026 salaries even though it came later.',
       'Tax for earlier years, and any assessments or penalties already raised, remain payable under its savings clause.',
-      'Until the repeal, Odisha charged Rs 125 a month on annual income from Rs 1.6 lakh to Rs 3 lakh, and Rs 200 a month (Rs 300 in the last month) above that.',
+      'Until the repeal, Odisha charged ₹125 a month on annual income from ₹1.6 lakh to ₹3 lakh, and ₹200 a month (₹300 in the last month) above that.',
     ],
     exemptions: ['Everyone, from 1 April 2026'],
     authority:
@@ -303,12 +303,12 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
     code: 'TR',
     examples: [7_500, 10_000, 15_000, 50_000],
     summary:
-      'Tripura charges Rs 150 a month on salaries from Rs 7,501 to Rs 15,000 and Rs 208 a month above that, for a yearly maximum of Rs 2,496.',
+      'Tripura charges ₹150 a month on salaries from ₹7,501 to ₹15,000 and ₹208 a month above that, for a yearly maximum of ₹2,496.',
     salaryBasis: 'Monthly gross income.',
     rules: [
-      'Nothing on a monthly salary up to Rs 7,500.',
-      'Rs 150 a month (Rs 1,800 a year) from Rs 7,501 to Rs 15,000.',
-      'Rs 208 a month (Rs 2,496 a year) from Rs 15,001.',
+      'Nothing on a monthly salary up to ₹7,500.',
+      '₹150 a month (₹1,800 a year) from ₹7,501 to ₹15,000.',
+      '₹208 a month (₹2,496 a year) from ₹15,001.',
       'These rates have applied since July 2018 and replaced a five-band table from 2013.',
     ],
     exemptions: [
@@ -321,13 +321,13 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
     code: 'SK',
     examples: [20_000, 25_000, 35_000, 50_000],
     summary:
-      'Sikkim exempts monthly salaries up to Rs 20,000, one of the highest thresholds in India. Above that it charges Rs 125, Rs 150 or Rs 200 a month, so at most Rs 2,400 a year.',
+      'Sikkim exempts monthly salaries up to ₹20,000, one of the highest thresholds in India. Above that it charges ₹125, ₹150 or ₹200 a month, so at most ₹2,400 a year.',
     salaryBasis: 'Monthly salary or wages.',
     rules: [
-      'Nothing on a monthly salary up to Rs 20,000.',
-      'Rs 125 a month from Rs 20,001 to Rs 30,000.',
-      'Rs 150 a month from Rs 30,001 to Rs 40,000.',
-      'Rs 200 a month from Rs 40,001, every month: Rs 2,400 a year.',
+      'Nothing on a monthly salary up to ₹20,000.',
+      '₹125 a month from ₹20,001 to ₹30,000.',
+      '₹150 a month from ₹30,001 to ₹40,000.',
+      '₹200 a month from ₹40,001, every month: ₹2,400 a year.',
     ],
     exemptions: [
       'We have not confirmed this state’s list of exempt employees from an official source. Your employer’s payroll team will know.',
@@ -341,14 +341,14 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
     code: 'MN',
     examples: [4_000, 6_000, 8_000, 10_000, 50_000],
     summary:
-      'Manipur sets its slabs on annual income, and the top band starts at just Rs 1,25,000 a year, so almost every salaried person pays the full Rs 2,500.',
+      'Manipur sets its slabs on annual income, and the top band starts at just ₹1,25,000 a year, so almost every salaried person pays the full ₹2,500.',
     salaryBasis: 'Total gross annual income. We use your regular salary for the year.',
     rules: [
-      'Nothing on annual income up to Rs 50,000.',
-      'Rs 1,200 a year from Rs 50,001 to Rs 75,000.',
-      'Rs 2,000 a year from Rs 75,001 to Rs 1,00,000.',
-      'Rs 2,400 a year from Rs 1,00,001 to Rs 1,25,000.',
-      'Rs 2,500 a year above Rs 1,25,000.',
+      'Nothing on annual income up to ₹50,000.',
+      '₹1,200 a year from ₹50,001 to ₹75,000.',
+      '₹2,000 a year from ₹75,001 to ₹1,00,000.',
+      '₹2,400 a year from ₹1,00,001 to ₹1,25,000.',
+      '₹2,500 a year above ₹1,25,000.',
     ],
     exemptions: ['Members of the armed forces of the Union serving in Manipur (section 5)'],
     authority:
@@ -360,13 +360,13 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
     code: 'MZ',
     examples: [5_000, 9_000, 14_000, 18_000, 25_000],
     summary:
-      'Mizoram added a new Rs 195 band in July 2024. Above Rs 20,000 a month you pay Rs 208 a month, or Rs 2,500 if you pay for the whole year at once.',
+      'Mizoram added a new ₹195 band in July 2024. Above ₹20,000 a month you pay ₹208 a month, or ₹2,500 if you pay for the whole year at once.',
     salaryBasis: 'Total gross monthly income.',
     rules: [
-      'Nothing on a monthly salary up to Rs 5,000.',
-      'Rs 75 a month from Rs 5,001 to Rs 8,000, Rs 120 to Rs 10,000, Rs 150 to Rs 12,000 and Rs 180 to Rs 15,000.',
-      'Rs 195 a month from Rs 15,001 to Rs 20,000, a band added in July 2024.',
-      'Rs 208 a month above Rs 20,000. Each band can instead be paid as a yearly lump sum; for the top band that is Rs 2,500.',
+      'Nothing on a monthly salary up to ₹5,000.',
+      '₹75 a month from ₹5,001 to ₹8,000, ₹120 to ₹10,000, ₹150 to ₹12,000 and ₹180 to ₹15,000.',
+      '₹195 a month from ₹15,001 to ₹20,000, a band added in July 2024.',
+      '₹208 a month above ₹20,000. Each band can instead be paid as a yearly lump sum; for the top band that is ₹2,500.',
     ],
     exemptions: [
       'We have not confirmed this state’s list of exempt employees from an official source. Your employer’s payroll team will know.',
@@ -378,12 +378,12 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
     code: 'NL',
     examples: [4_500, 8_000, 10_000, 12_000, 50_000],
     summary:
-      'Nagaland charges Rs 208 a month on salaries of Rs 12,000 or more, and smaller amounts below that, for a yearly maximum of Rs 2,496.',
+      'Nagaland charges ₹208 a month on salaries of ₹12,000 or more, and smaller amounts below that, for a yearly maximum of ₹2,496.',
     salaryBasis: 'Monthly salary or wages.',
     rules: [
-      'Nothing below Rs 4,000 a month.',
-      'Rs 35 a month up to Rs 5,000, Rs 75 up to Rs 7,000, Rs 110 up to Rs 9,000 and Rs 180 up to Rs 12,000.',
-      'Rs 208 a month from Rs 12,000: Rs 2,496 a year.',
+      'Nothing below ₹4,000 a month.',
+      '₹35 a month up to ₹5,000, ₹75 up to ₹7,000, ₹110 up to ₹9,000 and ₹180 up to ₹12,000.',
+      '₹208 a month from ₹12,000: ₹2,496 a year.',
     ],
     exemptions: [
       'We have not confirmed this state’s list of exempt employees from an official source. Your employer’s payroll team will know.',
@@ -391,21 +391,21 @@ export const PT_STATE_PAGES: readonly PtStatePage[] = [
     authority:
       'Nagaland Professions, Trades, Callings and Employments Taxation Act 1968, Schedule Sl. 1, as published by the Nagaland Taxes Department.',
     caveat:
-      'The published schedule is undated and its bands are worded "more than X but less than Y", which leaves the exact boundary amounts unassigned. We put a salary exactly on a boundary in the higher band. This only matters below Rs 12,000 a month.',
+      'The published schedule is undated and its bands are worded "more than X but less than Y", which leaves the exact boundary amounts unassigned. We put a salary exactly on a boundary in the higher band. This only matters below ₹12,000 a month.',
   },
   {
     code: 'PY',
     examples: [16_000, 20_000, 50_000, 80_000, 1_00_000],
     summary:
-      'Puducherry charges professional tax every half-year, through its municipalities and commune panchayats. On half-yearly income above Rs 5 lakh you pay Rs 1,250 each half, Rs 2,500 a year.',
+      'Puducherry charges professional tax every half-year, through its municipalities and commune panchayats. On half-yearly income above ₹5 lakh you pay ₹1,250 each half, ₹2,500 a year.',
     salaryBasis: 'Income for each half-year: April to September, and October to March.',
     rules: [
-      'Nothing on half-yearly income up to Rs 99,999.',
-      'Rs 250 from Rs 1,00,000 to Rs 2,00,000.',
-      'Rs 500 from Rs 2,00,001 to Rs 3,00,000.',
-      'Rs 750 from Rs 3,00,001 to Rs 4,00,000.',
-      'Rs 1,000 from Rs 4,00,001 to Rs 5,00,000.',
-      'Rs 1,250 above Rs 5,00,000. These amounts are per half-year.',
+      'Nothing on half-yearly income up to ₹99,999.',
+      '₹250 from ₹1,00,000 to ₹2,00,000.',
+      '₹500 from ₹2,00,001 to ₹3,00,000.',
+      '₹750 from ₹3,00,001 to ₹4,00,000.',
+      '₹1,000 from ₹4,00,001 to ₹5,00,000.',
+      '₹1,250 above ₹5,00,000. These amounts are per half-year.',
     ],
     exemptions: [
       'We have not confirmed this state’s list of exempt employees from an official source. Your employer’s payroll team will know.',

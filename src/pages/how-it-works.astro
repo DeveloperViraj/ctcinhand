@@ -1,12 +1,17 @@
 ---
 import DocLayout from '../layouts/DocLayout.astro';
 import { SITE } from '../config/site';
+const verifiedLabel = new Date(`${SITE.ratesVerifiedOn}T00:00:00+05:30`).toLocaleDateString(
+  'en-IN',
+  { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' },
+);
 ---
 
 <DocLayout
   title="How it works"
   description={`The exact method ${SITE.name} uses to turn CTC into in-hand salary for FY 2026-27: statutes, rates, assumptions, and the things we could not verify.`}
-  updated="2026-10-04"
+  updated="2026-10-09"
+  published="2026-09-25"
   ogImage="how-it-works"
 >
   <p>
@@ -303,11 +308,11 @@ import { SITE } from '../config/site';
 
   <h2>When this was checked</h2>
   <p>
-    Statutory rates were last verified on {SITE.ratesVerifiedOn} against the Income-tax Act 2025 and
-    Rules 2026, the Finance Act 2026, Ministry of Labour FAQs, EPFO and ESIC notifications, and
-    state professional tax Acts; the professional tax tables for Gujarat, Madhya Pradesh, Assam,
-    Bihar, Jharkhand, Kerala, Chennai, Odisha, Tripura, Sikkim, Manipur, Mizoram, Nagaland and
-    Puducherry were checked in October 2026. They must be checked again after Union Budget 2027
-    before being used for the next year.
+    Statutory rates were last verified on {verifiedLabel} against the Income-tax Act 2025 and Rules
+    2026, the Finance Act 2026, Ministry of Labour FAQs, EPFO and ESIC notifications, and state
+    professional tax Acts; the professional tax tables for Gujarat, Madhya Pradesh, Assam, Bihar,
+    Jharkhand, Kerala, Chennai, Odisha, Tripura, Sikkim, Manipur, Mizoram, Nagaland and Puducherry
+    were checked in October 2026. They must be checked again after Union Budget 2027 before being
+    used for the next year.
   </p>
 </DocLayout>

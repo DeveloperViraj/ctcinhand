@@ -188,7 +188,7 @@ const lakh = (ctc: number) => `₹${(ctc / 1_00_000).toFixed(2).replace(/\.?0+$/
     </table>
   </div>
   <p>
-    With Basic at half of CTC, ESI applies up to a CTC of about {lakh(data.esiEndsAt)}. At{' '}
+    With Basic at half of CTC, ESI applies up to a CTC of about {lakh(data.esiUpTo)}. At{' '}
     {esiTop.lpa} LPA your gross pay is {formatRupees(esiTop.grossMonthly)} a month and ESI still
     applies. You pay 0.75% of wages and your employer 3.25%, and in return you get ESI medical
     cover. Not every employer has caught up with this, so check your payslip if you are in this

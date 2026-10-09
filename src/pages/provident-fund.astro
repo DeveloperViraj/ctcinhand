@@ -12,6 +12,8 @@ import { DEDUCTION_CAPS, EMPLOYER_CONTRIBUTION_PERQUISITE_LIMIT } from '../lib/t
 const data = pfGuideData();
 const top = data.wageRows.at(-1)!;
 const twenty = data.modeRows.find((r) => r.lpa === 20)!;
+// From the rounded figures in the table, so the text matches them exactly.
+const twentyCost = Math.round(twenty.takeHomeAtCeiling) - Math.round(twenty.takeHomeOnFull);
 const lakh = (ctc: number) => `₹${(ctc / 1_00_000).toFixed(2).replace(/\.?0+$/, '')} lakh`;
 const ceiling = formatRupees(data.ceiling);
 const previous = formatRupees(data.previousCeiling);
@@ -196,8 +198,8 @@ const previous = formatRupees(data.previousCeiling);
     In-hand figures are a month, on the cheaper regime and averaged across this year's ceiling
     change; PF is your share and your employer's together. At {twenty.lpa} LPA, PF on full wages
     puts {formatRupees(twenty.pfOnFull - twenty.pfAtCeiling)} more a year into PF and costs{' '}
-    {formatRupees(twenty.takeHomeAtCeiling - twenty.takeHomeOnFull)} a month in hand. That money is
-    still yours, as long-term savings rather than salary.
+    {formatRupees(twentyCost)} a month in hand. That money is still yours, as long-term savings
+    rather than salary.
   </p>
 
   <h2>Tax on PF</h2>
@@ -217,9 +219,9 @@ const previous = formatRupees(data.previousCeiling);
       <strong>Interest</strong> on your own contributions above{' '}
       {formatRupees(data.interestThreshold)} in a year is taxable every year, or above ₹5,00,000 if
       your employer does not contribute. With PF on full wages and Basic at half of CTC, your own
-      share passes {formatRupees(data.interestThreshold)} from a CTC of about{' '}
-      {lakh(data.interestThresholdCtc)}. The calculator does not include this interest, because it
-      depends on your PF balance and the rate declared each year.
+      share passes {formatRupees(data.interestThreshold)} above a CTC of about{' '}
+      {lakh(data.interestAbove)}. The calculator does not include this interest, because it depends
+      on your PF balance and the rate declared each year.
     </li>
   </ul>
 

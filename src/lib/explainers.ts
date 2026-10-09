@@ -22,14 +22,18 @@ const basicShare = (percent: number): Partial<CalculatorInput> => ({
 
 const takeHome = (r: CalculationResult) => r.regimes[r.better].monthlyTakeHome;
 
-/** Lowest CTC (to the nearest Rs 1,000) at which `test` turns false, searching upward from `low`. */
-function threshold(test: (ctc: number) => boolean, low: number, high: number): number {
-  while (high - low > 1_000) {
-    const mid = Math.round((low + high) / 2 / 1_000) * 1_000;
+/**
+ * Highest CTC, to the rupee, at which `test` still holds: `test(low)` must hold and `test(high)`
+ * must not. Pages say "up to" or "above" this figure, so it must be the last passing value, not the
+ * first failing one.
+ */
+function lastPassing(test: (ctc: number) => boolean, low: number, high: number): number {
+  while (high - low > 1) {
+    const mid = Math.floor((low + high) / 2);
     if (test(mid)) low = mid;
     else high = mid;
   }
-  return high;
+  return low;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -77,8 +81,8 @@ export interface LabourCodeData {
   gratuityShift: GratuityShiftRow[];
   lowBasicPercent: number;
   esi: EsiRow[];
-  /** CTC at which ESI stops applying with Basic at half of CTC. */
-  esiEndsAt: number;
+  /** Highest CTC at which ESI still applies, with Basic at half of CTC. */
+  esiUpTo: number;
   esiCeiling: number;
 }
 
@@ -116,7 +120,8 @@ export function labourCodeData(): LabourCodeData {
     };
   });
 
-  const esi = [3, 4, 5, 5.5].map((lpa): EsiRow => {
+  // Every salary here has its own page, which the table links to.
+  const esi = [3, 4, 5, 6].map((lpa): EsiRow => {
     const s = at(lpa).structure;
     return {
       lpa,
@@ -133,7 +138,7 @@ export function labourCodeData(): LabourCodeData {
     gratuityShift,
     lowBasicPercent: LOW_BASIC_PERCENT,
     esi,
-    esiEndsAt: threshold(
+    esiUpTo: lastPassing(
       (ctc) => calculate({ ...DEFAULT_INPUT, ctc }).structure.esi.applicable,
       3_00_000,
       8_00_000,
@@ -180,7 +185,7 @@ export interface PfGuideData {
   /** Interest on the employee's own contributions above this, in a year, is taxable. */
   interestThreshold: number;
   /** CTC above which full-wage PF takes the employee's own share past that threshold. */
-  interestThresholdCtc: number;
+  interestAbove: number;
 }
 
 export const PF_WAGES = [12_000, 15_000, 18_000, 20_000, 25_000, 40_000] as const;
@@ -224,7 +229,7 @@ export function pfGuideData(): PfGuideData {
     epsAfter: EPF.wageCeiling * EPF.epsRate,
     modeRows,
     interestThreshold: PF_INTEREST_THRESHOLD,
-    interestThresholdCtc: threshold(
+    interestAbove: lastPassing(
       (ctc) =>
         calculate({ ...DEFAULT_INPUT, ctc, pfMode: 'actual' }).structure.pf.employee * 12 <=
         PF_INTEREST_THRESHOLD,
@@ -264,8 +269,8 @@ export interface GratuityData {
   /** Permanent employee's gratuity at 5 years 6 months and at 5 years 7 months. */
   rounding: { atSixMonths: number; atSevenMonths: number };
   maximum: number;
-  /** CTC at which 20 years' service first reaches the maximum, with Basic at half of CTC. */
-  capReachedAt20Years: number;
+  /** Highest CTC at which 20 years of service stays under the maximum, with Basic at half of CTC. */
+  capAbove: number;
 }
 
 export const GRATUITY_LPA = [6, 10, 15, 20, 30, 50] as const;
@@ -316,7 +321,7 @@ export function gratuityData(): GratuityData {
       atSevenMonths: estimateGratuity(serviceWages, ROUNDING_POINTS[1], 'permanent').amount,
     },
     maximum: GRATUITY.maximum,
-    capReachedAt20Years: threshold(
+    capAbove: lastPassing(
       (ctc) =>
         !estimateGratuity(
           calculate({ ...DEFAULT_INPUT, ctc }).structure.wages.wages,

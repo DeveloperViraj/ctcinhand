@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { LPA_BRACKETS } from './brackets';
 import { gratuityData, labourCodeData, pfGuideData } from './explainers';
 
 describe('labourCodeData', () => {
@@ -28,10 +29,10 @@ describe('labourCodeData', () => {
 
   it('finds where ESI stops for the default structure', () => {
     // Wages are half of CTC a month, so 21,000 a month is reached at about 5.04 lakh.
-    expect(data.esiEndsAt).toBe(5_05_000);
+    expect(data.esiUpTo).toBe(5_04_000);
     expect(data.esi.find((r) => r.lpa === 5)!.covered).toBe(true);
     expect(data.esi.find((r) => r.lpa === 5)!.grossMonthly).toBeGreaterThan(data.esiCeiling);
-    expect(data.esi.find((r) => r.lpa === 5.5)!.covered).toBe(false);
+    expect(data.esi.find((r) => r.lpa === 6)!.covered).toBe(false);
   });
 });
 
@@ -69,7 +70,7 @@ describe('pfGuideData', () => {
 
   it('finds where full-wage PF passes the Rs 2.5 lakh interest threshold', () => {
     // 2,50,000 / 12% / 12 = 1,73,611 of wages a month, which is half of a 41.67 lakh CTC.
-    expect(data.interestThresholdCtc).toBe(41_67_000);
+    expect(data.interestAbove).toBe(41_66_666);
   });
 });
 
@@ -82,7 +83,8 @@ describe('gratuityData', () => {
       amount: 20_00_000,
       capped: true,
     });
-    expect(data.capReachedAt20Years).toBe(41_61_000);
+    // 20,00,000 x 26 / (15 x 20) = 1,73,333.33 of wages a month, half of a 41.6 lakh CTC.
+    expect(data.capAbove).toBe(41_60_000);
   });
 
   it('pays fixed-term staff from one year and permanent staff from five', () => {
@@ -97,5 +99,18 @@ describe('gratuityData', () => {
   it('rounds a part year up only when it is more than six months', () => {
     expect(data.rounding.atSixMonths).toBeCloseTo(((50_000 * 15) / 26) * 5, 6);
     expect(data.rounding.atSevenMonths).toBeCloseTo(((50_000 * 15) / 26) * 6, 6);
+  });
+});
+
+describe('links from the guides', () => {
+  it('only link salaries that have their own page', () => {
+    const pages = new Set<number>(LPA_BRACKETS);
+    const linked = [
+      ...labourCodeData().gratuityShift.map((r) => r.lpa),
+      ...labourCodeData().esi.map((r) => r.lpa),
+      ...pfGuideData().modeRows.map((r) => r.lpa),
+      ...gratuityData().rows.map((r) => r.lpa),
+    ];
+    expect(linked.filter((lpa) => !pages.has(lpa))).toEqual([]);
   });
 });

@@ -34,12 +34,13 @@ export const bracketInput = (lpa: number, overrides: Partial<CalculatorInput> = 
 });
 
 /** One city per state for the comparison table; the capital or the main salaried hub. */
-const STATE_ROWS: { code: string; city: string }[] = [
+const STATE_ROWS: { code: string; city: string; label?: string }[] = [
   { code: 'KA', city: 'Bengaluru' },
   { code: 'MH', city: 'Mumbai' },
   { code: 'TS', city: 'Hyderabad' },
   { code: 'WB', city: 'Kolkata' },
-  { code: 'TN', city: 'Chennai' },
+  // Only Greater Chennai's rates are verified; the rest of Tamil Nadu is not calculated.
+  { code: 'TN', city: 'Chennai', label: 'Tamil Nadu (Chennai)' },
   { code: 'GJ', city: 'Ahmedabad' },
   { code: 'KL', city: 'Other' },
   { code: 'DL', city: 'Delhi' },
@@ -72,7 +73,7 @@ export interface BracketData {
    */
   marginalRate: number;
   /** Monthly in-hand if the employer contributes PF on full Basic rather than the ceiling. */
-  fullPf: { monthly: number; employeePfYear: number };
+  fullPf: { monthly: number; employeePfYear: number; tax: number };
   /** Share of CTC paid as income tax under the cheaper regime. */
   effectiveRate: number;
 }
@@ -82,11 +83,11 @@ export function bracketData(lpa: number): BracketData {
   const result = calculate(input);
   const names = new Map(STATES.map((s) => [s.code, s.name]));
 
-  const states = STATE_ROWS.map(({ code, city }) => {
+  const states = STATE_ROWS.map(({ code, city, label }) => {
     const r = calculate({ ...input, stateCode: code, city });
     return {
       code,
-      name: names.get(code) ?? code,
+      name: label ?? names.get(code) ?? code,
       professionalTax: r.professionalTax.annual,
       monthly: r.regimes[r.better].monthlyTakeHome,
       better: r.better,
@@ -110,6 +111,7 @@ export function bracketData(lpa: number): BracketData {
     fullPf: {
       monthly: full.regimes[full.better].monthlyTakeHome,
       employeePfYear: full.structure.pf.employee * 12,
+      tax: full.regimes[full.better].tax.totalTax,
     },
     effectiveRate: best.tax.totalTax / lakhs(lpa),
   };

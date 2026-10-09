@@ -26,7 +26,8 @@ export function getStaticPaths() {
   return LPA_BRACKETS.map((lpa) => ({ params: { lpa: bracketSlug(lpa) }, props: { lpa } }));
 }
 
-const UPDATED = '2026-10-04';
+const PUBLISHED = '2026-10-04';
+const UPDATED = '2026-10-09';
 const GUIDES = new Set(PT_STATE_PAGES.map((p) => p.code));
 const { lpa } = Astro.props;
 const data = bracketData(lpa);
@@ -58,7 +59,7 @@ const schema = [
     headline: `${label} in-hand salary, ${SITE.taxYearLabel}`,
     description,
     image: absolute(ogImagePath(ogSlug)),
-    datePublished: UPDATED,
+    datePublished: PUBLISHED,
     dateModified: UPDATED,
     about: ['In-hand salary', 'Income tax in India', 'Cost to company'],
   }),
@@ -69,7 +70,22 @@ const nearby = neighbours(lpa);
 const newTaxable = result.regimes.new.taxableIncome;
 const relief = result.regimes.new.tax.rebateIsMarginalRelief;
 const surcharge = best.tax.surcharge > 0;
-const pfDifference = best.monthlyTakeHome - fullPf.monthly;
+// From the rounded figures, so the difference matches the two amounts printed beside it.
+const pfDifference = Math.round(best.monthlyTakeHome) - Math.round(fullPf.monthly);
+const fullPfTaxLower = fullPf.tax < best.tax.totalTax - 0.5;
+// At low salaries neither regime charges tax, and calling one of them cheaper would be wrong.
+const noTaxEither = result.regimes.new.tax.totalTax < 0.5 && result.regimes.old.tax.totalTax < 0.5;
+const listJoin = (items: string[]) =>
+  items.length > 1 ? `${items.slice(0, -1).join(', ')} and ${items.at(-1)}` : (items[0] ?? '');
+// What actually comes out of the CTC at this salary, so a page never names a deduction it shows as nil.
+const losses = listJoin(
+  [
+    a.employerPf > 0 || result.structure.pf.employee > 0 ? 'provident fund' : '',
+    result.structure.esi.applicable ? 'ESI' : '',
+    a.gratuity > 0 && result.input.gratuityInCtc ? 'the gratuity provision' : '',
+    result.professionalTax.annual > 0 ? 'professional tax' : '',
+  ].filter(Boolean),
+);
 ---
 
 <BaseLayout
@@ -79,7 +95,7 @@ const pfDifference = best.monthlyTakeHome - fullPf.monthly;
   ogImage={ogSlug}
   breadcrumbs={crumbs}
   schema={schema}
-  datePublished={UPDATED}
+  datePublished={PUBLISHED}
   dateModified={UPDATED}
 >
   <article class="mx-auto max-w-6xl px-4 pt-8 sm:px-6 sm:pt-12">
@@ -128,7 +144,9 @@ const pfDifference = best.monthlyTakeHome - fullPf.monthly;
         <dl class="mt-3 divide-y divide-line text-sm">
           <div class="flex justify-between gap-4 py-2.5">
             <dt class="text-ink-2">Cheaper regime</dt>
-            <dd class="text-ink">{result.better === 'new' ? 'New' : 'Old'}</dd>
+            <dd class="text-ink">
+              {noTaxEither ? 'Either, no tax' : result.better === 'new' ? 'New' : 'Old'}
+            </dd>
           </div>
           <div class="flex justify-between gap-4 py-2.5">
             <dt class="text-ink-2">Income tax a year</dt>
@@ -164,7 +182,7 @@ const pfDifference = best.monthlyTakeHome - fullPf.monthly;
           Your taxable income under the new regime is {formatRupees(newTaxable)}: the salary less
           the ₹75,000 standard deduction. That is within the ₹12 lakh that the section 156 rebate
           makes tax-free, so the new regime charges no income tax at all. What you lose from your
-          CTC is provident fund, gratuity and professional tax, not tax.
+          CTC is {losses}, not tax.
         </p>
       ) : relief ? (
         <p>
@@ -223,7 +241,13 @@ const pfDifference = best.monthlyTakeHome - fullPf.monthly;
       </div>
 
       <h2>Old or new regime at {label}</h2>
-      {breakEven.reason === 'new-is-tax-free' ? (
+      {noTaxEither ? (
+        <p>
+          Neither regime charges income tax at this salary, so the choice makes no difference to
+          your pay. The new regime is the default, and you would only consider the old one if your
+          income rises.
+        </p>
+      ) : breakEven.reason === 'new-is-tax-free' ? (
         <p>
           The new regime wins outright. It charges no income tax at this salary, and no combination
           of old-regime deductions can beat zero. The old regime would cost you{' '}
@@ -278,9 +302,10 @@ const pfDifference = best.monthlyTakeHome - fullPf.monthly;
           month on 17 September 2026; that is what the figures above assume. If yours contributes on
           your full Basic of {formatRupees(a.basic / 12)} a month instead, your in-hand falls to{' '}
           {formatRupees(fullPf.monthly)} a month, {formatRupees(pfDifference)} less: your own
-          contribution rises, and so does your employer's, which comes out of your CTC, partly
-          offset by lower tax. In exchange {formatRupees(fullPf.employeePfYear)} a year goes into
-          your PF from your side, matched by your employer. Your payslip will say which applies.{' '}
+          contribution rises, and so does your employer's, which comes out of your CTC
+          {fullPfTaxLower ? ', partly offset by lower tax' : ''}. In exchange{' '}
+          {formatRupees(fullPf.employeePfYear)} a year goes into your PF from your side, matched by
+          your employer. Your payslip will say which applies.{' '}
           <a href="/provident-fund">How the PF ceiling works</a>.
         </p>
       )}

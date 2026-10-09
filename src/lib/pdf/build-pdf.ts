@@ -305,7 +305,7 @@ function drawFooter(c: Canvas, page: number, pages: number, preparedOn: Date): v
   const first = FOOTER_RULE + 14;
   const second = first + 10;
   c.text(
-    'Estimates only, not tax advice. Your payslip and Form 16 are the final word.',
+    'Estimates only, not tax advice. Your payslip and Form 130 (formerly Form 16) are the final word.',
     LEFT,
     first,
     T.micro,
