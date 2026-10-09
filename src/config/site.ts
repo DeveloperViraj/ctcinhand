@@ -15,7 +15,7 @@ export const SITE = {
   taxYearLabel: 'Tax Year 2026-27 (FY 2026-27)',
   shortYearLabel: 'FY 2026-27',
   /** Date the statutory figures in src/lib/tax/rates.ts were last verified. */
-  ratesVerifiedOn: '2026-09-13',
+  ratesVerifiedOn: '2026-10-09',
   contactEmail: 'hello@inhand.in',
   locale: 'en-IN',
 } as const;
