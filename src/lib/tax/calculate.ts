@@ -217,6 +217,18 @@ export function calculate(input: CalculatorInput): CalculationResult {
     new: buildRegime('new', input, structure, professionalTax.annual, profile),
     old: buildRegime('old', input, structure, professionalTax.annual, profile),
   };
+  const perquisite = regimes.new.employerContributionPerquisite;
+  // Below a rupee is floating-point noise from the PF iteration, not a real excess.
+  if (perquisite >= 1) {
+    notices.push(
+      `Your employer's PF and NPS contributions come to ${formatShort(
+        structure.annual.employerPf + structure.annual.employerNps,
+      )} a year, above the Rs 7,50,000 tax-free limit, so the ${formatShort(
+        perquisite,
+      )} excess is taxed as part of your salary in both regimes. Interest earned on that excess is also taxable each year; it is not included here.`,
+    );
+  }
+
   const better: Regime = regimes.new.tax.totalTax <= regimes.old.tax.totalTax ? 'new' : 'old';
   const savingByChoosingBetter = Math.abs(regimes.new.tax.totalTax - regimes.old.tax.totalTax);
 
@@ -267,14 +279,14 @@ function buildRegime(
   const a = structure.annual;
   const isOld = regime === 'old';
 
-  // Employer NPS is part of salary and then deducted under s.124. Employer PF is otherwise exempt,
-  // but the aggregate of employer PF + NPS above Rs 7.5 lakh is a perquisite (s.17(1)(h)). Only the
-  // part attributable to PF is added here, because the NPS part is already inside gross salary.
-  const aggregateExcess = Math.max(
+  // Employer NPS is part of salary and then deducted under s.124. Separately, employer
+  // contributions to PF and NPS together are tax-free only up to Rs 7.5 lakh a year: the whole
+  // excess is a perquisite (s.17(1)(h); old Act s.17(2)(vii)), and the s.124 deduction on the NPS
+  // part still applies. Tax on the interest earned on that excess is not modelled.
+  const employerContributionPerquisite = Math.max(
     0,
     a.employerPf + a.employerNps - EMPLOYER_CONTRIBUTION_PERQUISITE_LIMIT,
   );
-  const employerContributionPerquisite = Math.min(aggregateExcess, a.employerPf);
 
   const grossSalary = a.grossFixed + a.variable + a.employerNps + employerContributionPerquisite;
 

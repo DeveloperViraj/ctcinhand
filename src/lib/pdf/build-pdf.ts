@@ -740,7 +740,14 @@ function taxLedgers(result: CalculationResult): Ledger[] {
   const hra = old.hraExemption;
 
   const income: Line[] = [
-    { label: 'Gross salary', value: (r) => r.grossSalary },
+    {
+      label: 'Gross salary',
+      hint:
+        old.employerContributionPerquisite >= 1
+          ? `Includes ${money(old.employerContributionPerquisite)} of employer PF and NPS above ${money(7_50_000)}`
+          : undefined,
+      value: (r) => r.grossSalary,
+    },
     {
       label: 'HRA exemption',
       hint: hra

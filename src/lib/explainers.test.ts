@@ -43,10 +43,10 @@ describe('pfGuideData', () => {
     expect(row(20_000)).toMatchObject({
       beforeChange: 1_800,
       afterChange: 2_400,
-      thisYear: 25_760,
       nextYear: 28_800,
     });
-    expect(row(20_000).september).toBeCloseTo(2_360, 6);
+    expect(row(20_000).september).toBeCloseTo(2_080, 6);
+    expect(row(20_000).thisYear).toBeCloseTo(25_480, 6);
     expect(row(40_000)).toMatchObject({ afterChange: 3_000, thisYear: 29_360, nextYear: 36_000 });
   });
 

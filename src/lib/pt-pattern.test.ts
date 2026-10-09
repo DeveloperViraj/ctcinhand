@@ -70,11 +70,12 @@ describe('describeSteps', () => {
     );
   });
 
-  it('merges September into the later months when wages sit between the two ceilings', () => {
-    // Wages of 18,000: 1,800 to August, then 12% of 18,000 = 2,160 from September on.
+  it('shows September split by days when wages sit between the two ceilings', () => {
+    // Wages of 18,000: 1,800 to August; September (16 x 15,000 + 14 x 18,000) / 30 x 12% = 1,968;
+    // then 12% of 18,000 = 2,160.
     const pf = computeProvidentFund(18_000, 'ceiling');
     expect(describeSteps(pf.employeeByMonth, formatRupees)).toBe(
-      '₹1,800 a month until August, then ₹2,160 a month',
+      '₹1,800 a month until August, ₹1,968 in September, then ₹2,160 a month',
     );
   });
 

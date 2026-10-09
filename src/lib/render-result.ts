@@ -11,7 +11,7 @@
 import type { CalculationResult, RegimeBreakdown } from './tax/calculate';
 import { formatCompactRupees, formatNumber, formatRupees } from './format';
 import { describePtPattern } from './pt-pattern';
-import { pfCeilingNote } from './pf-note';
+import { employerPfNote, pfCeilingNote } from './pf-note';
 import type { Regime } from './tax/rates';
 
 const escape = (s: string) =>
@@ -43,10 +43,13 @@ function ledger(
   rows: string,
   total?: { label: string; value: string },
   id?: string,
+  /** Read only by screen readers, to tell apart two ledgers with the same visible title. */
+  hiddenSuffix?: string,
 ): string {
   const headingId = id ?? `ledger-${title.toLowerCase().replace(/[^a-z]+/g, '-')}`;
+  const suffix = hiddenSuffix ? `<span class="sr-only">${escape(hiddenSuffix)}</span>` : '';
   return `<section aria-labelledby="${headingId}">
-    <h3 id="${headingId}" class="text-base font-medium text-ink">${escape(title)}</h3>
+    <h3 id="${headingId}" class="text-base font-medium text-ink">${escape(title)}${suffix}</h3>
     <table class="ledger mt-3">
       <thead><tr><th scope="col">Component</th><th scope="col">Per year</th></tr></thead>
       <tbody>${rows}</tbody>
@@ -234,7 +237,13 @@ export function renderSummary(result: CalculationResult): string {
 
 function taxDetail(r: RegimeBreakdown): string {
   const rows = [
-    row('Gross salary', formatRupees(r.grossSalary)),
+    row(
+      'Gross salary',
+      formatRupees(r.grossSalary),
+      r.employerContributionPerquisite >= 1
+        ? `Includes ${formatRupees(r.employerContributionPerquisite)} of employer PF and NPS above ₹7.5 lakh`
+        : undefined,
+    ),
     r.hraExemption
       ? row(
           'HRA exemption',
@@ -307,8 +316,8 @@ function taxDetail(r: RegimeBreakdown): string {
     .join('');
 
   return `<div class="space-y-8">
-    ${ledger('Taxable income', rows, { label: 'Taxable income', value: formatRupees(r.taxableIncome) }, `taxable-${r.regime}`)}
-    ${ledger('Income tax', taxRows, { label: 'Total tax', value: formatRupees(r.tax.totalTax) }, `tax-${r.regime}`)}
+    ${ledger('Taxable income', rows, { label: 'Taxable income', value: formatRupees(r.taxableIncome) }, `taxable-${r.regime}`, `, ${REGIME_LABEL[r.regime].toLowerCase()}`)}
+    ${ledger('Income tax', taxRows, { label: 'Total tax', value: formatRupees(r.tax.totalTax) }, `tax-${r.regime}`, `, ${REGIME_LABEL[r.regime].toLowerCase()}`)}
   </div>`;
 }
 
@@ -376,7 +385,7 @@ export function renderDetails(result: CalculationResult): string {
       ? row('Variable pay', formatRupees(a.variable), 'Paid to you separately, if fully earned')
       : '',
     inCtc.pf
-      ? row('Employer PF', formatRupees(a.employerPf), 'Yours, but locked in your PF account')
+      ? row('Employer PF', formatRupees(a.employerPf), employerPfNote(s.pf, formatRupees))
       : '',
     a.employerNps > 0
       ? row('Employer NPS', formatRupees(a.employerNps), 'Yours, but locked until retirement')

@@ -10,7 +10,10 @@
  *   April to August       Rs 15,000
  *   September             split by days: 16 days at Rs 15,000 and 14 at Rs 25,000
  *   October to March      Rs 25,000
- * From Tax Year 2027-28 every month is Rs 25,000: replace CEILING_BY_MONTH accordingly.
+ * September's contribution base is the day-weighted average of the capped wage in each part,
+ * (16 x min(wages, 15,000) + 14 x min(wages, 25,000)) / 30, not wages capped at a blended ceiling:
+ * the two differ for wages between the ceilings.
+ * From Tax Year 2027-28 every month is Rs 25,000: replace WAGE_MONTHS accordingly.
  */
 
 export const EPF = {
@@ -28,14 +31,30 @@ export const EPF = {
 const SEPTEMBER_DAYS = 30;
 const DAYS_AT_OLD_CEILING = 16;
 
-/** The ceiling for each wage month of Tax Year 2026-27, April to March. */
-export const CEILING_BY_MONTH: readonly number[] = [
-  ...Array.from({ length: 5 }, () => EPF.previousWageCeiling),
-  (EPF.previousWageCeiling * DAYS_AT_OLD_CEILING +
-    EPF.wageCeiling * (SEPTEMBER_DAYS - DAYS_AT_OLD_CEILING)) /
-    SEPTEMBER_DAYS,
-  ...Array.from({ length: 6 }, () => EPF.wageCeiling),
+/** One stretch of a wage month at a single ceiling, as a share of the month's days. */
+interface CeilingPart {
+  ceiling: number;
+  share: number;
+}
+
+/** Each wage month of Tax Year 2026-27, April to March, as the ceilings in force during it. */
+const WAGE_MONTHS: readonly (readonly CeilingPart[])[] = [
+  ...Array.from({ length: 5 }, () => [{ ceiling: EPF.previousWageCeiling, share: 1 }]),
+  [
+    { ceiling: EPF.previousWageCeiling, share: DAYS_AT_OLD_CEILING / SEPTEMBER_DAYS },
+    { ceiling: EPF.wageCeiling, share: (SEPTEMBER_DAYS - DAYS_AT_OLD_CEILING) / SEPTEMBER_DAYS },
+  ],
+  ...Array.from({ length: 6 }, () => [{ ceiling: EPF.wageCeiling, share: 1 }]),
 ];
+
+/** Wages counted for a month: the capped wage in each part of it, weighted by days. */
+const cappedWages = (wages: number, month: readonly CeilingPart[]) =>
+  month.reduce((sum, part) => sum + part.share * Math.min(wages, part.ceiling), 0);
+
+/** The day-weighted ceiling for each wage month, for display (September is Rs 19,666.67). */
+export const CEILING_BY_MONTH: readonly number[] = WAGE_MONTHS.map((month) =>
+  month.reduce((sum, part) => sum + part.share * part.ceiling, 0),
+);
 
 /**
  * How the contribution base is set. This is the single most commonly confused point on salary
@@ -78,10 +97,8 @@ export function computeProvidentFund(monthlyWages: number, mode: PfMode): PfResu
       employeeByMonth: CEILING_BY_MONTH.map(() => 0),
     };
   }
-  const base = CEILING_BY_MONTH.map((ceiling) =>
-    mode === 'ceiling' ? Math.min(wages, ceiling) : wages,
-  );
-  const pensionBase = CEILING_BY_MONTH.map((ceiling) => Math.min(wages, ceiling));
+  const pensionBase = WAGE_MONTHS.map((month) => cappedWages(wages, month));
+  const base = mode === 'ceiling' ? pensionBase : WAGE_MONTHS.map(() => wages);
   const contributionWage = average(base);
   const employee = contributionWage * EPF.employeeRate;
   const employerTotal = contributionWage * EPF.employerRate;

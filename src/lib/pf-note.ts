@@ -5,6 +5,7 @@
  */
 
 import { describeSteps } from './pt-pattern';
+import type { PfResult } from './tax/provident-fund';
 
 export function pfCeilingNote(
   employeeByMonth: readonly number[],
@@ -14,4 +15,12 @@ export function pfCeilingNote(
   return steps
     ? `${steps}: the wage ceiling rose to ${money(25_000)} on 17 September`
     : 'On your full wages, which are under the wage ceiling';
+}
+
+/** Where the employer's 12% goes in a year: part to the pension scheme, the rest to PF. */
+export function employerPfNote(
+  pf: Pick<PfResult, 'employerEpf' | 'employerEps'>,
+  money: (amount: number) => string,
+): string {
+  return `${money(pf.employerEpf * 12)} to your PF account, ${money(pf.employerEps * 12)} to the pension scheme`;
 }

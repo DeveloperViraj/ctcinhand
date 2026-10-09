@@ -15,8 +15,17 @@ describe('provident fund', () => {
   });
 
   it('between the two ceilings only the new one binds from October', () => {
-    // Wages of 20,000: 15,000 x 5 + 19,666.67 + 20,000 x 6 = 2,14,666.67; 12% = 25,760.
-    expect(computeProvidentFund(20_000, 'ceiling').employee * 12).toBeCloseTo(25_760, 6);
+    // Wages of 20,000. September by days: (16 x 15,000 + 14 x 20,000) / 30 = 17,333.33.
+    // 15,000 x 5 + 17,333.33 + 20,000 x 6 = 2,12,333.33; 12% = 25,480.
+    expect(computeProvidentFund(20_000, 'ceiling').employee * 12).toBeCloseTo(25_480, 6);
+    expect(computeProvidentFund(20_000, 'ceiling').employeeByMonth[5]).toBeCloseTo(2_080, 6);
+  });
+
+  it('splits September by days, not by a blended ceiling', () => {
+    // Wages of 18,000: (16 x 15,000 + 14 x 18,000) / 30 = 16,400, so 1,968 rather than 2,160.
+    expect(computeProvidentFund(18_000, 'ceiling').employeeByMonth[5]).toBeCloseTo(1_968, 6);
+    // At or above 25,000 both parts are capped: (16 x 15,000 + 14 x 25,000) / 30 = 19,666.67.
+    expect(computeProvidentFund(40_000, 'ceiling').employeeByMonth[5]).toBeCloseTo(2_360, 6);
   });
 
   it('actual mode uses full wages', () => {

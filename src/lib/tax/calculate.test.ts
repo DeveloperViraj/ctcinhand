@@ -259,3 +259,40 @@ describe('gratuity projection', () => {
     expect(calculate(input({ yearsOfService: 10.4 })).gratuityProjection.countedYears).toBe(10);
   });
 });
+
+describe('employer PF and NPS above Rs 7.5 lakh', () => {
+  // CTC 1 crore, Basic 50 lakh, PF on full wages: employer PF is 12% of 50 lakh = 6,00,000.
+  const at = (npsPercent: number) =>
+    calculate({
+      ...DEFAULT_INPUT,
+      ctc: 1_00_00_000,
+      pfMode: 'actual',
+      employerNps: { unit: 'percent', value: npsPercent },
+    });
+  const flagged = (r: ReturnType<typeof at>) => r.notices.some((n) => n.includes('7,50,000'));
+
+  it('taxes nothing at the limit', () => {
+    // NPS 3% of Basic = 1,50,000, so PF and NPS together are exactly 7,50,000.
+    const r = at(3);
+    expect(r.structure.annual.employerPf).toBeCloseTo(6_00_000, 2);
+    expect(r.regimes.new.employerContributionPerquisite).toBeCloseTo(0, 2);
+    expect(flagged(r)).toBe(false);
+  });
+
+  it('taxes nothing just under the limit', () => {
+    expect(at(2.9).regimes.new.employerContributionPerquisite).toBe(0);
+    expect(flagged(at(2.9))).toBe(false);
+  });
+
+  it('taxes the whole excess, NPS included, in both regimes', () => {
+    // NPS 4% of Basic = 2,00,000; together 8,00,000; excess 50,000.
+    const r = at(4);
+    for (const regime of [r.regimes.new, r.regimes.old]) {
+      expect(regime.employerContributionPerquisite).toBeCloseTo(50_000, 2);
+      expect(regime.grossSalary).toBeCloseTo(r.structure.annual.grossFixed + 2_00_000 + 50_000, 2);
+    }
+    // The NPS deduction is still allowed on top: 14% of Basic in the new regime covers all 2,00,000.
+    expect(r.regimes.new.employerNpsDeduction).toBeCloseTo(2_00_000, 2);
+    expect(r.notices.some((n) => n.includes('Rs 50,000 excess'))).toBe(true);
+  });
+});

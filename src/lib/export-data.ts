@@ -6,8 +6,11 @@
 import { SITE } from '../config/site';
 import type { CalculationResult } from './tax/calculate';
 import { describePtPattern } from './pt-pattern';
-import { pfCeilingNote } from './pf-note';
+import { employerPfNote, pfCeilingNote } from './pf-note';
 import type { Regime } from './tax/rates';
+
+/** Whole rupees, written the way the PDF and spreadsheet fonts can always show. */
+const rs = (amount: number) => `Rs ${Math.round(amount).toLocaleString('en-IN')}`;
 
 export interface ExportRow {
   label: string;
@@ -57,10 +60,7 @@ export function buildExportDocument(result: CalculationResult): ExportDocument {
       value: -result.structure.pf.employee * 12,
       note:
         result.input.pfMode === 'ceiling'
-          ? pfCeilingNote(
-              result.structure.pf.employeeByMonth,
-              (amount) => `Rs ${amount.toLocaleString('en-IN')}`,
-            )
+          ? pfCeilingNote(result.structure.pf.employeeByMonth, rs)
           : 'On full Labour Code wages',
     },
     { label: 'ESI (employee, 0.75%)', value: -result.structure.esi.employee * 12 },
@@ -81,7 +81,7 @@ export function buildExportDocument(result: CalculationResult): ExportDocument {
     {
       label: 'Employer PF',
       value: input.employerPfInCtc ? a.employerPf : 0,
-      note: 'Yours, but locked in your PF account',
+      note: employerPfNote(result.structure.pf, rs),
     },
     { label: 'Employer NPS', value: a.employerNps, note: 'Yours, but locked until retirement' },
     {
@@ -171,5 +171,5 @@ export function monthlyInHand(result: CalculationResult): number {
  * statute citation in `PtResult.note`. Undefined when every month is the same.
  */
 export function ptHint(monthly: number[]): string | undefined {
-  return describePtPattern(monthly, (amount) => `Rs ${amount.toLocaleString('en-IN')}`);
+  return describePtPattern(monthly, rs);
 }
