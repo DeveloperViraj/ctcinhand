@@ -53,6 +53,34 @@ export function mountEmbed(): void {
     }
     const query = encodeState({ ...DEFAULT_STATE, input });
     full!.href = `${SITE.url}/${query ? `?${query}` : ''}`;
+    openLinksOnFullSite();
+  }
+
+  /**
+   * The summary's links ("Why", the notes link) point at pages of the full site. Inside a frame on
+   * someone else's page they must open there, in a new tab: the site refuses to be framed anywhere
+   * but /embed, so following them inside the frame would replace the widget with an error.
+   */
+  function openLinksOnFullSite() {
+    for (const link of summary!.querySelectorAll<HTMLAnchorElement>('a[href]')) {
+      const href = link.getAttribute('href')!;
+      if (href.startsWith('#')) link.href = `${full!.href}${href}`;
+      else if (href.startsWith('/')) link.href = `${SITE.url}${href}`;
+      link.target = '_blank';
+      link.rel = 'noopener';
+    }
+  }
+
+  // Tell the host page how tall the widget is, so the snippet can size the frame to fit and
+  // nothing (the "Full breakdown" button especially) is cut off in a narrow column.
+  const main = document.querySelector('main');
+  if (main && window.parent !== window && 'ResizeObserver' in window) {
+    const report = () =>
+      window.parent.postMessage(
+        { type: 'inhand:height', height: Math.ceil(main.getBoundingClientRect().height) },
+        '*',
+      );
+    new ResizeObserver(report).observe(main);
   }
 
   range?.addEventListener('input', () => {

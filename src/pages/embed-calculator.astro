@@ -2,14 +2,18 @@
 import DocLayout from '../layouts/DocLayout.astro';
 import { SITE } from '../config/site';
 
-const snippet = `<iframe src="${SITE.url}/embed" title="CTC to in-hand salary calculator" width="100%" height="840" style="border:0;max-width:560px" loading="lazy"></iframe>
+// The widget posts its height; this listener sizes the frame to fit. It only trusts messages from
+// our own origin, and only from a frame that is actually one of ours on the host page.
+const resizer = `<script>addEventListener("message",function(e){if(e.origin!=="${SITE.url}"||!e.data||e.data.type!=="inhand:height")return;var h=Math.min(Math.max(+e.data.height||0,300),2000);document.querySelectorAll("iframe[data-inhand-embed]").forEach(function(f){if(f.contentWindow===e.source)f.style.height=h+"px"})})</script>`;
+const snippet = `<iframe src="${SITE.url}/embed" title="CTC to in-hand salary calculator" width="100%" height="900" style="border:0;max-width:560px" loading="lazy" data-inhand-embed></iframe>
+${resizer}
 <p><a href="${SITE.url}/">CTC to in-hand salary calculator</a> by ${SITE.name}</p>`;
 ---
 
 <DocLayout
   title="Embed the calculator on your site"
   description={`Add a free CTC to in-hand salary calculator to your blog or HR site. One snippet, both tax regimes, ${SITE.shortYearLabel} rates, kept up to date for you.`}
-  updated="2026-10-04"
+  updated="2026-10-09"
 >
   <p>
     If you write about salaries, offers or payroll, you can put a working CTC calculator on your own
@@ -30,9 +34,11 @@ const snippet = `<iframe src="${SITE.url}/embed" title="CTC to in-hand salary ca
     </button>
   </p>
   <p>
-    Add <code>?theme=dark</code> or <code>?theme=light</code> to the address to fix the colour
-    scheme; otherwise it follows your reader's system setting. In a column narrower than 400px,
-    raise the height to about 920.
+    The short script lets the frame grow and shrink to fit the calculator, so nothing is cut off on
+    a phone. If your site does not allow scripts, leave it out and set the height yourself: 900
+    suits most columns, about 1,000 one narrower than 360px. Add <code>?theme=dark</code> or{' '}
+    <code>?theme=light</code> to the address to fix the colour scheme; otherwise it follows your
+    reader's system setting.
   </p>
 
   <h2>What it costs</h2>
@@ -47,15 +53,25 @@ const snippet = `<iframe src="${SITE.url}/embed" title="CTC to in-hand salary ca
     src="/embed"
     title="CTC to in-hand salary calculator"
     width="100%"
-    height="840"
+    height="900"
     style="border:0;max-width:560px"
     loading="lazy"
+    data-inhand-embed
   ></iframe>
 </DocLayout>
 
 <script>
   const button = document.querySelector<HTMLButtonElement>('[data-copy-snippet]');
   const code = document.getElementById('embed-snippet');
+  // The preview sizes itself the same way the snippet does, from this site's own origin.
+  window.addEventListener('message', (event) => {
+    if (event.origin !== window.location.origin || event.data?.type !== 'inhand:height') return;
+    const height = Math.min(Math.max(Number(event.data.height) || 0, 300), 2000);
+    for (const frame of document.querySelectorAll<HTMLIFrameElement>('iframe[data-inhand-embed]')) {
+      if (frame.contentWindow === event.source) frame.style.height = `${height}px`;
+    }
+  });
+
   button?.addEventListener('click', async () => {
     const text = code?.textContent ?? '';
     try {
