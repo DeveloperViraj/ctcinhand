@@ -6,6 +6,7 @@
 import { SITE } from '../config/site';
 import type { CalculationResult } from './tax/calculate';
 import { describePtPattern } from './pt-pattern';
+import { pfCeilingNote } from './pf-note';
 import type { Regime } from './tax/rates';
 
 export interface ExportRow {
@@ -56,7 +57,10 @@ export function buildExportDocument(result: CalculationResult): ExportDocument {
       value: -result.structure.pf.employee * 12,
       note:
         result.input.pfMode === 'ceiling'
-          ? 'Capped at 12% of the Rs 15,000 wage ceiling'
+          ? pfCeilingNote(
+              result.structure.pf.employeeByMonth,
+              (amount) => `Rs ${amount.toLocaleString('en-IN')}`,
+            )
           : 'On full Labour Code wages',
     },
     { label: 'ESI (employee, 0.75%)', value: -result.structure.esi.employee * 12 },

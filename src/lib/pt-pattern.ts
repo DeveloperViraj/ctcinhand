@@ -70,3 +70,42 @@ export function describePtPattern(
 
   return 'Varies during the year';
 }
+
+/**
+ * Describes a deduction that steps up during the year, such as provident fund after the wage
+ * ceiling rose on 17 September 2026: "₹1,800 a month until August, ₹2,360 in September, then
+ * ₹3,000 a month". Undefined when every month is the same.
+ */
+export function describeSteps(
+  monthly: readonly number[],
+  money: (amount: number) => string,
+): string | undefined {
+  const runs: { value: number; start: number; end: number }[] = [];
+  monthly.forEach((raw, i) => {
+    const value = Math.round(raw);
+    const last = runs[runs.length - 1];
+    if (last && last.value === value) last.end = i;
+    else runs.push({ value, start: i, end: i });
+  });
+  if (runs.length <= 1) return undefined;
+
+  const name = (i: number) => MONTH_NAMES[FY_MONTHS[i]];
+  return runs
+    .map((run, i) => {
+      const single = run.start === run.end;
+      if (i === 0) {
+        return single
+          ? `${money(run.value)} in ${name(run.start)}`
+          : `${money(run.value)} a month until ${name(run.end)}`;
+      }
+      if (i === runs.length - 1) {
+        return single
+          ? `then ${money(run.value)} in ${name(run.start)}`
+          : `then ${money(run.value)} a month`;
+      }
+      return single
+        ? `${money(run.value)} in ${name(run.start)}`
+        : `${money(run.value)} a month from ${name(run.start)} to ${name(run.end)}`;
+    })
+    .join(', ');
+}

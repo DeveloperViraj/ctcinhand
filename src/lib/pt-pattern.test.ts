@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { formatRupees } from './format';
-import { describePtPattern } from './pt-pattern';
+import { describePtPattern, describeSteps } from './pt-pattern';
+import { computeProvidentFund } from './tax/provident-fund';
 import { computeProfessionalTax, type PtInput } from './tax/professional-tax';
 
 const input = (overrides: Partial<PtInput> = {}): PtInput => ({
@@ -58,5 +59,28 @@ describe('describePtPattern', () => {
     expect(describePtPattern(computeProfessionalTax('MH', input()).monthly, rs)).toBe(
       'Rs 200 a month, Rs 300 in February',
     );
+  });
+});
+
+describe('describeSteps', () => {
+  it('describes provident fund stepping up with the September 2026 ceiling', () => {
+    const pf = computeProvidentFund(50_000, 'ceiling');
+    expect(describeSteps(pf.employeeByMonth, formatRupees)).toBe(
+      '₹1,800 a month until August, ₹2,360 in September, then ₹3,000 a month',
+    );
+  });
+
+  it('merges September into the later months when wages sit between the two ceilings', () => {
+    // Wages of 18,000: 1,800 to August, then 12% of 18,000 = 2,160 from September on.
+    const pf = computeProvidentFund(18_000, 'ceiling');
+    expect(describeSteps(pf.employeeByMonth, formatRupees)).toBe(
+      '₹1,800 a month until August, then ₹2,160 a month',
+    );
+  });
+
+  it('says nothing when every month is the same', () => {
+    expect(
+      describeSteps(computeProvidentFund(12_000, 'ceiling').employeeByMonth, formatRupees),
+    ).toBe(undefined);
   });
 });

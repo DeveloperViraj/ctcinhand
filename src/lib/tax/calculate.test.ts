@@ -10,12 +10,13 @@ describe('end to end: Rs 12,00,000 CTC, Basic 50%, Karnataka, no rent', () => {
   const { structure } = result;
 
   it('resolves the structure and balances special allowance against CTC', () => {
-    // Basic 6,00,000; HRA 3,00,000; employer PF 21,600 (capped); gratuity 15/26 of one month's wages.
+    // Basic 6,00,000; HRA 3,00,000; gratuity 15/26 of one month's wages. Employer PF at the ceiling,
+    // which rose mid-year: 12% x (15,000 x 5 + 19,666.67 for September + 25,000 x 6) = 29,360.
     expect(structure.annual.basic).toBe(6_00_000);
     expect(structure.annual.hra).toBe(3_00_000);
-    expect(structure.annual.employerPf).toBe(21_600);
+    expect(r2(structure.annual.employerPf)).toBe(29_360);
     expect(r2(structure.annual.gratuity)).toBe(28_846.15); // 50,000 x 15 / 26
-    expect(r2(structure.annual.special)).toBe(2_49_553.85);
+    expect(r2(structure.annual.special)).toBe(2_41_793.85);
     expect(Math.abs(structure.unallocated)).toBeLessThan(0.01);
     expect(structure.converged).toBe(true);
   });
@@ -25,8 +26,11 @@ describe('end to end: Rs 12,00,000 CTC, Basic 50%, Karnataka, no rent', () => {
     expect(structure.wages.wages).toBe(50_000);
   });
 
-  it('applies the Rs 15,000 PF ceiling and no ESI', () => {
-    expect(structure.pf.employee).toBe(1_800);
+  it('applies the PF ceiling month by month (Rs 15,000, then Rs 25,000) and no ESI', () => {
+    expect(r2(structure.pf.employee * 12)).toBe(29_360);
+    expect(structure.pf.employeeByMonth[0]).toBe(1_800); // April
+    expect(r2(structure.pf.employeeByMonth[5])).toBe(2_360); // September, split by days
+    expect(structure.pf.employeeByMonth[11]).toBe(3_000); // March
     expect(structure.esi.applicable).toBe(false);
   });
 
@@ -37,30 +41,30 @@ describe('end to end: Rs 12,00,000 CTC, Basic 50%, Karnataka, no rent', () => {
 
   it('new regime: the Rs 60,000 rebate wipes out the tax', () => {
     const n = result.regimes.new;
-    // Gross 11,49,553.85 less the Rs 75,000 standard deduction = 10,74,553.85 taxable.
-    expect(r2(n.grossSalary)).toBe(11_49_553.85);
-    expect(r2(n.taxableIncome)).toBe(10_74_553.85);
-    // Slab tax 20,000 + 10% of 2,74,553.8462 = 47,455.38, fully covered by the rebate.
-    expect(r2(n.tax.slabTax)).toBe(47_455.38);
+    // Gross 11,41,793.85 less the Rs 75,000 standard deduction = 10,66,793.85 taxable.
+    expect(r2(n.grossSalary)).toBe(11_41_793.85);
+    expect(r2(n.taxableIncome)).toBe(10_66_793.85);
+    // Slab tax 20,000 + 10% of 2,66,793.8462 = 46,679.38, fully covered by the rebate.
+    expect(r2(n.tax.slabTax)).toBe(46_679.38);
     expect(n.tax.totalTax).toBe(0);
-    expect(r2(n.annualTakeHome)).toBe(11_25_453.85); // gross - PF 21,600 - PT 2,500
-    expect(r2(n.monthlyTakeHome)).toBe(93_787.82);
+    expect(r2(n.annualTakeHome)).toBe(11_09_933.85); // gross - PF 29,360 - PT 2,500
+    expect(r2(n.monthlyTakeHome)).toBe(92_494.49);
   });
 
   it('old regime: 80C picks up employee PF, and tax is due', () => {
     const o = result.regimes.old;
-    expect(o.sec80C?.allowed).toBe(21_600); // employee PF only, under the Rs 1.5 lakh cap
+    expect(r2(o.sec80C?.allowed ?? 0)).toBe(29_360); // employee PF only, under the Rs 1.5 lakh cap
     expect(o.professionalTaxDeduction).toBe(2_500);
-    // 11,49,553.85 - 50,000 - 2,500 - 21,600 = 10,75,453.85
-    expect(r2(o.taxableIncome)).toBe(10_75_453.85);
-    // 12,500 + 1,00,000 + 30% of 75,453.8462 = 1,35,136.15; cess 4% -> 1,40,541.60
-    expect(r2(o.tax.slabTax)).toBe(1_35_136.15);
-    expect(r2(o.tax.totalTax)).toBe(1_40_541.6);
+    // 11,41,793.85 - 50,000 - 2,500 - 29,360 = 10,59,933.85
+    expect(r2(o.taxableIncome)).toBe(10_59_933.85);
+    // 12,500 + 1,00,000 + 30% of 59,933.8462 = 1,30,480.15; cess 4% -> 1,35,699.36
+    expect(r2(o.tax.slabTax)).toBe(1_30_480.15);
+    expect(r2(o.tax.totalTax)).toBe(1_35_699.36);
   });
 
   it('picks the new regime and reports the saving', () => {
     expect(result.better).toBe('new');
-    expect(r2(result.savingByChoosingBetter)).toBe(1_40_541.6);
+    expect(r2(result.savingByChoosingBetter)).toBe(1_35_699.36);
   });
 
   it('has no errors', () => {
@@ -92,7 +96,8 @@ describe('Labour Code add-back when Basic is only 30% of CTC', () => {
   });
 
   it('does not change PF, because contributions are capped at the ceiling', () => {
-    expect(structure.pf.employee).toBe(1_800);
+    // Wages are above both ceilings either way, so PF is the same 29,360 a year.
+    expect(r2(structure.pf.employee * 12)).toBe(29_360);
   });
 
   it('raises PF when the employer contributes on actual wages', () => {

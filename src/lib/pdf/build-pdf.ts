@@ -333,7 +333,7 @@ function basedOn(result: CalculationResult): [string, string][] {
   const claims = Object.values(input.deductions).reduce((sum, v) => sum + Math.max(0, v), 0);
   const pf =
     input.pfMode === 'ceiling'
-      ? '12% of the ₹15,000 ceiling'
+      ? '12% up to the wage ceiling'
       : input.pfMode === 'actual'
         ? '12% of full wages'
         : 'Not deducted';

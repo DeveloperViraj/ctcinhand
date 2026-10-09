@@ -184,6 +184,11 @@ export function calculate(input: CalculatorInput): CalculationResult {
         }
       : ptCalculated;
 
+  if (input.pfMode === 'ceiling' && structure.wages.wages > 15_000) {
+    notices.push(
+      'The PF wage ceiling rose from Rs 15,000 to Rs 25,000 a month on 17 September 2026 (S.O. 5109(E)), so your PF deduction steps up from October. The yearly figures here include the change; your monthly in-hand is an average across the year.',
+    );
+  }
   if (professionalTax.status === 'unverified' && input.ptOverrideMonthly === null) {
     notices.push(professionalTax.note);
   }

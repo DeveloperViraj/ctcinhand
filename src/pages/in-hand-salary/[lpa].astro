@@ -95,8 +95,8 @@ const pfDifference = best.monthlyTakeHome - fullPf.monthly;
       </p>
       <Byline updated={UPDATED} />
       <p class="mt-3 text-sm text-ink-3">
-        {SITE.taxYearLabel}. Assumes Basic at half of CTC, PF capped at the ₹15,000 wage ceiling,
-        gratuity and employer PF inside the CTC, and Karnataka professional tax.{' '}
+        {SITE.taxYearLabel}. Assumes Basic at half of CTC, PF capped at the wage ceiling (₹25,000
+        from 17 September), gratuity and employer PF inside the CTC, and Karnataka professional tax.{' '}
         <a href={calculatorLink} class="text-accent-ink underline">
           Change any of these
         </a>
@@ -143,8 +143,8 @@ const pfDifference = best.monthlyTakeHome - fullPf.monthly;
             <dd class="tabular-nums text-ink">{formatRupees(data.marginalRate * 100)}</dd>
           </div>
           <div class="flex justify-between gap-4 py-2.5">
-            <dt class="text-ink-2">Your PF a month</dt>
-            <dd class="tabular-nums text-ink">{formatRupees(result.structure.pf.employee)}</dd>
+            <dt class="text-ink-2">Your PF this year</dt>
+            <dd class="tabular-nums text-ink">{formatRupees(result.structure.pf.employee * 12)}</dd>
           </div>
           <div class="flex justify-between gap-4 py-2.5">
             <dt class="text-ink-2">Gratuity provision a year</dt>
@@ -268,19 +268,19 @@ const pfDifference = best.monthlyTakeHome - fullPf.monthly;
       <h2>If your employer pays PF on your full Basic</h2>
       {Math.abs(pfDifference) < 1 ? (
         <p>
-          Your Basic is {formatRupees(a.basic / 12)} a month, under the ₹15,000 PF wage ceiling, so
-          it makes no difference whether your employer caps PF: 12% of your full Basic is already
-          what you pay.
+          Your Basic is {formatRupees(a.basic / 12)} a month, under the PF wage ceiling, so it makes
+          no difference whether your employer caps PF: 12% of your full Basic is already what you
+          pay.
         </p>
       ) : (
         <p>
-          Many employers cap PF at 12% of ₹15,000 (₹1,800 a month), which is what the figures above
-          assume. If yours contributes on your full Basic of {formatRupees(a.basic / 12)} a month
-          instead, your in-hand falls to {formatRupees(fullPf.monthly)} a month,{' '}
-          {formatRupees(pfDifference)} less: your own contribution rises, and so does your
-          employer's, which comes out of your CTC, partly offset by lower tax. In exchange{' '}
-          {formatRupees(fullPf.employeePfYear)} a year goes into your PF from your side, matched by
-          your employer. Your payslip will say which applies.
+          Many employers cap PF at the statutory wage ceiling, which rose from ₹15,000 to ₹25,000 a
+          month on 17 September 2026; that is what the figures above assume. If yours contributes on
+          your full Basic of {formatRupees(a.basic / 12)} a month instead, your in-hand falls to{' '}
+          {formatRupees(fullPf.monthly)} a month, {formatRupees(pfDifference)} less: your own
+          contribution rises, and so does your employer's, which comes out of your CTC, partly
+          offset by lower tax. In exchange {formatRupees(fullPf.employeePfYear)} a year goes into
+          your PF from your side, matched by your employer. Your payslip will say which applies.
         </p>
       )}
     </div>
@@ -318,8 +318,9 @@ const pfDifference = best.monthlyTakeHome - fullPf.monthly;
 
     <p class="mt-12 max-w-3xl text-sm text-ink-3">
       Figures follow the Income-tax Act, 2025 (slabs under section 202, the rebate and marginal
-      relief under section 156, the standard deduction under section 19), the EPF Scheme's ₹15,000
-      wage ceiling and the state's Professions Tax Act. Estimates only, not tax advice.{' '}
+      relief under section 156, the standard deduction under section 19), the EPF wage ceiling
+      (raised to ₹25,000 on 17 September 2026) and the state's Professions Tax Act. Estimates only,
+      not tax advice.{' '}
       <a href="/how-it-works" class="underline">
         Method and sources
       </a>

@@ -3,11 +3,20 @@ import { computeEsi } from './esi';
 import { computeProvidentFund } from './provident-fund';
 
 describe('provident fund', () => {
-  it('ceiling mode caps both shares at 12% of Rs 15,000 = Rs 1,800', () => {
+  it('ceiling mode follows the ceiling month by month: Rs 15,000, then Rs 25,000 from 17 September', () => {
     const pf = computeProvidentFund(40_000, 'ceiling');
-    expect(pf.contributionWage).toBe(15_000);
-    expect(pf.employee).toBe(1_800);
-    expect(pf.employerTotal).toBe(1_800);
+    // 12% of 15,000 for April to August, of 19,666.67 for September (16 days at 15,000 and 14 at
+    // 25,000), and of 25,000 for October to March: 29,360 a year for each share.
+    expect(pf.employeeByMonth.slice(0, 5)).toEqual([1_800, 1_800, 1_800, 1_800, 1_800]);
+    expect(pf.employeeByMonth[5]).toBeCloseTo(2_360, 6);
+    expect(pf.employeeByMonth.slice(6)).toEqual([3_000, 3_000, 3_000, 3_000, 3_000, 3_000]);
+    expect(pf.employee * 12).toBeCloseTo(29_360, 6);
+    expect(pf.employerTotal * 12).toBeCloseTo(29_360, 6);
+  });
+
+  it('between the two ceilings only the new one binds from October', () => {
+    // Wages of 20,000: 15,000 x 5 + 19,666.67 + 20,000 x 6 = 2,14,666.67; 12% = 25,760.
+    expect(computeProvidentFund(20_000, 'ceiling').employee * 12).toBeCloseTo(25_760, 6);
   });
 
   it('actual mode uses full wages', () => {
@@ -21,11 +30,11 @@ describe('provident fund', () => {
     expect(computeProvidentFund(12_000, 'ceiling').employee).toBe(1_440);
   });
 
-  it('EPS is 8.33% of wages capped at Rs 15,000, even when contributing on actual wages', () => {
-    // 8.33% x 15,000 = 1,249.50; the rest of the employer's share goes to EPF.
+  it("EPS is 8.33% of wages capped at the month's ceiling, even when contributing on actual wages", () => {
+    // 8.33% of 2,44,666.67 of ceiling-capped wages over the year = 20,380.73.
     for (const mode of ['ceiling', 'actual'] as const) {
       const pf = computeProvidentFund(50_000, mode);
-      expect(pf.employerEps).toBeCloseTo(1_249.5, 6);
+      expect(pf.employerEps * 12).toBeCloseTo(20_380.73, 2);
       expect(pf.employerEps + pf.employerEpf).toBeCloseTo(pf.employerTotal, 6);
     }
     // Below the ceiling: 12,000 x 8.33% = 999.60 EPS and 12,000 x 3.67% = 440.40 EPF.

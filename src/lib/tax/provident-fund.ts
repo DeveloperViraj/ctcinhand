@@ -4,14 +4,20 @@
  * scheme, but contributions are now computed on Labour Code "wages" (see labour-code-wages.ts),
  * not strictly on basic + DA.
  *
- * The Rs 15,000 wage ceiling was re-notified unchanged on 29 May 2026. A rise to Rs 25,000 has been
- * reported as cleared by the Finance Ministry but is NOT notified as of September 2026: change
- * EPF.wageCeiling only when a gazette notification exists.
+ * The statutory wage ceiling changed in the middle of this tax year. S.O. 2702(E) of 29 May 2026
+ * re-notified it at Rs 15,000; S.O. 5109(E) of 17 September 2026 superseded that with Rs 25,000
+ * from the date of publication, for EPF, EPS and EDLI alike. So for Tax Year 2026-27:
+ *   April to August       Rs 15,000
+ *   September             split by days: 16 days at Rs 15,000 and 14 at Rs 25,000
+ *   October to March      Rs 25,000
+ * From Tax Year 2027-28 every month is Rs 25,000: replace CEILING_BY_MONTH accordingly.
  */
 
 export const EPF = {
-  /** Statutory wage ceiling per month (CoSS s.2(89) notification, 29 May 2026). */
-  wageCeiling: 15_000,
+  /** The ceiling in force now (S.O. 5109(E), 17 September 2026). */
+  wageCeiling: 25_000,
+  /** The ceiling until 16 September 2026 (S.O. 2702(E), 29 May 2026). */
+  previousWageCeiling: 15_000,
   /** Employee and employer rates (EPF Scheme 2026 para 18(2)). */
   employeeRate: 0.12,
   employerRate: 0.12,
@@ -19,18 +25,34 @@ export const EPF = {
   epsRate: 0.0833,
 } as const;
 
+const SEPTEMBER_DAYS = 30;
+const DAYS_AT_OLD_CEILING = 16;
+
+/** The ceiling for each wage month of Tax Year 2026-27, April to March. */
+export const CEILING_BY_MONTH: readonly number[] = [
+  ...Array.from({ length: 5 }, () => EPF.previousWageCeiling),
+  (EPF.previousWageCeiling * DAYS_AT_OLD_CEILING +
+    EPF.wageCeiling * (SEPTEMBER_DAYS - DAYS_AT_OLD_CEILING)) /
+    SEPTEMBER_DAYS,
+  ...Array.from({ length: 6 }, () => EPF.wageCeiling),
+];
+
 /**
  * How the contribution base is set. This is the single most commonly confused point on salary
  * calculators, so it is an explicit user choice rather than an assumption.
  *
- * - 'ceiling': both shares on min(wages, Rs 15,000). Most employers do this; max Rs 1,800 each.
+ * - 'ceiling': both shares on min(wages, the month's ceiling). Most employers do this.
  * - 'actual':  both shares on full wages. Above the ceiling this is voluntary (para 19) but common.
  * - 'none':    not a PF member (e.g. an establishment not covered, or an excluded employee).
  */
 export type PfMode = 'ceiling' | 'actual' | 'none';
 
 export interface PfResult {
-  /** Wages the contributions were calculated on, per month. */
+  /**
+   * Monthly figures are averages over the tax year, because the ceiling changed mid-year; times
+   * twelve they give the exact annual amounts.
+   */
+  /** Wages the contributions were calculated on, per month (average). */
   contributionWage: number;
   employee: number;
   employerTotal: number;
@@ -38,22 +60,38 @@ export interface PfResult {
   employerEps: number;
   /** Employer share credited to the PF account. */
   employerEpf: number;
+  /** The employee's contribution in each wage month, April to March. */
+  employeeByMonth: number[];
 }
+
+const average = (values: readonly number[]) => values.reduce((a, b) => a + b, 0) / values.length;
 
 export function computeProvidentFund(monthlyWages: number, mode: PfMode): PfResult {
   const wages = Math.max(0, monthlyWages);
   if (mode === 'none') {
-    return { contributionWage: 0, employee: 0, employerTotal: 0, employerEps: 0, employerEpf: 0 };
+    return {
+      contributionWage: 0,
+      employee: 0,
+      employerTotal: 0,
+      employerEps: 0,
+      employerEpf: 0,
+      employeeByMonth: CEILING_BY_MONTH.map(() => 0),
+    };
   }
-  const contributionWage = mode === 'ceiling' ? Math.min(wages, EPF.wageCeiling) : wages;
+  const base = CEILING_BY_MONTH.map((ceiling) =>
+    mode === 'ceiling' ? Math.min(wages, ceiling) : wages,
+  );
+  const pensionBase = CEILING_BY_MONTH.map((ceiling) => Math.min(wages, ceiling));
+  const contributionWage = average(base);
   const employee = contributionWage * EPF.employeeRate;
   const employerTotal = contributionWage * EPF.employerRate;
-  const employerEps = Math.min(wages, EPF.wageCeiling) * EPF.epsRate;
+  const employerEps = average(pensionBase) * EPF.epsRate;
   return {
     contributionWage,
     employee,
     employerTotal,
     employerEps,
     employerEpf: employerTotal - employerEps,
+    employeeByMonth: base.map((b) => b * EPF.employeeRate),
   };
 }
