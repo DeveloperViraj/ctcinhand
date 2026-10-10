@@ -1,5 +1,6 @@
 ---
 import DocLayout from '../layouts/DocLayout.astro';
+import SupportLink from '../components/SupportLink.astro';
 import { AUTHOR } from '../config/author';
 import { SITE } from '../config/site';
 import { authorPath } from '../lib/seo';
@@ -53,16 +54,27 @@ import { authorPath } from '../lib/seo';
     what we could not verify, is on the <a href="/how-it-works">How it works</a> page.
   </p>
 
-  {AUTHOR && (
-    <>
-      <h2>Who builds it</h2>
-      <p>
-        {SITE.name} is built and maintained by <a href={authorPath(AUTHOR)}>{AUTHOR.name}</a> with
-        the help of AI coding tools. Every figure is traced to the law or notification that sets it.
-        It is an independent project with no sponsors.
-      </p>
-    </>
-  )}
+  <h2>Who builds it</h2>
+  <p>
+    {AUTHOR ? (
+      <>
+        {SITE.name} is built and maintained by <a href={authorPath(AUTHOR)}>{AUTHOR.name}</a>
+      </>
+    ) : (
+      <>{SITE.name} is built and maintained by one independent developer</>
+    )}{' '}
+    with the help of AI coding tools. Every figure is traced to the law or notification that sets
+    it. It has no sponsors, no sign-up and no paywall.
+  </p>
+
+  <h2>Keep it free</h2>
+  <p>
+    If {SITE.name} saved you a spreadsheet or a conversation with payroll, you can chip in. It pays
+    for the domain and the time it takes to re-check every rate when the rules change.
+  </p>
+  <p class="not-prose">
+    <SupportLink />
+  </p>
 
   <h2>Private by design</h2>
   <p>

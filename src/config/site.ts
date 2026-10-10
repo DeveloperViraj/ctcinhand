@@ -17,5 +17,10 @@ export const SITE = {
   /** Date the statutory figures in src/lib/tax/rates.ts were last verified. */
   ratesVerifiedOn: '2026-10-09',
   contactEmail: 'hello@inhand.in',
+  /** Where readers can chip in to keep the site free. Linked from the footer, About and results. */
+  support: {
+    label: 'Buy me a coffee',
+    url: 'https://buymeacoffee.com/developerviraj',
+  },
   locale: 'en-IN',
 } as const;

@@ -9,6 +9,7 @@ import NumberField from './form/NumberField.astro';
 import ComponentField from './form/ComponentField.astro';
 import SelectField from './form/SelectField.astro';
 import Segmented from './form/Segmented.astro';
+import SupportLink from './SupportLink.astro';
 
 // Rendered at build time so the page carries real numbers before any JavaScript runs.
 const initialResult = calculate(DEFAULT_INPUT);
@@ -63,10 +64,18 @@ const PRESETS = [
             autocomplete="off"
             spellcheck="false"
             value="12,00,000"
-            aria-describedby="ctc-presets-label"
+            aria-describedby="ctc-note ctc-presets-label"
             data-money
           />
         </div>
+        <!-- Offer letters often fold one-time payments into the headline CTC; they never reach a payslip. -->
+        <p id="ctc-note" class="mt-2 flex items-start gap-1.5 text-xs text-ink-3">
+          <Icon name="lucide:info" class="mt-px size-3.5 shrink-0" aria-hidden="true" />
+          <span>
+            Take out one-time pay first, such as a joining bonus or relocation allowance. It is not
+            part of your monthly salary.
+          </span>
+        </p>
         <div class="mt-4">
           <input
             type="range"
@@ -438,6 +447,9 @@ const PRESETS = [
             <button type="button" id="export-xlsx" class="btn btn-secondary">
               <Icon name="lucide:file-spreadsheet" class="size-4" aria-hidden="true" /> Excel
             </button>
+            <p class="w-full pt-1 text-center text-xs text-ink-3">
+              Found this useful? <SupportLink variant="inline" />
+            </p>
           </div>
         </div>
       </aside>

@@ -1,0 +1,41 @@
+---
+/**
+ * "Buy me a coffee" (SITE.support). A plain link to the profile rather than Buy Me a Coffee's
+ * widget script, so nothing loads from their servers until someone chooses to click. It opens in a
+ * new tab, so a calculation in progress is not lost.
+ *
+ * `pill` is the saffron button for the footer and About page; `inline` is a quiet text link for
+ * the results panel.
+ */
+import { Icon } from 'astro-icon/components';
+import { SITE } from '../config/site';
+
+interface Props {
+  variant?: 'pill' | 'inline';
+  class?: string;
+}
+
+const { variant = 'pill', class: className } = Astro.props;
+---
+
+<a
+  href={SITE.support.url}
+  target="_blank"
+  rel="noopener"
+  class:list={[
+    variant === 'pill'
+      ? 'inline-flex items-center gap-2 rounded-pill border border-saffron/40 bg-saffron-soft px-3.5 py-1.5 text-sm font-semibold text-saffron-ink no-underline transition-colors hover:border-saffron hover:bg-saffron/20'
+      : 'inline-flex items-center gap-1.5 font-medium text-saffron-ink underline-offset-4 hover:underline',
+    className,
+  ]}
+>
+  <Icon
+    name="lucide:coffee"
+    class={variant === 'pill' ? 'size-4' : 'size-3.5'}
+    aria-hidden="true"
+  />
+  <span>
+    {SITE.support.label}
+    <span class="sr-only"> (opens in a new tab)</span>
+  </span>
+</a>
