@@ -420,6 +420,7 @@ const PRESETS = [
         aria-label="Result"
       >
         <div class="lg:sticky lg:top-20" data-summary>
+          <div class="art-band" aria-hidden="true"></div>
           <!--
             The result is NOT a live region: re-announcing the whole breakdown on every keystroke is
             unusable with a screen reader. A short summary is announced instead, from #live.
@@ -447,10 +448,13 @@ const PRESETS = [
   <section class="mt-16" aria-labelledby="breakdown-heading">
     <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
       <div>
-        <p class="eyebrow">Every rupee, accounted for</p>
-        <h2 id="breakdown-heading" class="mt-1 text-3xl font-semibold tracking-tight text-ink">
+        <p class="deva text-xl text-saffron-ink" lang="hi" aria-hidden="true">
+          पूरा हिसाब
+        </p>
+        <h2 id="breakdown-heading" class="display mt-1 text-4xl text-ink">
           Full breakdown
         </h2>
+        <p class="mt-1 text-sm text-ink-3">Every rupee, accounted for.</p>
       </div>
       <p class="text-sm text-ink-3">All figures a year, for the cheaper regime unless stated.</p>
     </div>

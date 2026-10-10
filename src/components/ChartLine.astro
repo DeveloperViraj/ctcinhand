@@ -1,0 +1,161 @@
+---
+/**
+ * A small line chart drawn at build time: one or more series over a shared x axis, an optional
+ * shaded band with a note, and labelled points. No library and no script; the numbers it shows
+ * are always repeated in a table or cards on the same page.
+ */
+import { formatCompactRupees } from '../lib/format';
+
+export interface Series {
+  label: string;
+  /** CSS colour, e.g. 'var(--color-accent)'. */
+  color: string;
+  points: { x: number; y: number }[];
+  /** Fill the area under this series. */
+  area?: boolean;
+  dashed?: boolean;
+}
+
+interface Props {
+  series: Series[];
+  /** Accessible summary of what the chart shows. */
+  label: string;
+  caption?: string;
+  xTicks: number[];
+  xFormat?: (x: number) => string;
+  yFormat?: (y: number) => string;
+  band?: { from: number; to: number; note: string };
+}
+
+const {
+  series,
+  label,
+  caption,
+  xTicks,
+  xFormat = (x: number) => `${x} LPA`,
+  yFormat = (y: number) => formatCompactRupees(y),
+  band,
+} = Astro.props;
+
+const W = 720;
+const H = 320;
+const pad = { left: 64, right: 30, top: 16, bottom: 36 };
+const xs = series.flatMap((s) => s.points.map((p) => p.x));
+const ys = series.flatMap((s) => s.points.map((p) => p.y));
+const xMin = Math.min(...xs);
+const xMax = Math.max(...xs);
+const yMax = Math.max(...ys) * 1.08;
+const yMin = 0;
+
+/** About five round y gridlines. */
+const step = (() => {
+  const raw = (yMax - yMin) / 5;
+  const mag = 10 ** Math.floor(Math.log10(raw));
+  return [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= raw) ?? raw;
+})();
+const yTicks = Array.from({ length: Math.floor(yMax / step) + 1 }, (_, i) => i * step);
+
+const sx = (x: number) => pad.left + ((x - xMin) / (xMax - xMin)) * (W - pad.left - pad.right);
+const sy = (y: number) =>
+  H - pad.bottom - ((y - yMin) / (yMax - yMin)) * (H - pad.top - pad.bottom);
+const line = (s: Series) =>
+  s.points.map((p, i) => `${i ? 'L' : 'M'}${sx(p.x).toFixed(1)} ${sy(p.y).toFixed(1)}`).join('');
+const area = (s: Series) =>
+  `${line(s)}L${sx(s.points.at(-1)!.x).toFixed(1)} ${sy(0)}L${sx(s.points[0].x).toFixed(1)} ${sy(0)}Z`;
+const gradientId = `area-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<figure class="not-prose my-8">
+  {series.length > 1 && (
+    <ul class="mb-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-2" aria-hidden="true">
+      {series.map((s) => (
+        <li class="flex items-center gap-2">
+          <span class="h-0.5 w-5 rounded-full" style={`background:${s.color}`} />
+          {s.label}
+        </li>
+      ))}
+    </ul>
+  )}
+  <svg viewBox={`0 0 ${W} ${H}`} class="h-auto w-full" role="img" aria-label={label}>
+    <defs>
+      <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0" style="stop-color: var(--color-accent); stop-opacity: 0.22"></stop>
+        <stop offset="1" style="stop-color: var(--color-accent); stop-opacity: 0"></stop>
+      </linearGradient>
+    </defs>
+    {yTicks.map((t) => (
+      <g>
+        <line
+          x1={pad.left}
+          x2={W - pad.right}
+          y1={sy(t)}
+          y2={sy(t)}
+          class="stroke-line"
+          stroke-dasharray={t === 0 ? undefined : '3 4'}
+        />
+        <text
+          x={pad.left - 10}
+          y={sy(t) + 4}
+          text-anchor="end"
+          class="fill-ink-3 text-[11px] tabular-nums"
+        >
+          {yFormat(t)}
+        </text>
+      </g>
+    ))}
+    {band && (
+      <g>
+        <rect
+          x={sx(band.from)}
+          y={pad.top}
+          width={Math.max(4, sx(band.to) - sx(band.from))}
+          height={H - pad.top - pad.bottom}
+          class="fill-saffron-soft"
+        />
+        <text
+          x={sx(band.to) + 8}
+          y={pad.top + 14}
+          class="fill-saffron-ink text-[12px] font-semibold"
+        >
+          {band.note}
+        </text>
+      </g>
+    )}
+    {xTicks.map((t) => (
+      <text x={sx(t)} y={H - 12} text-anchor="middle" class="fill-ink-3 text-[11px]">
+        {xFormat(t)}
+      </text>
+    ))}
+    {series
+      .filter((s) => s.area)
+      .map((s) => (
+        <path d={area(s)} fill={`url(#${gradientId})`} />
+      ))}
+    {series.map((s) => (
+      <path
+        d={line(s)}
+        fill="none"
+        stroke={s.color}
+        stroke-width="2.5"
+        stroke-linejoin="round"
+        stroke-linecap="round"
+        stroke-dasharray={s.dashed ? '6 5' : undefined}
+      />
+    ))}
+    {series.map((s) =>
+      s.points.map((p) => (
+        <circle
+          cx={sx(p.x)}
+          cy={sy(p.y)}
+          r="3.2"
+          fill="var(--color-surface)"
+          stroke={s.color}
+          stroke-width="2"
+        >
+          <title>{`${s.label}: ${xFormat(p.x)}, ${yFormat(p.y)}`}</title>
+        </circle>
+      )),
+    )}
+  </svg>
+  {caption && <figcaption class="mt-3 text-sm text-ink-3">{caption}</figcaption>}
+</figure>

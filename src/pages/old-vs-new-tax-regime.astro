@@ -4,10 +4,12 @@
  * break-even figure from break-even.ts, so the page moves when the law (and the engine) does.
  */
 import DocLayout from '../layouts/DocLayout.astro';
+import ChartLine from '../components/ChartLine.astro';
 import { SITE } from '../config/site';
 import { bracketLabel, bracketPath, bracketInput } from '../lib/brackets';
 import { formatRupees } from '../lib/format';
 import { breakEven, rentToBreakEven } from '../lib/tax/break-even';
+import { calculate } from '../lib/tax/calculate';
 import {
   NEW_REGIME_SLABS,
   OLD_REGIME_SLABS,
@@ -35,6 +37,26 @@ const rows = SALARIES.map((lpa) => {
 });
 const plateau = rows.find((r) => r.lpa === 40)!.even.extraNeeded!;
 const taxFreeUpTo = REBATE.new.incomeLimit + STANDARD_DEDUCTION.new;
+
+// Tax a year under each regime across salaries: the old regime as it comes (PF under section 123
+// only), and with every capped deduction filled, but no HRA.
+const CHART = [6, 8, 10, 12, 14, 16, 18, 20, 24, 30, 40, 50];
+const FULL = {
+  sec80C: 1_50_000,
+  nps80CCD1B: 50_000,
+  healthInsurance: 25_000,
+  selfOccupiedInterest: 2_00_000,
+};
+const chart = CHART.map((lpa) => {
+  const plain = calculate(bracketInput(lpa));
+  const full = calculate(bracketInput(lpa, { deductions: FULL }));
+  return {
+    lpa,
+    newTax: plain.regimes.new.tax.totalTax,
+    oldTax: plain.regimes.old.tax.totalTax,
+    oldFull: full.regimes.old.tax.totalTax,
+  };
+});
 ---
 
 <DocLayout
@@ -44,6 +66,7 @@ const taxFreeUpTo = REBATE.new.incomeLimit + STANDARD_DEDUCTION.new;
   published="2026-10-04"
   ogImage="old-vs-new-tax-regime"
   about={['Old tax regime', 'New tax regime', 'Income tax in India']}
+  deva="कर"
 >
   <p>
     The new regime is the default for {SITE.taxYearLabel}, and for most salaried people it is also
@@ -56,6 +79,30 @@ const taxFreeUpTo = REBATE.new.incomeLimit + STANDARD_DEDUCTION.new;
     The useful question is not which regime is better in general, but how much you would have to
     claim for the old one to win at your salary. That number is below.
   </p>
+
+  <ChartLine
+    label="From 6 to 50 LPA the new regime never costs more than the old one, even when the old regime claims every capped deduction. Only a large HRA exemption on top can change that."
+    caption="Income tax a year, with the calculator's standard structure. The dashed line fills section 123, the extra ₹50,000 for NPS, ₹25,000 of health insurance and ₹2 lakh of home loan interest, with no HRA. Even then the new regime costs less at every salary shown; the old regime needs an HRA exemption as well, as the table below works out."
+    series={[
+      {
+        label: 'New regime',
+        color: 'var(--color-accent)',
+        points: chart.map((c) => ({ x: c.lpa, y: c.newTax })),
+      },
+      {
+        label: 'Old regime, PF only',
+        color: 'var(--color-chart-tax)',
+        points: chart.map((c) => ({ x: c.lpa, y: c.oldTax })),
+      },
+      {
+        label: 'Old regime, every capped deduction',
+        color: 'var(--color-saffron-strong)',
+        dashed: true,
+        points: chart.map((c) => ({ x: c.lpa, y: c.oldFull })),
+      },
+    ]}
+    xTicks={[6, 10, 14, 20, 30, 40, 50]}
+  />
 
   <h2>The two slab tables</h2>
   <div class="grid gap-8 sm:grid-cols-2">

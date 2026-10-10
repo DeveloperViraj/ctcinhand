@@ -10,6 +10,10 @@ const SITE_URL = 'https://inhand.in';
 // Unicode ranges copied from @fontsource-variable/geist/unicode.json
 const GEIST = '@fontsource-variable/geist/files';
 const GEIST_MONO = '@fontsource-variable/geist-mono/files';
+const ECZAR = '@fontsource-variable/eczar/files';
+// Only the Devanagari letters and numerals the site's decorative words use, subset from Eczar (see
+// src/assets/fonts). The range leaves out U+20B9 so the rupee sign never pulls this file in.
+const DEVANAGARI = 'U+0900-097F,U+200C-200D,U+25CC';
 const LATIN =
   'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD';
 const LATIN_EXT =
@@ -54,6 +58,32 @@ export default defineConfig({
       cssVariable: '--font-geist',
       fallbacks: ['ui-sans-serif', 'system-ui', 'sans-serif'],
       options: { variants: variants(GEIST, 'geist') },
+    },
+    {
+      // Display face for headlines: Eczar, by Rosetta, designed for Devanagari and Latin together.
+      provider: fontProviders.local(),
+      name: 'Eczar',
+      cssVariable: '--font-eczar',
+      fallbacks: ['Georgia', 'serif'],
+      options: { variants: variants(ECZAR, 'eczar') },
+    },
+    {
+      // The Devanagari accents, as their own family: when this file arrives, only the few
+      // Devanagari words re-lay out, not every Eczar headline on the page.
+      provider: fontProviders.local(),
+      name: 'Eczar Devanagari',
+      cssVariable: '--font-deva',
+      fallbacks: ['serif'],
+      options: {
+        variants: [
+          {
+            weight: '600',
+            style: 'normal',
+            src: ['./src/assets/fonts/eczar-devanagari-art.woff2'],
+            unicodeRange: [DEVANAGARI],
+          },
+        ],
+      },
     },
     {
       // Only for small technical labels; never preloaded.

@@ -30,6 +30,11 @@ interface Props {
   mainEntity?: string;
   /** Leave the description out of the page header, for pages that open with the same words. */
   hideLede?: boolean;
+  /**
+   * A Devanagari word set above the title as ornament, e.g. वेतन (salary) or कर (tax). It must use
+   * only letters in the Eczar art subset (src/assets/fonts), or it falls back to a system font.
+   */
+  deva?: string;
 }
 
 const {
@@ -47,6 +52,7 @@ const {
   pageType,
   mainEntity,
   hideLede = false,
+  deva,
 } = Astro.props;
 
 const path = pagePath(Astro.url.pathname);
@@ -83,14 +89,28 @@ const articleNode =
   dateModified={updated}
 >
   <article>
-    <header class="relative isolate border-b border-line">
+    <header class="relative isolate overflow-x-clip">
       <div class="hero-glow opacity-80" aria-hidden="true"></div>
+      <div
+        class="art-rosette art-spin absolute -top-12 -right-40 -z-10 size-[300px] opacity-20 md:-top-32 md:-right-40 md:size-[620px] md:opacity-30"
+        aria-hidden="true"
+      ></div>
       <div class="mx-auto max-w-6xl px-4 pt-8 pb-10 sm:px-6 sm:pt-14 sm:pb-14">
         <Breadcrumbs crumbs={breadcrumbs} />
-        <h1 class="display mt-5 max-w-4xl text-4xl text-ink sm:text-5xl">{title}</h1>
+        {deva && (
+          <p class="deva mt-6 text-2xl text-saffron-ink" lang="hi" aria-hidden="true">
+            {deva}
+          </p>
+        )}
+        <h1
+          class:list={['display max-w-4xl text-4xl text-ink sm:text-6xl', deva ? 'mt-1' : 'mt-5']}
+        >
+          {title}
+        </h1>
         {!hideLede && <p class="mt-5 max-w-2xl text-lg text-ink-2">{description}</p>}
         {updated && <Byline updated={updated} credit={!legal} />}
       </div>
+      <div class="art-band" aria-hidden="true"></div>
     </header>
     <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_13rem] lg:gap-16">
       <div class="prose-doc pt-10 sm:pt-12" data-doc>

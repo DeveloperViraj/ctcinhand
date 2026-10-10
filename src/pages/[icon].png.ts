@@ -6,9 +6,8 @@
  * zone, so the same image also works as a maskable Android icon.
  */
 import type { APIRoute } from 'astro';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
 import sharp from 'sharp';
+import { logoSvg } from '../lib/brand';
 
 const ICONS = {
   'apple-touch-icon': { size: 180, fullBleed: true },
@@ -25,12 +24,9 @@ export function getStaticPaths() {
 
 export const GET: APIRoute = async ({ params }) => {
   const { size, fullBleed } = ICONS[params.icon as IconName];
-  let svg = await readFile(join(process.cwd(), 'public', 'favicon.svg'), 'utf-8');
-  if (fullBleed)
-    svg = svg.replace(
-      '<rect class="bg" width="32" height="32" rx="7"/>',
-      '<rect class="bg" width="32" height="32"/>',
-    );
+  // Home-screen icons get a square tile (the platform cuts its own shape) and keep the rupee sign;
+  // the small favicon drops it.
+  const svg = logoSvg({ rupee: size >= 120, rx: fullBleed ? 0 : 16 });
   const png = await sharp(Buffer.from(svg), { density: 1536 }).resize(size, size).png().toBuffer();
   return new Response(new Uint8Array(png), { headers: { 'Content-Type': 'image/png' } });
 };

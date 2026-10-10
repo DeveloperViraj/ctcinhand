@@ -14,6 +14,7 @@
  * change is what once made the header caption overlap the headline figure.
  */
 
+import { BRAND, COIN, HAND_SEGMENTS, HAND_START } from '../brand';
 import { jsPDF } from 'jspdf';
 import { SITE } from '../../config/site';
 import { buildExportDocument, type ExportRow, type ExportSectionId } from '../export-data';
@@ -250,14 +251,14 @@ class Canvas {
   }
 }
 
-/** The site logo: a rounded peacock square holding two bars, one outlined and one filled. */
+/** The site's mark (src/lib/brand.ts): an open palm holding a coin, on a green tile. */
 function drawMark(c: Canvas, x: number, y: number, size: number): void {
-  const k = size / 32;
-  c.box(x, y, size, size, COLOR.accent, 7 * k);
-  c.pdf.setDrawColor(...COLOR.white);
-  c.pdf.setLineWidth(1.8 * k);
-  c.pdf.roundedRect(x + 8.5 * k, y + 7.5 * k, 6 * k, 17 * k, 1.5 * k, 1.5 * k, 'S');
-  c.box(x + 17.5 * k, y + 12 * k, 6 * k, 12.5 * k, COLOR.white, 1.5 * k);
+  const k = size / 64;
+  c.box(x, y, size, size, rgb(BRAND.green), 16 * k);
+  c.pdf.setFillColor(...COLOR.white);
+  c.pdf.lines(HAND_SEGMENTS, x + HAND_START[0] * k, y + HAND_START[1] * k, [k, k], 'F', true);
+  c.pdf.setFillColor(...rgb(BRAND.saffron));
+  c.pdf.circle(x + COIN.cx * k, y + COIN.cy * k, COIN.r * k, 'F');
 }
 
 /* Page furniture ----------------------------------------------------------------------------- */

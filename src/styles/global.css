@@ -3,10 +3,11 @@
 /*
  * InHand design system.
  *
- * Accent: "rupee green", an emerald that reads as money without borrowing any one brand's hue. It
- * marks interaction and the money you keep. Neutrals carry a faint green cast so the page feels of
- * a piece with it. Depth comes from three places only: the hero glow, the floating header and the
- * calculator panel; everything else sits on hairline borders.
+ * The palette is a quiet nod to the tricolour, mapped to jobs rather than painted on: navy ink for
+ * text (the chakra), India green for action and for the money you keep, saffron for highlights and
+ * ornament, on near-white paper. The ornament itself comes from Indian money and craft: guilloche
+ * linework like the security printing on rupee notes and cheques, and kolam dot patterns. Eczar,
+ * a typeface designed for Devanagari and Latin together, sets the headlines.
  *
  * Tailwind's default palette and type scale are cleared so stray `bg-blue-500` or `text-9xl`
  * classes fail to compile instead of drifting the design.
@@ -21,48 +22,55 @@
   --color-transparent: transparent;
   --color-current: currentColor;
 
-  /* Surfaces */
-  --color-canvas: oklch(0.993 0.002 165);
-  --color-canvas-2: oklch(0.975 0.005 165);
+  /* Surfaces: paper, very slightly warm */
+  --color-canvas: oklch(0.99 0.004 85);
+  --color-canvas-2: oklch(0.972 0.007 85);
   --color-surface: oklch(1 0 0);
-  --color-surface-2: oklch(0.977 0.004 165);
-  --color-sunken: oklch(0.962 0.006 165);
+  --color-surface-2: oklch(0.979 0.005 85);
+  --color-sunken: oklch(0.964 0.007 85);
 
-  /* Text */
-  --color-ink: oklch(0.2 0.012 170);
-  --color-ink-2: oklch(0.42 0.013 170);
-  --color-ink-3: oklch(0.53 0.012 170);
+  /* Text: chakra navy */
+  --color-ink: oklch(0.24 0.045 262);
+  --color-ink-2: oklch(0.43 0.035 262);
+  --color-ink-3: oklch(0.53 0.028 262);
 
   /* Rules */
-  --color-line: oklch(0.925 0.006 165);
-  --color-line-strong: oklch(0.86 0.009 165);
+  --color-line: oklch(0.918 0.01 262);
+  --color-line-strong: oklch(0.85 0.016 262);
 
-  /* Accent (rupee green) */
-  /* Deep enough for white text at 4.5:1 on buttons and badges. */
-  --color-accent: oklch(0.53 0.135 158);
-  --color-accent-strong: oklch(0.48 0.125 158);
-  --color-accent-ink: oklch(0.46 0.115 160);
-  --color-accent-soft: oklch(0.965 0.035 160);
-  --color-accent-soft-2: oklch(0.93 0.055 160);
+  /* Accent: India green. Deep enough for white text at 4.5:1. */
+  --color-accent: oklch(0.5 0.12 155);
+  --color-accent-strong: oklch(0.45 0.11 155);
+  --color-accent-ink: oklch(0.44 0.105 155);
+  --color-accent-soft: oklch(0.962 0.03 155);
+  --color-accent-soft-2: oklch(0.925 0.05 155);
   --color-on-accent: oklch(1 0 0);
-  /* The second stop of the accent gradient, used only for glows and the one gradient word. */
-  --color-accent-2: oklch(0.62 0.12 195);
+  /* A teal second stop for smooth gradients (slider fill, logo). */
+  --color-accent-2: oklch(0.55 0.1 185);
+
+  /* Saffron: highlights and ornament. Never small text on white; use saffron-ink for that. */
+  --color-saffron: oklch(0.76 0.155 62);
+  --color-saffron-strong: oklch(0.7 0.16 55);
+  --color-saffron-soft: oklch(0.965 0.035 75);
+  --color-saffron-ink: oklch(0.5 0.12 55);
+  /* Navy for linework in the ornament. */
+  --color-chakra: oklch(0.36 0.13 264);
 
   /* Money that went up or down */
-  --color-positive: oklch(0.52 0.13 155);
-  --color-positive-soft: oklch(0.96 0.04 155);
+  --color-positive: oklch(0.48 0.12 152);
+  --color-positive-soft: oklch(0.96 0.035 152);
   --color-negative: oklch(0.55 0.19 27);
   --color-negative-soft: oklch(0.965 0.025 22);
 
   /*
-   * Chart: take-home wears the accent, savings you reach later (PF, gratuity) a light tint of it,
-   * and tax a neutral slate, so the two kinds of "not in your hand" read differently. Every
+   * Chart: take-home wears the green, savings you reach later (PF, gratuity) a light tint of it,
+   * and income tax the navy, so the two kinds of "not in your hand" read differently. Every
    * segment is labelled with its amount as well.
    */
-  --color-chart-take: oklch(0.53 0.135 158);
-  --color-chart-save: oklch(0.83 0.08 165);
-  --color-chart-tax: oklch(0.42 0.02 200);
-  --color-chart-rest: oklch(0.83 0.08 165);
+  --color-chart-take: oklch(0.5 0.12 155);
+  --color-chart-save: oklch(0.84 0.07 155);
+  --color-chart-tax: oklch(0.36 0.07 262);
+  --color-chart-rest: oklch(0.84 0.07 155);
 
   /* Status, for warnings and errors only */
   --color-warn-soft: oklch(0.97 0.04 88);
@@ -121,14 +129,14 @@
   --radius-pill: 999px;
 
   --shadow-*: initial;
-  --shadow-xs: 0 1px 2px oklch(0.2 0.02 170 / 0.06);
-  --shadow-sm: 0 1px 2px oklch(0.2 0.02 170 / 0.05), 0 2px 8px -2px oklch(0.2 0.02 170 / 0.06);
+  --shadow-xs: 0 1px 2px oklch(0.24 0.05 262 / 0.06);
+  --shadow-sm: 0 1px 2px oklch(0.24 0.05 262 / 0.05), 0 2px 8px -2px oklch(0.24 0.05 262 / 0.06);
   --shadow-md:
-    0 2px 4px -1px oklch(0.2 0.02 170 / 0.05), 0 12px 24px -8px oklch(0.2 0.02 170 / 0.1);
+    0 2px 4px -1px oklch(0.24 0.05 262 / 0.05), 0 12px 24px -8px oklch(0.24 0.05 262 / 0.1);
   /* The calculator panel: a long, soft shadow, like a device resting on the page. */
   --shadow-float:
-    0 1px 1px oklch(0.2 0.02 170 / 0.04), 0 8px 16px -6px oklch(0.2 0.02 170 / 0.06),
-    0 32px 64px -24px oklch(0.25 0.04 165 / 0.18);
+    0 1px 1px oklch(0.24 0.05 262 / 0.04), 0 8px 16px -6px oklch(0.24 0.05 262 / 0.06),
+    0 32px 64px -24px oklch(0.28 0.06 262 / 0.18);
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -146,41 +154,48 @@
 
 @theme inline {
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-eczar), Georgia, serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
 [data-theme='dark'] {
   color-scheme: dark;
-  --color-canvas: oklch(0.155 0.008 170);
-  --color-canvas-2: oklch(0.18 0.009 170);
-  --color-surface: oklch(0.195 0.009 170);
-  --color-surface-2: oklch(0.225 0.01 170);
-  --color-sunken: oklch(0.17 0.008 170);
+  --color-canvas: oklch(0.165 0.022 262);
+  --color-canvas-2: oklch(0.188 0.024 262);
+  --color-surface: oklch(0.205 0.026 262);
+  --color-surface-2: oklch(0.235 0.028 262);
+  --color-sunken: oklch(0.18 0.023 262);
 
-  --color-ink: oklch(0.96 0.005 165);
-  --color-ink-2: oklch(0.79 0.01 165);
-  --color-ink-3: oklch(0.67 0.01 165);
+  --color-ink: oklch(0.96 0.008 262);
+  --color-ink-2: oklch(0.8 0.016 262);
+  --color-ink-3: oklch(0.68 0.018 262);
 
-  --color-line: oklch(0.28 0.01 170);
-  --color-line-strong: oklch(0.36 0.012 170);
+  --color-line: oklch(0.3 0.026 262);
+  --color-line-strong: oklch(0.38 0.03 262);
 
-  --color-accent: oklch(0.76 0.14 160);
-  --color-accent-strong: oklch(0.8 0.14 160);
-  --color-accent-ink: oklch(0.82 0.12 160);
-  --color-accent-soft: oklch(0.27 0.045 165);
-  --color-accent-soft-2: oklch(0.32 0.06 165);
-  --color-on-accent: oklch(0.17 0.02 170);
-  --color-accent-2: oklch(0.74 0.11 195);
+  --color-accent: oklch(0.75 0.14 155);
+  --color-accent-strong: oklch(0.8 0.14 155);
+  --color-accent-ink: oklch(0.8 0.12 155);
+  --color-accent-soft: oklch(0.27 0.045 160);
+  --color-accent-soft-2: oklch(0.33 0.06 160);
+  --color-on-accent: oklch(0.17 0.03 262);
+  --color-accent-2: oklch(0.74 0.1 185);
 
-  --color-positive: oklch(0.8 0.14 158);
-  --color-positive-soft: oklch(0.28 0.05 158);
+  --color-saffron: oklch(0.8 0.15 65);
+  --color-saffron-strong: oklch(0.84 0.14 70);
+  --color-saffron-soft: oklch(0.3 0.06 60);
+  --color-saffron-ink: oklch(0.85 0.12 72);
+  --color-chakra: oklch(0.72 0.11 264);
+
+  --color-positive: oklch(0.8 0.14 155);
+  --color-positive-soft: oklch(0.28 0.05 155);
   --color-negative: oklch(0.74 0.15 30);
   --color-negative-soft: oklch(0.29 0.055 28);
 
-  --color-chart-take: oklch(0.76 0.14 160);
-  --color-chart-save: oklch(0.45 0.07 165);
-  --color-chart-tax: oklch(0.88 0.01 200);
-  --color-chart-rest: oklch(0.45 0.07 165);
+  --color-chart-take: oklch(0.75 0.14 155);
+  --color-chart-save: oklch(0.45 0.07 158);
+  --color-chart-tax: oklch(0.86 0.03 262);
+  --color-chart-rest: oklch(0.45 0.07 158);
 
   --color-warn-soft: oklch(0.27 0.04 75);
   --color-warn-line: oklch(0.45 0.08 75);
@@ -458,7 +473,7 @@
     background: var(--color-surface);
     box-shadow:
       0 0 0 1px var(--color-line-strong),
-      0 2px 6px oklch(0.2 0.02 170 / 0.25);
+      0 2px 6px oklch(0.24 0.05 262 / 0.25);
     transition: transform var(--duration-2) var(--ease-spring);
     -webkit-appearance: none;
     appearance: none;
@@ -472,7 +487,7 @@
     background: var(--color-surface);
     box-shadow:
       0 0 0 1px var(--color-line-strong),
-      0 2px 6px oklch(0.2 0.02 170 / 0.25);
+      0 2px 6px oklch(0.24 0.05 262 / 0.25);
   }
   .range:hover::-webkit-slider-thumb,
   .range:active::-webkit-slider-thumb {
@@ -597,7 +612,7 @@
     color: var(--color-on-accent);
     box-shadow:
       inset 0 1px 0 oklch(1 0 0 / 0.18),
-      0 1px 2px oklch(0.3 0.08 160 / 0.3),
+      0 1px 2px oklch(0.3 0.08 155 / 0.3),
       0 4px 12px -4px color-mix(in oklch, var(--color-accent) 60%, transparent);
   }
   .btn-primary:hover {
@@ -692,7 +707,7 @@
   /* The rupee sign beside a large figure: smaller, lighter. */
   .cur {
     margin-right: 0.06em;
-    color: var(--color-ink-3);
+    color: var(--color-saffron-ink);
     font-size: 0.6em;
     font-weight: 500;
     vertical-align: 0.12em;
@@ -766,9 +781,10 @@
 
   /* The headline section pattern: big type, tight tracking. */
   .display {
-    font-weight: 600;
-    letter-spacing: var(--tracking-tighter);
-    line-height: 1.02;
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.04;
   }
   .gradient-text {
     background: linear-gradient(100deg, var(--color-accent) 10%, var(--color-accent-2) 90%);
@@ -811,7 +827,6 @@
         color-mix(in oklch, var(--color-accent-2) 18%, transparent),
         transparent 70%
       );
-    filter: blur(20px);
   }
   .hero-glow::after {
     content: '';
@@ -868,6 +883,91 @@
     }
   }
 
+  /*
+   * Ornament. Each piece is a black SVG used as a mask, so its colour comes from the page and
+   * follows the theme. All of it is decorative and hidden from assistive technology.
+   */
+  .art-rosette {
+    -webkit-mask: url('/art/rosette.svg') center / contain no-repeat;
+    mask: url('/art/rosette.svg') center / contain no-repeat;
+    background: conic-gradient(
+      from 210deg,
+      var(--color-saffron),
+      var(--color-accent),
+      var(--color-chakra),
+      var(--color-saffron)
+    );
+    pointer-events: none;
+  }
+  .art-spin {
+    animation: spin 240s linear infinite;
+  }
+  /*
+   * Still on phones and for anyone who prefers less motion: a large turning element costs paint
+   * time on small devices, and the ornament reads just as well at rest.
+   */
+  @media (prefers-reduced-motion: reduce), (width < 48rem) {
+    .art-spin {
+      animation: none;
+    }
+  }
+
+  .art-band {
+    height: 14px;
+    -webkit-mask: url('/art/band.svg') left center / auto 100% repeat-x;
+    mask: url('/art/band.svg') left center / auto 100% repeat-x;
+    background: linear-gradient(
+      90deg,
+      var(--color-saffron),
+      var(--color-accent) 50%,
+      var(--color-chakra)
+    );
+    opacity: 0.75;
+  }
+  .art-kolam {
+    -webkit-mask: url('/art/kolam.svg') 0 0 / 32px 32px repeat;
+    mask: url('/art/kolam.svg') 0 0 / 32px 32px repeat;
+    background: var(--color-chakra);
+    pointer-events: none;
+  }
+  /* A strip of kolam that fades out at both ends, between sections. */
+  .divider-kolam {
+    height: 32px;
+    -webkit-mask:
+      url('/art/kolam.svg') 0 0 / 32px 32px repeat-x,
+      linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent);
+    -webkit-mask-composite: source-in;
+    mask:
+      url('/art/kolam.svg') 0 0 / 32px 32px repeat-x,
+      linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent);
+    mask-composite: intersect;
+    background: var(--color-chakra);
+    opacity: 0.22;
+  }
+  /* The saffron brush stroke under a key phrase. */
+  .brush {
+    position: relative;
+    white-space: nowrap;
+  }
+  .brush::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    left: -0.06em;
+    right: -0.08em;
+    bottom: 0.16em;
+    height: 0.26em;
+    -webkit-mask: url('/art/brush.svg') center / 100% 100% no-repeat;
+    mask: url('/art/brush.svg') center / 100% 100% no-repeat;
+    background: var(--color-saffron);
+    opacity: 0.85;
+  }
+  /* Small Devanagari accents: decorative, set in Eczar. */
+  .deva {
+    font-family: var(--font-deva), var(--font-display);
+    font-weight: 600;
+  }
+
   /* Glass: the floating header. */
   .glass {
     background: color-mix(in oklch, var(--color-surface) 72%, transparent);
@@ -891,10 +991,21 @@
     margin-top: 2.5em;
     scroll-margin-top: 6rem;
     color: var(--color-ink);
-    font-size: var(--text-2xl);
-    line-height: var(--text-2xl--line-height);
-    font-weight: 600;
-    letter-spacing: var(--tracking-tight);
+    font-family: var(--font-display);
+    font-size: var(--text-3xl);
+    line-height: var(--text-3xl--line-height);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+  /* A short saffron rule above each section heading, like the mark on a ledger page. */
+  .prose-doc h2::before {
+    content: '';
+    display: block;
+    width: 2rem;
+    height: 3px;
+    margin-bottom: 0.75rem;
+    border-radius: 2px;
+    background: var(--color-saffron);
   }
   .prose-doc h3 {
     margin-top: 1.75em;
@@ -995,6 +1106,20 @@
   }
   .prose-doc figure {
     margin-block: 2em;
+  }
+  /* Charts and card grids inside an article keep their own styling. */
+  .prose-doc .not-prose a {
+    color: inherit;
+    font-weight: inherit;
+    text-decoration: none;
+  }
+  .prose-doc .not-prose ul,
+  .prose-doc .not-prose ol {
+    padding-left: 0;
+    list-style: none;
+  }
+  .prose-doc .not-prose li + li {
+    margin-top: 0;
   }
 }
 
@@ -1098,6 +1223,17 @@
   animation: var(--animate-rise);
   animation-timeline: view();
   animation-range: entry 0% cover 22%;
+}
+
+/*
+ * The hero's rise-in is a desktop flourish. On a phone it keeps the page blank while slow hardware
+ * catches up (it doubled the measured speed index), so content simply appears. Unlayered, so it
+ * overrides the animate-rise utility.
+ */
+@media (width < 48rem) {
+  .animate-rise {
+    animation: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

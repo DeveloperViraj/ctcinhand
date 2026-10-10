@@ -99,12 +99,19 @@ const losses = listJoin(
   dateModified={UPDATED}
 >
   <article>
-    <header class="relative isolate">
+    <header class="relative isolate overflow-x-clip">
       <div class="hero-glow" aria-hidden="true"></div>
+      <div
+        class="art-rosette art-spin absolute -top-12 -right-40 -z-10 size-[300px] opacity-20 md:-top-32 md:-right-40 md:size-[620px] md:opacity-30"
+        aria-hidden="true"
+      ></div>
       <div class="mx-auto max-w-6xl px-4 pt-8 pb-10 sm:px-6 sm:pt-14">
         <Breadcrumbs crumbs={crumbs} />
-        <h1 class="display mt-5 text-4xl text-ink sm:text-6xl">
-          {label} <span class="gradient-text">in-hand salary</span>
+        <p class="deva mt-6 text-2xl text-saffron-ink" lang="hi" aria-hidden="true">
+          वेतन
+        </p>
+        <h1 class="display mt-1 text-4xl text-ink sm:text-6xl">
+          {label} <span class="brush">in-hand salary</span>
         </h1>
         <p class="mt-5 max-w-2xl text-lg text-ink-2">
           On a {ctcWords} CTC you take home about{' '}
@@ -122,6 +129,7 @@ const losses = listJoin(
           .
         </p>
       </div>
+      <div class="art-band" aria-hidden="true"></div>
     </header>
 
     <div class="mx-auto max-w-6xl px-4 sm:px-6">

@@ -222,7 +222,7 @@ export function renderSummary(result: CalculationResult): string {
       </p>
     </div>
     <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
-      <p class="relative text-figure font-semibold tabular-nums text-ink" data-headline data-morph-keep aria-labelledby="headline-label"><span class="cur">&#8377;</span><span data-headline-num>${formatNumber(
+      <p class="relative font-display text-figure font-bold tabular-nums text-ink" data-headline data-morph-keep aria-labelledby="headline-label"><span class="cur">&#8377;</span><span data-headline-num>${formatNumber(
         monthly,
       )}</span></p>
       <span class="delta rounded-pill px-2 text-sm leading-6 font-semibold tabular-nums" data-delta data-morph-keep data-state="hidden" aria-hidden="true"></span>

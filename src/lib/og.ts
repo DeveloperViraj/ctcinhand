@@ -8,6 +8,8 @@
  * The card reuses the IBM Plex subsets cut for the PDF report (same typeface as the site).
  */
 
+import { rosetteSvg } from './art';
+import { BRAND, logoSvg } from './brand';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import satori from 'satori';
@@ -31,12 +33,12 @@ export const OG_HEIGHT = 630;
 export const ogImagePath = (slug: string) => `/og/${slug}.png`;
 
 const COLORS = {
-  canvas: '#f4f8f6',
-  ink: '#141c19',
-  ink2: '#45524e',
-  ink3: '#65716d',
-  accent: '#12a06e',
-  tax: '#4f5d59',
+  canvas: '#fcfbf8',
+  ink: '#1c2340',
+  ink2: '#454c66',
+  ink3: '#626a82',
+  accent: '#0f8a5f',
+  tax: '#2c3566',
   rest: '#bfe6d3',
   onAccent: '#ffffff',
 };
@@ -45,20 +47,33 @@ const COLORS = {
 // point into the build output rather than at src/.
 const fontPath = (name: string) => join(process.cwd(), 'src', 'assets', 'pdf-fonts', name);
 
-let fonts: Promise<{ name: string; data: Buffer; weight: 400 | 500; style: 'normal' }[]> | null =
-  null;
+const ogFontPath = (name: string) => join(process.cwd(), 'src', 'assets', 'og-fonts', name);
+
+type Font = { name: string; data: Buffer; weight: 400 | 500 | 700; style: 'normal' };
+let fonts: Promise<Font[]> | null = null;
 
 function loadFonts() {
   fonts ??= Promise.all([
     readFile(fontPath('report-sans-text.ttf')),
     readFile(fontPath('report-sans-medium.ttf')),
-  ]).then(([text, medium]) => [
+    readFile(ogFontPath('eczar-700-latin.ttf')),
+    readFile(ogFontPath('eczar-700-latin-ext.ttf')),
+  ]).then(([text, medium, eczar, eczarExt]): Font[] => [
     // satori matches on the CSS weight it is given, not on the file's own weight class.
     { name: 'Plex', data: text, weight: 400, style: 'normal' },
     { name: 'Plex', data: medium, weight: 500, style: 'normal' },
+    // Headlines, as on the site. The rupee sign is in the Latin Extended file, so it is a fallback.
+    { name: 'Eczar', data: eczar, weight: 700, style: 'normal' },
+    { name: 'EczarExt', data: eczarExt, weight: 700, style: 'normal' },
   ]);
   return fonts;
 }
+
+/** The guilloche rosette in brand colours, as an image for the corner of each card. */
+const rosette = () => {
+  const coloured = rosetteSvg().replace('stroke="#000"', `stroke="${BRAND.green}"`);
+  return `data:image/svg+xml;base64,${Buffer.from(coloured).toString('base64')}`;
+};
 
 type Node = { type: string; props: Record<string, unknown> };
 const h = (type: string, style: Record<string, unknown>, children?: unknown): Node => ({
@@ -67,38 +82,9 @@ const h = (type: string, style: Record<string, unknown>, children?: unknown): No
 });
 
 function mark(): Node {
-  // The favicon, redrawn: an outlined bar (CTC) beside a shorter filled one (what reaches you).
-  return h(
-    'div',
-    {
-      display: 'flex',
-      width: 56,
-      height: 56,
-      borderRadius: 12,
-      background: COLORS.accent,
-      position: 'relative',
-    },
-    [
-      h('div', {
-        position: 'absolute',
-        left: 15,
-        top: 13,
-        width: 10,
-        height: 30,
-        borderRadius: 3,
-        border: `3px solid ${COLORS.onAccent}`,
-      }),
-      h('div', {
-        position: 'absolute',
-        left: 31,
-        top: 21,
-        width: 10,
-        height: 22,
-        borderRadius: 3,
-        background: COLORS.onAccent,
-      }),
-    ],
-  );
+  // The site's mark (src/lib/brand.ts), as an SVG image.
+  const src = `data:image/svg+xml;base64,${Buffer.from(logoSvg()).toString('base64')}`;
+  return { type: 'img', props: { src, width: 56, height: 56, style: { borderRadius: 12 } } };
 }
 
 function card(c: OgCard): Node {
@@ -121,33 +107,54 @@ function card(c: OgCard): Node {
       background: COLORS.canvas,
       fontFamily: 'Plex',
       color: COLORS.ink,
+      position: 'relative',
     },
     [
+      {
+        type: 'img',
+        props: {
+          src: rosette(),
+          width: 620,
+          height: 620,
+          style: { position: 'absolute', right: -170, top: -150, opacity: 0.22 },
+        },
+      },
       h('div', { display: 'flex', alignItems: 'center', gap: 18 }, [
         mark(),
-        h('div', { fontSize: 34, fontWeight: 500, letterSpacing: '-0.01em' }, SITE.name),
+        h('div', { fontFamily: 'Eczar, EczarExt', fontSize: 38, fontWeight: 700 }, SITE.name),
       ]),
       h('div', { display: 'flex', flexDirection: 'column', gap: 20 }, [
         h(
           'div',
           {
-            fontSize: c.figure ? 50 : 64,
-            fontWeight: 500,
-            lineHeight: 1.12,
-            letterSpacing: '-0.02em',
+            fontFamily: 'Eczar, EczarExt',
+            fontSize: c.figure ? 54 : 68,
+            fontWeight: 700,
+            lineHeight: 1.08,
+            letterSpacing: '-0.015em',
             maxWidth: 1000,
           },
           c.title,
         ),
         ...(c.figure
           ? [
-              h('div', { display: 'flex', alignItems: 'baseline', gap: 18 }, [
+              h('div', { display: 'flex', alignItems: 'flex-end', gap: 20 }, [
                 h(
                   'div',
-                  { fontSize: 96, fontWeight: 500, letterSpacing: '-0.03em', color: COLORS.ink },
+                  {
+                    fontFamily: 'Eczar, EczarExt',
+                    fontSize: 100,
+                    fontWeight: 700,
+                    letterSpacing: '-0.02em',
+                    color: COLORS.ink,
+                  },
                   c.figure,
                 ),
-                h('div', { fontSize: 32, color: COLORS.ink2 }, c.figureCaption ?? ''),
+                h(
+                  'div',
+                  { fontSize: 32, color: COLORS.ink2, paddingBottom: 18 },
+                  c.figureCaption ?? '',
+                ),
               ]),
             ]
           : []),
