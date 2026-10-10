@@ -5,7 +5,7 @@
  * (src/scripts/export-pdf.ts) fetches the fonts and saves the file; tests build the same document
  * in Node and read it back.
  *
- * The page follows the site's system: IBM Plex Sans at 435 and 535, one peacock accent, ink greys
+ * The page follows the site's system: IBM Plex Sans at 435 and 535, one green accent, ink greys
  * and hairline ledgers. A4 portrait with 48pt margins, vertical positions on a 4pt grid. Each block
  * is measured before it is drawn, so a block that does not fit moves whole to the next page, and a
  * table that has to break repeats its column header.
@@ -59,16 +59,16 @@ type Rgb = [number, number, number];
 const rgb = (hex: string): Rgb => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as Rgb;
 
 const COLOR = {
-  ink: rgb('#1B2530'),
-  ink2: rgb('#4A5663'),
-  ink3: rgb('#6B7682'),
-  line: rgb('#E3E8EC'),
-  lineStrong: rgb('#CDD5DB'),
-  accent: rgb('#0B6E87'),
-  accentSoft: rgb('#E8F4F7'),
-  inset: rgb('#F3F6F8'),
-  chartTax: rgb('#9AA5B1'),
-  chartRest: rgb('#D5DBE0'),
+  ink: rgb('#17201D'),
+  ink2: rgb('#47534F'),
+  ink3: rgb('#67736F'),
+  line: rgb('#E2E8E5'),
+  lineStrong: rgb('#CCD5D1'),
+  accent: rgb('#0F9A69'),
+  accentSoft: rgb('#E6F6EE'),
+  inset: rgb('#F3F7F5'),
+  chartTax: rgb('#56645F'),
+  chartRest: rgb('#BFE6D3'),
   warn: rgb('#D9A035'),
   white: rgb('#FFFFFF'),
 };

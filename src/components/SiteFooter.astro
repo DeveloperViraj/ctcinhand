@@ -1,5 +1,8 @@
 ---
+import { AUTHOR } from '../config/author';
 import { SITE } from '../config/site';
+import { authorPath } from '../lib/seo';
+import Logo from './Logo.astro';
 
 const verified = new Date(`${SITE.ratesVerifiedOn}T00:00:00+05:30`).toLocaleDateString('en-IN', {
   day: 'numeric',
@@ -36,31 +39,55 @@ const groups = [
 ];
 ---
 
-<footer class="mt-24 border-t border-line bg-surface">
-  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm text-ink-2 sm:px-6 md:grid-cols-[1fr_auto]">
-    <div class="max-w-prose space-y-2">
-      <p class="font-medium text-ink">{SITE.name}</p>
-      <p>
-        Estimates for {SITE.taxYearLabel} under the Income-tax Act, 2025. Statutory rates were last
-        checked against official sources on {verified}. This is not tax advice: confirm figures with
-        your employer's payroll team or a chartered accountant before acting on them.
-      </p>
+<footer class="mt-28 border-t border-line bg-canvas-2">
+  <div class="mx-auto max-w-6xl px-4 pt-14 pb-10 text-sm sm:px-6">
+    <div class="grid gap-12 lg:grid-cols-[1.3fr_2fr]">
+      <div class="max-w-sm">
+        <a
+          href="/"
+          class="flex items-center gap-2.5 text-base font-semibold tracking-tight text-ink no-underline"
+        >
+          <Logo class="size-8" />
+          {SITE.name}
+        </a>
+        <p class="mt-4 text-ink-2">
+          What actually reaches your bank, worked out the way the law says, for {SITE.taxYearLabel}.
+        </p>
+        <p class="mt-5 inline-flex items-center gap-2 rounded-pill border border-line bg-surface px-3 py-1.5 text-xs font-medium text-ink-2">
+          <span class="size-1.5 rounded-full bg-accent" aria-hidden="true"></span>
+          Rates checked against official sources on {verified}
+        </p>
+      </div>
+      <nav aria-label="Footer" class="grid gap-10 sm:grid-cols-2">
+        {groups.map((g) => (
+          <div>
+            <p class="font-semibold text-ink">{g.label}</p>
+            <ul class="mt-4 space-y-2.5">
+              {g.links.map((l) => (
+                <li>
+                  <a href={l.href} class="text-ink-2 no-underline transition-colors hover:text-ink">
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </nav>
     </div>
-    <nav aria-label="Footer" class="grid gap-8 sm:grid-cols-2 md:gap-12">
-      {groups.map((g) => (
-        <div>
-          <p class="font-medium text-ink">{g.label}</p>
-          <ul class="mt-3 space-y-2">
-            {g.links.map((l) => (
-              <li>
-                <a href={l.href} class="text-ink-2 hover:text-ink">
-                  {l.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </nav>
+    <div class="mt-14 flex flex-col gap-3 border-t border-line pt-6 text-xs text-ink-3 sm:flex-row sm:items-start sm:justify-between">
+      <p class="max-w-2xl">
+        Estimates under the Income-tax Act, 2025. Not tax advice: confirm figures with your
+        employer's payroll team or a chartered accountant before acting on them.
+      </p>
+      {AUTHOR && (
+        <p class="shrink-0">
+          Built by{' '}
+          <a href={authorPath(AUTHOR)} class="text-ink-2 hover:text-ink">
+            {AUTHOR.name}
+          </a>
+        </p>
+      )}
+    </div>
   </div>
 </footer>

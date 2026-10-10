@@ -3,17 +3,25 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="Page not found" description="This page does not exist." noindex>
-  <section class="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-    <p class="text-sm font-medium text-ink-3 tabular-nums">404</p>
-    <h1 class="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">This page doesn't exist</h1>
-    <p class="mt-3 max-w-prose text-ink-2">
-      The link may be out of date or mistyped. If you were opening a shared calculation, ask for the
-      link again: it should start with the calculator's home page.
-    </p>
-    <p class="mt-8">
-      <a href="/" class="btn btn-primary">
-        Go to the calculator
-      </a>
-    </p>
+  <section class="relative isolate">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="mx-auto max-w-3xl px-4 py-24 text-center sm:px-6 sm:py-32">
+      <p class="display gradient-text text-7xl tabular-nums sm:text-[8rem]">404</p>
+      <h1 class="mt-4 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+        This page doesn't exist
+      </h1>
+      <p class="mx-auto mt-4 max-w-xl text-lg text-ink-2">
+        The link may be out of date or mistyped. If you were opening a shared calculation, ask for
+        the link again: it should start with the calculator's home page.
+      </p>
+      <div class="mt-10 flex flex-wrap justify-center gap-3">
+        <a href="/" class="btn btn-primary btn-lg">
+          Go to the calculator
+        </a>
+        <a href="/in-hand-salary" class="btn btn-secondary btn-lg">
+          Browse salaries
+        </a>
+      </div>
+    </div>
   </section>
 </BaseLayout>

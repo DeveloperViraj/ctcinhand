@@ -30,8 +30,8 @@ export function describeService(years: number, months: number): string {
 }
 
 const figure = (label: string, amount: string, detail: string) =>
-  `<p class="text-sm text-ink-2">${label}</p>
-   <p class="mt-1 text-figure font-medium tabular-nums text-ink">${amount}</p>
+  `<p class="text-sm font-medium text-ink-2">${label}</p>
+   <p class="mt-2 text-figure font-semibold tabular-nums text-ink">${amount}</p>
    <p class="mt-2 text-sm text-ink-2">${detail}</p>`;
 
 export function renderGratuity(q: GratuityQuery): string {

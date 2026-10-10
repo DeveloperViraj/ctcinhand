@@ -418,8 +418,26 @@ export function mountCalculator(): void {
   let urlTimer: number | undefined;
   let lastGood: CalculatorState = structuredClone(state);
   let liveTimer: number | undefined;
+  /** Quick-pick buttons show which amount, if any, the field currently holds. */
+  const presets = Array.from(form.querySelectorAll<HTMLButtonElement>('[data-ctc-preset]'));
+  function syncPresets() {
+    const ctc = parseRupees(el.ctc.value);
+    for (const button of presets) {
+      button.setAttribute('aria-pressed', String(Number(button.dataset.ctcPreset) === ctc));
+    }
+  }
+  for (const button of presets) {
+    button.addEventListener('click', () => {
+      el.ctc.value = grouped(Number(button.dataset.ctcPreset));
+      const range = sliders.find((r) => r.dataset.sliderFor === 'ctc');
+      if (range) syncSliderFromField(range);
+      render();
+    });
+  }
+
   function render() {
     state.input = readFromForm();
+    syncPresets();
     const problems = inputErrors(flagUnreadable());
     const computed = calculate(effectiveInput(state));
     computed.errors.unshift(...problems);

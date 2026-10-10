@@ -8,20 +8,25 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   AdSense's error-page check.
 -->
 <BaseLayout title="Something went wrong" description="An unexpected error occurred." noindex>
-  <section class="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-    <p class="text-sm font-medium text-ink-3 tabular-nums">500</p>
-    <h1 class="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Something went wrong</h1>
-    <p class="mt-3 max-w-prose text-ink-2">
-      An unexpected error stopped the page from working. Reloading usually fixes it. If it keeps
-      happening, clearing this site's saved data in your browser resets the calculator.
-    </p>
-    <div class="mt-8 flex flex-wrap gap-3">
-      <a href="/" class="btn btn-primary">
-        Back to the calculator
-      </a>
-      <a href="/contact" class="btn btn-secondary">
-        Report the problem
-      </a>
+  <section class="relative isolate">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="mx-auto max-w-3xl px-4 py-24 text-center sm:px-6 sm:py-32">
+      <p class="display gradient-text text-7xl tabular-nums sm:text-[8rem]">500</p>
+      <h1 class="mt-4 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+        Something went wrong
+      </h1>
+      <p class="mx-auto mt-4 max-w-xl text-lg text-ink-2">
+        An unexpected error stopped the page from working. Reloading usually fixes it. If it keeps
+        happening, clearing this site's saved data in your browser resets the calculator.
+      </p>
+      <div class="mt-10 flex flex-wrap justify-center gap-3">
+        <a href="/" class="btn btn-primary">
+          Back to the calculator
+        </a>
+        <a href="/contact" class="btn btn-secondary">
+          Report the problem
+        </a>
+      </div>
     </div>
   </section>
 </BaseLayout>

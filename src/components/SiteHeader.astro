@@ -1,4 +1,5 @@
 ---
+import { Icon } from 'astro-icon/components';
 import { SITE } from '../config/site';
 import { pagePath } from '../lib/seo';
 import ThemeToggle from './ThemeToggle.astro';
@@ -11,22 +12,34 @@ const nav = [
   { href: '/old-vs-new-tax-regime', label: 'Old vs new' },
   { href: '/how-it-works', label: 'How it works' },
 ];
+// The phone menu has room for the guides as well.
+const more = [
+  { href: '/ctc-vs-in-hand-salary', label: 'CTC vs in-hand' },
+  { href: '/provident-fund', label: 'Provident fund' },
+  { href: '/gratuity-calculator', label: 'Gratuity calculator' },
+  { href: '/professional-tax', label: 'Professional tax' },
+];
+const isCurrent = (href: string) =>
+  href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`);
 ---
 
-<header class="border-b border-line bg-surface">
-  <div class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-    <a href="/" class="flex items-center gap-2 font-semibold tracking-tight text-ink no-underline">
-      <Logo class="size-6" />
+<header class="sticky top-0 z-50 px-3 pt-3 sm:px-4">
+  <div class="glass mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 rounded-pill border border-line pr-2 pl-4 shadow-sm">
+    <a
+      href="/"
+      class="flex items-center gap-2.5 text-[15px] font-semibold tracking-tight text-ink no-underline"
+    >
+      <Logo class="size-7" />
       <span>{SITE.name}</span>
     </a>
-    <nav aria-label="Primary" class="flex items-center gap-1 text-sm">
-      <ul class="hidden items-center gap-1 md:flex">
+    <nav aria-label="Primary" class="flex items-center gap-1">
+      <ul class="hidden items-center gap-0.5 text-sm md:flex">
         {nav.map((item) => (
           <li>
             <a
               href={item.href}
-              aria-current={path === item.href ? 'page' : undefined}
-              class="rounded-sm px-3 py-2 text-ink-2 no-underline hover:text-ink aria-[current=page]:font-medium aria-[current=page]:text-ink"
+              aria-current={isCurrent(item.href) ? 'page' : undefined}
+              class="rounded-pill px-3.5 py-2 font-medium text-ink-2 no-underline transition-colors hover:bg-sunken hover:text-ink aria-[current=page]:bg-sunken aria-[current=page]:text-ink"
             >
               {item.label}
             </a>
@@ -34,6 +47,44 @@ const nav = [
         ))}
       </ul>
       <ThemeToggle />
+      <a href="/#calc" class="btn btn-solid btn-sm hidden sm:inline-flex">
+        Calculate
+      </a>
+      <details class="menu relative md:hidden">
+        <summary
+          class="flex size-9 cursor-pointer list-none items-center justify-center rounded-pill text-ink-2 hover:bg-sunken hover:text-ink [&::-webkit-details-marker]:hidden"
+          aria-label="Menu"
+        >
+          <Icon name="lucide:menu" class="menu-open size-5" aria-hidden="true" />
+          <Icon name="lucide:x" class="menu-close size-5" aria-hidden="true" />
+        </summary>
+        <div class="absolute top-12 right-0 w-64 rounded-lg border border-line bg-surface p-2 shadow-md">
+          <ul class="text-sm">
+            {[...nav, ...more].map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  aria-current={isCurrent(item.href) ? 'page' : undefined}
+                  class="block rounded-sm px-3 py-2.5 font-medium text-ink-2 no-underline hover:bg-sunken hover:text-ink aria-[current=page]:text-accent-ink"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </details>
     </nav>
   </div>
 </header>
+
+<style>
+  /* The icons are rendered by astro-icon, outside this component's scope. */
+  .menu :global(.menu-close),
+  .menu[open] :global(.menu-open) {
+    display: none;
+  }
+  .menu[open] :global(.menu-close) {
+    display: block;
+  }
+</style>

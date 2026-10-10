@@ -19,7 +19,7 @@ const { name, legend, ariaLabel, options, value, hint, class: className } = Astr
 ---
 
 <fieldset class:list={['min-w-0', className]} aria-label={legend ? undefined : ariaLabel}>
-  {legend && <legend class="mb-2 text-sm text-ink-2">{legend}</legend>}
+  {legend && <legend class="mb-2 text-sm font-semibold text-ink">{legend}</legend>}
   <div class="seg">
     {options.map((o) => (
       <label>

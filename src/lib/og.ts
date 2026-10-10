@@ -31,13 +31,13 @@ export const OG_HEIGHT = 630;
 export const ogImagePath = (slug: string) => `/og/${slug}.png`;
 
 const COLORS = {
-  canvas: '#f3f6f8',
-  ink: '#16202a',
-  ink2: '#46525e',
-  ink3: '#66717c',
-  accent: '#0b6e87',
-  tax: '#97a3ae',
-  rest: '#d3d9de',
+  canvas: '#f4f8f6',
+  ink: '#141c19',
+  ink2: '#45524e',
+  ink3: '#65716d',
+  accent: '#12a06e',
+  tax: '#4f5d59',
+  rest: '#bfe6d3',
   onAccent: '#ffffff',
 };
 

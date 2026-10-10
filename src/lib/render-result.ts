@@ -49,7 +49,7 @@ function ledger(
   const headingId = id ?? `ledger-${title.toLowerCase().replace(/[^a-z]+/g, '-')}`;
   const suffix = hiddenSuffix ? `<span class="sr-only">${escape(hiddenSuffix)}</span>` : '';
   return `<section aria-labelledby="${headingId}">
-    <h3 id="${headingId}" class="text-base font-medium text-ink">${escape(title)}${suffix}</h3>
+    <h3 id="${headingId}" class="text-base font-semibold text-ink">${escape(title)}${suffix}</h3>
     <table class="ledger mt-3">
       <thead><tr><th scope="col">Component</th><th scope="col">Per year</th></tr></thead>
       <tbody>${rows}</tbody>
@@ -73,43 +73,40 @@ function ledger(
 export function regimeComparison(result: CalculationResult): string {
   const cell = (r: RegimeBreakdown) => {
     const isBetter = r.regime === result.better && result.savingByChoosingBetter > 0;
-    return `<div class="inset p-3">
-      <div class="flex min-h-5 flex-wrap items-center gap-x-2 gap-y-1">
-        <p class="text-sm whitespace-nowrap text-ink">${REGIME_LABEL[r.regime]}</p>
-        <span class="rounded-chip bg-positive-soft px-1.5 text-xs leading-5 font-medium whitespace-nowrap text-positive" ${
-          isBetter ? '' : 'hidden'
-        }>Lower tax</span>
-      </div>
-      <p class="mt-2 text-lg font-medium tabular-nums text-ink">${formatRupees(r.monthlyTakeHome)}</p>
+    return `<div class="relative rounded-md border p-4 transition-colors ${
+      isBetter ? 'border-accent bg-surface shadow-sm' : 'border-line bg-surface/60'
+    }">
+      <span class="tag absolute -top-2.5 right-3 bg-accent text-on-accent shadow-xs" ${isBetter ? '' : 'hidden'}>Lower tax</span>
+      <p class="text-sm font-medium whitespace-nowrap text-ink">${REGIME_LABEL[r.regime]}</p>
+      <p class="mt-2.5 text-xl font-semibold tracking-tight tabular-nums text-ink">${formatRupees(r.monthlyTakeHome)}</p>
       <p class="text-xs text-ink-3">in hand a month</p>
-      <p class="mt-2 text-sm tabular-nums text-ink-2">${formatRupees(r.tax.totalTax)} <span class="text-xs text-ink-3">tax a year</span></p>
+      <p class="mt-2.5 border-t border-line pt-2.5 text-xs tabular-nums text-ink-2"><span class="font-medium text-ink">${formatRupees(r.tax.totalTax)}</span> tax a year</p>
     </div>`;
   };
 
   const verdict =
     result.savingByChoosingBetter > 0
-      ? `The ${REGIME_LABEL[result.better].toLowerCase()} saves you <strong class="font-medium text-positive">${formatRupees(
+      ? `The ${REGIME_LABEL[result.better].toLowerCase()} saves you <strong class="font-semibold text-positive">${formatRupees(
           result.savingByChoosingBetter,
         )}</strong> a year.`
       : 'Both regimes come to the same tax.';
 
-  return `<section class="mt-6" aria-labelledby="regimes-heading">
-    <h3 id="regimes-heading" class="text-sm font-medium text-ink">Both tax regimes</h3>
-    <div class="mt-3 grid grid-cols-2 gap-2">${cell(result.regimes.new)}${cell(result.regimes.old)}</div>
+  return `<section class="mt-7" aria-labelledby="regimes-heading">
+    <h3 id="regimes-heading" class="text-sm font-semibold text-ink">Both tax regimes</h3>
+    <div class="mt-3 grid grid-cols-2 gap-2.5">${cell(result.regimes.new)}${cell(result.regimes.old)}</div>
     <p class="mt-3 text-sm text-ink-2">${verdict}</p>
   </section>`;
 }
 
 /**
- * Where the CTC actually goes, as one horizontal stacked bar.
+ * Where the CTC actually goes, as a donut with a direct-labelled legend.
  *
- * Three segments only. Part-to-whole wants a stacked bar rather than a donut, and an emphasis
- * treatment (accent for the money you keep, grey for everything else) rather than a categorical
- * palette: with more segments the grey steps stop being tellable apart. The detail lives in the
- * tables below, which double as the table view for the two segments that sit under 3:1 contrast.
+ * Three segments only, in an emphasis palette: the money you keep wears the accent, savings you
+ * reach later (PF, gratuity) a light tint of it, and income tax a neutral slate. Every segment is
+ * repeated in the legend with its amount and share, and again in the tables below.
  *
- * All three segments are always rendered (an empty one is hidden) so the bar keeps its shape
- * between keystrokes and each segment can glide to its new share.
+ * All three arcs are always rendered (an empty one has zero length) so the chart keeps its shape
+ * between keystrokes and each arc can glide to its new share.
  */
 export function compositionBar(result: CalculationResult): string {
   const total = result.structure.annual.ctcComponents;
@@ -121,51 +118,64 @@ export function compositionBar(result: CalculationResult): string {
   const rest = Math.max(0, total - takeHome - tax);
 
   const segments = [
-    { label: 'Reaches your bank', value: takeHome, color: 'var(--color-chart-take)' },
+    { label: 'Take-home', value: takeHome, color: 'var(--color-chart-take)' },
     { label: 'Income tax', value: tax, color: 'var(--color-chart-tax)' },
-    { label: 'PF, gratuity and other', value: rest, color: 'var(--color-chart-rest)' },
+    { label: 'PF, gratuity, other', value: rest, color: 'var(--color-chart-save)' },
   ];
 
   const pct = (value: number) => (value / total) * 100;
-  const bar = segments
-    .map(
-      (seg) =>
-        `<div class="bar-seg" style="flex-grow:${pct(seg.value).toFixed(2)};background:${seg.color}"${
-          seg.value > 0 ? '' : ' hidden'
-        }></div>`,
-    )
+  const radius = 52;
+  const circumference = 2 * Math.PI * radius;
+  const gap = 2.5;
+  let offset = 0;
+  const arcs = segments
+    .map((seg) => {
+      const length = (seg.value / total) * circumference;
+      const visible = Math.max(0, length - (seg.value > 0 ? gap : 0));
+      const arc = `<circle class="donut-seg" cx="64" cy="64" r="${radius}" fill="none" stroke="${seg.color}" stroke-width="16" stroke-dasharray="${visible.toFixed(2)} ${circumference.toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}"></circle>`;
+      offset += length;
+      return arc;
+    })
     .join('');
 
   const legend = segments
     .map(
-      (seg) => `<li class="flex items-center gap-2"${seg.value > 0 ? '' : ' hidden'}>
-        <span class="size-2 shrink-0 rounded-[2px]" style="background:${seg.color}" aria-hidden="true"></span>
-        <span class="min-w-0 flex-1 text-ink-2">${escape(seg.label)}</span>
-        <span class="tabular-nums text-ink">${formatRupees(seg.value)}</span>
-        <span class="w-12 text-right text-xs tabular-nums text-ink-3">${pct(seg.value).toFixed(1)}%</span>
+      (seg) => `<li class="flex items-center gap-2.5"${seg.value > 0 ? '' : ' hidden'}>
+        <span class="size-2.5 shrink-0 rounded-full" style="background:${seg.color}" aria-hidden="true"></span>
+        <span class="min-w-0 flex-1 truncate text-ink-2">${escape(seg.label)}</span>
+        <span class="font-medium whitespace-nowrap tabular-nums text-ink">${formatRupees(seg.value)}</span>
       </li>`,
     )
     .join('');
 
-  return `<section class="mt-6" aria-labelledby="composition-heading">
-    <h3 id="composition-heading" class="text-sm font-medium text-ink">Where your ${formatCompactRupees(total)} CTC goes</h3>
-    <div class="mt-3 flex h-3 gap-0.5 overflow-hidden rounded-xs" role="img" aria-label="${escape(
-      segments
-        .filter((seg) => seg.value > 0)
-        .map((seg) => `${seg.label} ${pct(seg.value).toFixed(0)} percent`)
-        .join(', '),
-    )}">${bar}</div>
-    <ul class="mt-3 space-y-1.5 text-sm">${legend}</ul>
+  const kept = pct(takeHome);
+  return `<section class="mt-7" aria-labelledby="composition-heading">
+    <h3 id="composition-heading" class="text-sm font-semibold text-ink">Where your ${formatCompactRupees(total)} CTC goes</h3>
+    <div class="mt-4 flex items-center gap-5">
+      <div class="relative size-28 shrink-0 sm:size-32">
+        <svg viewBox="0 0 128 128" class="size-full -rotate-90" role="img" aria-label="${escape(
+          segments
+            .filter((seg) => seg.value > 0)
+            .map((seg) => `${seg.label} ${pct(seg.value).toFixed(0)} percent`)
+            .join(', '),
+        )}"><circle cx="64" cy="64" r="${radius}" fill="none" stroke="var(--color-sunken)" stroke-width="16"></circle>${arcs}</svg>
+        <div class="absolute inset-0 flex flex-col items-center justify-center" aria-hidden="true">
+          <span class="text-lg font-semibold tracking-tight tabular-nums text-ink">${kept.toFixed(kept >= 99.95 ? 0 : 1)}%</span>
+          <span class="text-[11px] text-ink-3">in hand</span>
+        </div>
+      </div>
+      <ul class="min-w-0 flex-1 space-y-2.5 text-sm">${legend}</ul>
+    </div>
   </section>`;
 }
 
 export function renderSummary(result: CalculationResult): string {
   if (result.errors.length > 0) {
-    return `<div role="alert" class="p-5 sm:p-6">
-      <p class="text-sm text-ink-2">In hand per month</p>
-      <p class="mt-1 text-figure font-medium tabular-nums text-ink-3" aria-hidden="true">&mdash;</p>
-      <div class="mt-4 rounded-sm bg-danger-soft p-4 text-sm text-ink">
-        <p class="font-medium">Check these figures</p>
+    return `<div role="alert" class="p-6 sm:p-8">
+      <p class="text-sm font-medium text-ink-2">In hand per month</p>
+      <p class="mt-3 text-figure font-semibold tabular-nums text-ink-3" aria-hidden="true">&mdash;</p>
+      <div class="mt-5 rounded-md border border-danger/30 bg-danger-soft p-4 text-sm text-ink">
+        <p class="font-semibold">Check these figures</p>
         <ul class="mt-2 list-disc space-y-1 pl-5 text-ink-2">
           ${result.errors.map((e) => `<li>${forScreen(e)}</li>`).join('')}
         </ul>
@@ -182,7 +192,7 @@ export function renderSummary(result: CalculationResult): string {
   // rebate as a simple on/off switch publish results where earning more leaves you with less.
   const relief = best.tax.rebateIsMarginalRelief
     ? `<div class="callout mt-6 p-4">
-        <p class="text-sm font-medium text-ink">Marginal relief applied</p>
+        <p class="text-sm font-semibold text-ink">Marginal relief applied</p>
         <p class="mt-1 text-sm text-ink-2">
           Your income is just above &#8377;12 lakh, so your tax is capped at the amount by which it
           exceeds that. Without this relief you would pay
@@ -203,21 +213,21 @@ export function renderSummary(result: CalculationResult): string {
   }</a></p>`;
 
   return `<h2 class="sr-only">Your salary breakdown</h2>
-  <div class="p-5 sm:p-6" data-result-card>
+  <div class="p-6 sm:p-8" data-result-card>
     <div class="flex items-center justify-between gap-3">
-      <p class="text-sm text-ink-2" id="headline-label">In hand per month</p>
-      <p class="flex items-center gap-1.5 text-xs text-ink-3">
+      <p class="text-sm font-medium text-ink-2" id="headline-label">In hand per month</p>
+      <p class="flex items-center gap-1.5 rounded-pill border border-line bg-surface/70 px-2.5 py-1 text-xs font-medium text-ink-3">
         <span class="live-dot size-1.5 rounded-full bg-accent" aria-hidden="true"></span>
         Updates as you type
       </p>
     </div>
-    <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-      <p class="relative text-figure font-medium tabular-nums text-ink" data-headline data-morph-keep aria-labelledby="headline-label"><span class="cur">&#8377;</span><span data-headline-num>${formatNumber(
+    <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+      <p class="relative text-figure font-semibold tabular-nums text-ink" data-headline data-morph-keep aria-labelledby="headline-label"><span class="cur">&#8377;</span><span data-headline-num>${formatNumber(
         monthly,
       )}</span></p>
-      <span class="delta rounded-chip px-1.5 text-sm leading-6 font-medium tabular-nums" data-delta data-morph-keep data-state="hidden" aria-hidden="true"></span>
+      <span class="delta rounded-pill px-2 text-sm leading-6 font-semibold tabular-nums" data-delta data-morph-keep data-state="hidden" aria-hidden="true"></span>
     </div>
-    <p class="mt-2 text-sm text-ink-2">
+    <p class="mt-3 text-sm text-ink-2">
       ${formatRupees(best.annualTakeHome)} a year${
         a.variable > 0 ? `, including ${formatRupees(a.variable)} variable pay` : ''
       }, from a ${formatCompactRupees(result.input.ctc)} CTC under the ${REGIME_LABEL[
@@ -226,8 +236,8 @@ export function renderSummary(result: CalculationResult): string {
     </p>
     ${notes}
     ${relief}
-    ${regimeComparison(result)}
     ${compositionBar(result)}
+    ${regimeComparison(result)}
   </div>`;
 }
 
@@ -406,11 +416,11 @@ export function renderDetails(result: CalculationResult): string {
   const notices = `<section id="notes" aria-labelledby="notes-heading" class="scroll-mt-6"${
     result.notices.length ? '' : ' hidden'
   }>
-        <h3 id="notes-heading" class="text-base font-medium text-ink">Notes on your numbers</h3>
+        <h3 id="notes-heading" class="text-base font-semibold text-ink">Notes on your numbers</h3>
         <ul class="mt-3 space-y-2">${result.notices
           .map(
             (n) =>
-              `<li class="rounded-sm border-l-2 border-warn-line bg-warn-soft px-4 py-3 text-sm text-warn-ink">${forScreen(n)}</li>`,
+              `<li class="rounded-md border border-warn-line/70 bg-warn-soft px-4 py-3 text-sm text-warn-ink">${forScreen(n)}</li>`,
           )
           .join('')}</ul>
       </section>`;
@@ -422,9 +432,9 @@ export function renderDetails(result: CalculationResult): string {
       } years, based on ${formatRupees(s.wages.wages)} a month of Labour Code wages.`
     : `Gratuity needs ${gratuity.minimumYears} years of service. It is part of your CTC but you receive nothing before then.`;
 
-  return `<div class="space-y-12">
+  return `<div class="space-y-4">
     ${notices}
-    <div class="grid gap-x-12 gap-y-10 lg:grid-cols-2">
+    <div class="breakdown grid gap-4 lg:grid-cols-2">
       ${ledger('What you are paid', earnings, { label: 'Gross salary (fixed)', value: formatRupees(a.grossFixed) })}
       ${ledger(
         'What is deducted',
@@ -444,7 +454,7 @@ export function renderDetails(result: CalculationResult): string {
                       restOfCtc,
                     { label: 'Total CTC', value: formatRupees(a.ctcComponents) },
                   )
-                : '<h3 class="text-base font-medium text-ink">Beyond your CTC</h3>'
+                : '<h3 class="text-base font-semibold text-ink">Beyond your CTC</h3>'
             }${
               onTop.length
                 ? `<p class="mt-3 text-sm text-ink-2">On top of your CTC, your employer also pays ${joinList(onTop)} a year.</p>`
@@ -453,20 +463,20 @@ export function renderDetails(result: CalculationResult): string {
           : ''
       }
       <section aria-labelledby="gratuity-heading">
-        <h3 id="gratuity-heading" class="text-base font-medium text-ink">Gratuity</h3>
+        <h3 id="gratuity-heading" class="text-base font-semibold text-ink">Gratuity</h3>
         <p class="mt-3 text-sm text-ink-2">${gratuityNote}</p>
       </section>
     </div>
 
-    <details class="group border-t border-line pt-5">
-      <summary class="flex cursor-pointer list-none items-center justify-between gap-3 text-base font-medium text-ink [&::-webkit-details-marker]:hidden">
+    <details class="group rounded-lg border border-line bg-surface">
+      <summary class="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg px-5 py-4 text-base font-semibold text-ink hover:bg-surface-2 sm:px-6 [&::-webkit-details-marker]:hidden">
         How the tax was worked out
         <span class="text-sm font-normal text-ink-3 group-open:hidden">Show both regimes</span>
         <span class="hidden text-sm font-normal text-ink-3 group-open:inline">Hide</span>
       </summary>
-      <div class="mt-6 grid gap-x-12 gap-y-10 lg:grid-cols-2">
-        <div><p class="mb-4 text-sm font-medium text-ink-2">${REGIME_LABEL[best.regime]}</p>${taxDetail(best)}</div>
-        <div><p class="mb-4 text-sm font-medium text-ink-2">${REGIME_LABEL[other.regime]}</p>${taxDetail(other)}</div>
+      <div class="grid gap-x-12 gap-y-10 border-t border-line p-5 sm:p-6 lg:grid-cols-2">
+        <div><p class="mb-4 text-sm font-semibold text-accent-ink">${REGIME_LABEL[best.regime]}</p>${taxDetail(best)}</div>
+        <div><p class="mb-4 text-sm font-semibold text-ink-2">${REGIME_LABEL[other.regime]}</p>${taxDetail(other)}</div>
       </div>
     </details>
   </div>`;

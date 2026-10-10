@@ -1,12 +1,129 @@
 ---
+import { Icon } from 'astro-icon/components';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Calculator from '../components/Calculator.astro';
 import { SITE } from '../config/site';
 import { bracketLabel, bracketPath, lakhs } from '../lib/brackets';
+import { labourCodeData } from '../lib/explainers';
+import { formatRupees } from '../lib/format';
+import { describePtPattern } from '../lib/pt-pattern';
 import { calculate } from '../lib/tax/calculate';
 import { DEFAULT_INPUT } from '../lib/tax/defaults';
+import { computeIncomeTax } from '../lib/tax/income-tax';
+import { computeProfessionalTax, STATES } from '../lib/tax/professional-tax';
+import { computeProvidentFund } from '../lib/tax/provident-fund';
+import { CESS_RATE, REBATE } from '../lib/tax/rates';
 
-const COMMON = [5, 6, 8, 10, 12, 14, 15, 18, 20, 25, 30, 40];
+// Every number in the tiles below comes from the engine at build time.
+const twelve = calculate(DEFAULT_INPUT);
+const taxes = [
+  { label: 'New regime', tax: twelve.regimes.new.tax.totalTax, best: twelve.better === 'new' },
+  { label: 'Old regime', tax: twelve.regimes.old.tax.totalTax, best: twelve.better === 'old' },
+];
+const maxTax = Math.max(...taxes.map((t) => t.tax), 1);
+const regimeBars = taxes.map((t) => ({
+  ...t,
+  text: t.tax > 0 ? formatRupees(t.tax) : 'No tax',
+  width: Math.max(2, (t.tax / maxTax) * 100),
+}));
+
+// Tax a calculator without marginal relief would charge on one rupee above Rs 12 lakh.
+const cliff = computeIncomeTax('new', REBATE.new.incomeLimit + 1).slabTax * (1 + CESS_RATE);
+
+const pfByMonth = computeProvidentFund(50_000, 'ceiling').employeeByMonth;
+const pfTop = Math.max(...pfByMonth);
+const pfMonths = pfByMonth.map((v, i) => ({
+  height: (v / pfTop) * 100,
+  after: v > pfByMonth[0],
+  label: `${['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'][i]}: ${formatRupees(v)}`,
+}));
+
+const wageRow = labourCodeData().rows.find((r) => r.basicPercent === 30)!;
+const wageBar = {
+  basic: (wageRow.basicMonthly / wageRow.remuneration) * 100,
+  addBack: (wageRow.addBack / wageRow.remuneration) * 100,
+  rest: 100 - (wageRow.wages / wageRow.remuneration) * 100,
+};
+
+const ptSample = {
+  monthlyGross: 50_000,
+  annualBonus: 0,
+  age: 30,
+  category: 'men' as const,
+  liableToIncomeTax: true,
+};
+const ptStates = STATES.filter(
+  (s) => computeProfessionalTax(s.code, ptSample).status === 'calculated',
+).length;
+const ptRows = [
+  { code: 'MH', state: 'Maharashtra' },
+  { code: 'BR', state: 'Bihar' },
+  { code: 'KL', state: 'Kerala' },
+].map((r) => ({
+  state: r.state,
+  pattern:
+    describePtPattern(computeProfessionalTax(r.code, ptSample).monthly, formatRupees, true) ?? '',
+}));
+
+const popular = [6, 8, 10, 12, 15, 18, 20, 25, 30, 50].map((lpa) => {
+  const r = calculate({ ...DEFAULT_INPUT, ctc: lakhs(lpa) });
+  return {
+    lpa,
+    monthly: r.regimes[r.better].monthlyTakeHome,
+    tax: r.regimes[r.better].tax.totalTax,
+  };
+});
+
+const guides = [
+  {
+    href: '/ctc-vs-in-hand-salary',
+    icon: 'lucide:wallet',
+    title: 'CTC, gross and in-hand',
+    text: 'Where every rupee of your CTC goes, step by step.',
+  },
+  {
+    href: '/old-vs-new-tax-regime',
+    icon: 'lucide:git-compare',
+    title: 'Old vs new regime',
+    text: 'The exact deductions at which the old regime wins.',
+  },
+  {
+    href: '/hra-exemption',
+    icon: 'lucide:house',
+    title: 'HRA exemption',
+    text: 'Eight cities now get the 50% limit. What it is worth.',
+  },
+  {
+    href: '/marginal-relief',
+    icon: 'lucide:percent',
+    title: 'Marginal relief',
+    text: 'Why earning a little over ₹12 lakh costs ₹1.04 a rupee.',
+  },
+  {
+    href: '/provident-fund',
+    icon: 'lucide:piggy-bank',
+    title: 'Provident fund',
+    text: 'The ₹25,000 ceiling, month by month, and full-Basic PF.',
+  },
+  {
+    href: '/gratuity-calculator',
+    icon: 'lucide:hand-coins',
+    title: 'Gratuity calculator',
+    text: '15/26 of a month a year, from one year for fixed-term.',
+  },
+  {
+    href: '/labour-code-wages',
+    icon: 'lucide:landmark',
+    title: 'Labour Code wages',
+    text: 'The 50% rule, and why a low Basic no longer helps.',
+  },
+  {
+    href: '/professional-tax',
+    icon: 'lucide:map-pin',
+    title: 'Professional tax',
+    text: 'Every state, with the months it is actually deducted.',
+  },
+];
 
 const verifiedLabel = new Date(`${SITE.ratesVerifiedOn}T00:00:00+05:30`).toLocaleDateString(
   'en-IN',
@@ -74,117 +191,313 @@ const schema = [
   schema={schema}
   description="Work out your monthly in-hand salary from CTC for FY 2026-27. Both tax regimes side by side, with PF, ESI, gratuity, state professional tax and the Labour Code wage rule. Free, private, no sign-up."
 >
-  <section class="mx-auto max-w-6xl px-4 pt-8 pb-6 sm:px-6 sm:pt-12 sm:pb-8">
-    <h1 class="max-w-3xl text-2xl font-medium tracking-tight text-ink sm:text-3xl">
-      CTC to in-hand salary calculator
-    </h1>
-    <p class="mt-2 max-w-2xl text-ink-2">
-      What actually reaches your bank each month, with both tax regimes side by side.{' '}
-      <span class="hidden sm:inline">
-        Provident fund, ESI, gratuity, state professional tax and the Labour Code wage rule are all
-        applied.
-      </span>
-    </p>
-    <p class="mt-3 text-sm text-ink-3">
-      {SITE.taxYearLabel}. Rates last verified on{' '}
-      <time datetime={SITE.ratesVerifiedOn}>{verifiedLabel}</time>.
-    </p>
+  <!-- Hero: the headline, then the calculator itself as the product shot. -->
+  <section class="relative isolate">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="mx-auto max-w-4xl px-4 pt-10 pb-10 text-center sm:px-6 sm:pt-16 sm:pb-12">
+      <a
+        href="/provident-fund"
+        class="badge animate-rise no-underline transition-colors hover:text-ink"
+      >
+        <span class="badge-dot">New</span>
+        PF ceiling now ₹25,000<span class="hidden sm:inline">, applied month by month</span>
+        <Icon name="lucide:chevron-right" class="size-3.5 text-ink-3" aria-hidden="true" />
+      </a>
+      <h1 class="mt-7 animate-rise [animation-delay:60ms]">
+        <span class="block text-base font-semibold text-accent-ink sm:text-lg">
+          CTC to in-hand salary calculator
+        </span>
+        <span class="display mt-3 block text-[2.75rem] text-ink sm:text-6xl lg:text-7xl">
+          What actually reaches <span class="gradient-text">your bank.</span>
+        </span>
+      </h1>
+      <p class="mx-auto mt-6 max-w-2xl animate-rise text-lg text-ink-2 [animation-delay:120ms]">
+        Both tax regimes side by side, with provident fund, gratuity, professional tax and the
+        Labour Code wage rule worked out the way the law says.
+      </p>
+      <ul class="mt-7 flex animate-rise flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-ink-2 [animation-delay:180ms]">
+        {['Free, no sign-up', 'Calculated in your browser', `Rates checked ${verifiedLabel}`].map(
+          (item) => (
+            <li class="flex items-center gap-1.5">
+              <Icon name="lucide:check" class="size-4 text-accent" aria-hidden="true" />
+              {item}
+            </li>
+          ),
+        )}
+      </ul>
+    </div>
+    <div class="mx-auto max-w-6xl animate-rise px-3 [animation-delay:240ms] sm:px-6">
+      <Calculator />
+    </div>
   </section>
 
-  <section class="mx-auto max-w-6xl px-4 sm:px-6">
-    <Calculator />
-  </section>
+  <!-- What the calculator gets right, each tile with a picture drawn from the engine's numbers. -->
+  <section class="mx-auto mt-28 max-w-6xl px-4 sm:px-6" aria-labelledby="right-heading">
+    <div class="max-w-2xl">
+      <p class="eyebrow">What other calculators miss</p>
+      <h2 id="right-heading" class="display mt-2 text-4xl text-ink sm:text-5xl">
+        Built on this year's rules, not last year's.
+      </h2>
+      <p class="mt-4 text-lg text-ink-2">
+        Most salary calculators skip the parts that change the answer. These are the ones we got
+        right, each with the numbers to show it.
+      </p>
+    </div>
 
-  <nav class="mx-auto mt-16 max-w-6xl px-4 sm:px-6" aria-labelledby="common-heading">
-    <h2 id="common-heading" class="text-xl font-medium text-ink">
-      In-hand salary at common CTCs
-    </h2>
-    <ul class="mt-4 flex flex-wrap gap-2">
-      {COMMON.map((lpa) => (
-        <li>
-          <a href={bracketPath(lpa)} class="btn btn-secondary">
-            {bracketLabel(lpa)}
-          </a>
-        </li>
-      ))}
-      <li class="flex items-center">
-        <a href="/in-hand-salary" class="btn btn-tertiary ml-2">
-          Every salary
-        </a>
-      </li>
-    </ul>
-  </nav>
+    <div class="mt-12 grid gap-4 lg:grid-cols-6">
+      <!-- Both regimes -->
+      <a href="/old-vs-new-tax-regime" class="tile p-6 no-underline sm:p-7 lg:col-span-4">
+        <Icon name="lucide:scale" class="size-6 text-accent" aria-hidden="true" />
+        <h3 class="mt-4 text-xl font-semibold tracking-tight text-ink">
+          Both regimes, side by side
+        </h3>
+        <p class="mt-2 max-w-md text-ink-2">
+          Every result shows the new and old regime together, with the saving spelled out, so you
+          never have to guess which one to pick.
+        </p>
+        <div class="mt-7 space-y-3" aria-hidden="true">
+          {regimeBars.map((b) => (
+            <div>
+              <div class="flex justify-between text-sm">
+                <span class="font-medium text-ink">{b.label}</span>
+                <span class="tabular-nums text-ink-2">{b.text}</span>
+              </div>
+              <div class="mt-1.5 h-2.5 rounded-pill bg-sunken">
+                <div
+                  class={`h-full rounded-pill ${b.best ? 'bg-accent' : 'bg-chart-tax'}`}
+                  style={`width:${b.width}%`}
+                />
+              </div>
+            </div>
+          ))}
+          <p class="pt-1 text-xs text-ink-3">Income tax a year on a 12 LPA CTC.</p>
+        </div>
+      </a>
 
-  <section class="mx-auto mt-20 max-w-6xl px-4 sm:px-6">
-    <div class="grid gap-10 lg:grid-cols-2">
-      <div class="prose-doc">
-        <h2>The Labour Code wage rule, in plain English</h2>
-        <p>
-          India&rsquo;s four Labour Codes took effect on <strong>21 November 2025</strong>. The part
-          that affects your salary is a single definition of &ldquo;wages&rdquo;.
+      <!-- Marginal relief -->
+      <a href="/marginal-relief" class="tile tile-accent p-6 no-underline sm:p-7 lg:col-span-2">
+        <Icon name="lucide:shield-check" class="size-6" aria-hidden="true" />
+        <p class="mt-6 text-5xl font-semibold tracking-tighter tabular-nums">
+          {formatRupees(cliff)}
         </p>
-        <p>
-          You will often read that Basic pay must now be at least half of CTC. That is not what the
-          law says. There is no floor on Basic. What the law does is change the <em>calculation</em>
-          : if allowances such as HRA and conveyance, together with your employer&rsquo;s PF
-          contribution, add up to more than half of your total remuneration, the excess is counted
-          as wages anyway.
+        <h3 class="mt-2 text-lg font-semibold">The cliff we don't show</h3>
+        <p class="mt-2 text-sm opacity-90">
+          Just above ₹12 lakh, calculators without marginal relief add this much tax overnight. The
+          law caps it, and so do we.
         </p>
-        <p>
-          The practical effect is that your provident fund, gratuity and ESI can be worked out on a
-          higher figure than the Basic shown on your payslip. Your employer does not have to
-          restructure your salary, and many are still working through it, but the statutory
-          calculation applies now. This calculator applies it and tells you when it changed your
-          numbers. <a href="/labour-code-wages">Worked examples</a>.
-        </p>
-      </div>
+      </a>
 
-      <div class="prose-doc">
-        <h2>What this calculator gets right</h2>
-        <ul>
-          <li>
-            <strong>Marginal relief as a real cap.</strong> Just above &#8377;12 lakh, tax is capped
-            at the income above &#8377;12 lakh, and at every surcharge threshold the extra tax is
-            capped at the income above the threshold, with the 4% cess on top. Calculators that skip
-            the cap show a cliff of tens of thousands of rupees.{' '}
-            <a href="/marginal-relief">Worked example</a>.
-          </li>
-          <li>
-            <strong>Professional tax month by month.</strong> Maharashtra and Karnataka charge
-            &#8377;300 in February; West Bengal changed its whole schedule on 1 October 2026. A flat
-            annual figure gets both wrong.
-          </li>
-          <li>
-            <strong>The eight-city HRA rule.</strong> From this year Bengaluru, Hyderabad, Pune and
-            Ahmedabad join the four old metros at 50% of Basic.{' '}
-            <a href="/hra-exemption">What it is worth</a>.
-          </li>
-          <li>
-            <strong>The new PF ceiling.</strong> The EPF wage ceiling rose from &#8377;15,000 to
-            &#8377;25,000 on 17 September 2026. We apply it month by month instead of using one
-            figure for the whole year. <a href="/provident-fund">Month-by-month tables</a>.
-          </li>
-          <li>
-            <strong>Honest gaps.</strong> Where a state&rsquo;s slabs are not verified, we show zero
-            and let you enter your payslip figure instead of inventing one.
-          </li>
+      <!-- PF ceiling -->
+      <a href="/provident-fund" class="tile p-6 no-underline sm:p-7 lg:col-span-2">
+        <Icon name="lucide:piggy-bank" class="size-6 text-accent" aria-hidden="true" />
+        <h3 class="mt-4 text-lg font-semibold tracking-tight text-ink">
+          The new ₹25,000 PF ceiling
+        </h3>
+        <p class="mt-2 text-sm text-ink-2">
+          Applied month by month from 17 September, not as one figure for the year.
+        </p>
+        <div class="mt-6 flex h-20 items-end gap-1" aria-hidden="true">
+          {pfMonths.map((m) => (
+            <div
+              class={`flex-1 rounded-t-[3px] ${m.after ? 'bg-accent' : 'bg-accent-soft-2'}`}
+              style={`height:${m.height}%`}
+              title={m.label}
+            />
+          ))}
+        </div>
+        <div class="mt-1.5 flex justify-between text-[11px] text-ink-3" aria-hidden="true">
+          <span>Apr</span>
+          <span>Sep</span>
+          <span>Mar</span>
+        </div>
+      </a>
+
+      <!-- Labour Code -->
+      <a href="/labour-code-wages" class="tile p-6 no-underline sm:p-7 lg:col-span-2">
+        <Icon name="lucide:landmark" class="size-6 text-accent" aria-hidden="true" />
+        <h3 class="mt-4 text-lg font-semibold tracking-tight text-ink">
+          The Labour Code wage rule
+        </h3>
+        <p class="mt-2 text-sm text-ink-2">
+          Allowances above half your pay count as wages for PF and gratuity. We apply it and say
+          when it changed your numbers.
+        </p>
+        <div class="mt-6" aria-hidden="true">
+          <div class="flex h-3 overflow-hidden rounded-pill">
+            <div class="bg-accent" style={`width:${wageBar.basic}%`}></div>
+            <div class="bg-accent-2" style={`width:${wageBar.addBack}%`}></div>
+            <div class="bg-sunken" style={`width:${wageBar.rest}%`}></div>
+          </div>
+          <p class="mt-4 text-sm text-ink-2">
+            At 12 LPA with Basic at 30%:{' '}
+            <span class="font-medium text-ink tabular-nums">
+              {formatRupees(wageRow.basicMonthly)}
+            </span>{' '}
+            Basic +{' '}
+            <span class="font-medium text-ink tabular-nums">{formatRupees(wageRow.addBack)}</span>{' '}
+            added back ={' '}
+            <span class="font-semibold text-accent-ink tabular-nums">
+              {formatRupees(wageRow.wages)}
+            </span>{' '}
+            wages a month.
+          </p>
+          <div class="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-ink-3">
+            <span class="flex items-center gap-1">
+              <span class="size-2 rounded-full bg-accent"></span>Basic
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="size-2 rounded-full bg-accent-2"></span>Added back
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="size-2 rounded-full bg-sunken ring-1 ring-line"></span>Other pay
+            </span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Professional tax -->
+      <a href="/professional-tax" class="tile p-6 no-underline sm:p-7 lg:col-span-2">
+        <Icon name="lucide:map-pin" class="size-6 text-accent" aria-hidden="true" />
+        <h3 class="mt-4 text-lg font-semibold tracking-tight text-ink">
+          Professional tax, month by month
+        </h3>
+        <p class="mt-2 text-sm text-ink-2">
+          {ptStates} states and Chennai, including the ₹300 February months and West Bengal's new
+          schedule.
+        </p>
+        <ul class="mt-5 space-y-2 text-sm" aria-hidden="true">
+          {ptRows.map((r) => (
+            <li class="flex justify-between border-t border-line pt-2">
+              <span class="text-ink-2">{r.state}</span>
+              <span class="font-medium tabular-nums text-ink">{r.pattern}</span>
+            </li>
+          ))}
         </ul>
-        <p>
-          <a href="/how-it-works">Read the full method and sources</a>
-        </p>
+      </a>
+
+      <!-- Privacy -->
+      <div class="tile flex flex-col justify-between gap-6 p-6 sm:flex-row sm:items-center sm:p-7 lg:col-span-6">
+        <div class="flex items-start gap-4">
+          <span class="grid size-11 shrink-0 place-items-center rounded-md bg-accent-soft text-accent-ink">
+            <Icon name="lucide:lock" class="size-5" aria-hidden="true" />
+          </span>
+          <div>
+            <h3 class="text-lg font-semibold tracking-tight text-ink">Private by design</h3>
+            <p class="mt-1 max-w-2xl text-sm text-ink-2">
+              Every figure is calculated in your browser. No accounts, no sign-up, and no record of
+              your salary on our side. PDF and Excel exports are made on your device.
+            </p>
+          </div>
+        </div>
+        <a href="/privacy" class="btn btn-secondary btn-sm shrink-0">
+          Privacy policy
+        </a>
       </div>
     </div>
   </section>
 
-  <section class="mx-auto mt-20 max-w-6xl px-4 sm:px-6">
-    <h2 class="text-xl font-semibold tracking-tight text-ink">Common questions</h2>
-    <div class="mt-6 max-w-3xl divide-y divide-line border-t border-line">
-      {faqs.map((f) => (
-        <details class="group py-4">
-          <summary class="cursor-pointer text-base font-medium text-ink">{f.q}</summary>
-          <p class="mt-2 max-w-[68ch] text-ink-2">{f.a}</p>
-        </details>
+  <!-- Popular salaries -->
+  <section class="mx-auto mt-28 max-w-6xl px-4 sm:px-6" aria-labelledby="common-heading">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div class="max-w-2xl">
+        <p class="eyebrow">Popular salaries</p>
+        <h2 id="common-heading" class="display mt-2 text-4xl text-ink sm:text-5xl">
+          In-hand pay at common CTCs.
+        </h2>
+      </div>
+      <a href="/in-hand-salary" class="btn btn-secondary">
+        Every salary from 3 to 100 LPA
+      </a>
+    </div>
+    <ul class="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      {popular.map((p) => (
+        <li>
+          <a href={bracketPath(p.lpa)} class="tile block p-5 no-underline">
+            <p class="text-sm font-medium text-ink-2">{bracketLabel(p.lpa)} CTC</p>
+            <p class="mt-3 text-2xl font-semibold tracking-tight tabular-nums text-ink">
+              {formatRupees(p.monthly)}
+            </p>
+            <p class="text-xs text-ink-3">a month in hand</p>
+            <p class="mt-3 text-xs text-ink-2">
+              {p.tax > 0 ? `${formatRupees(p.tax)} tax a year` : 'No income tax'}
+            </p>
+          </a>
+        </li>
       ))}
+    </ul>
+  </section>
+
+  <!-- Guides -->
+  <section class="mx-auto mt-28 max-w-6xl px-4 sm:px-6" aria-labelledby="guides-heading">
+    <div class="max-w-2xl">
+      <p class="eyebrow">Guides</p>
+      <h2 id="guides-heading" class="display mt-2 text-4xl text-ink sm:text-5xl">
+        Every rule, explained with real numbers.
+      </h2>
+    </div>
+    <ul class="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {guides.map((g) => (
+        <li>
+          <a href={g.href} class="tile flex h-full flex-col p-5 no-underline">
+            <span class="grid size-10 place-items-center rounded-md bg-accent-soft text-accent-ink">
+              <Icon name={g.icon} class="size-5" aria-hidden="true" />
+            </span>
+            <h3 class="mt-4 font-semibold tracking-tight text-ink">{g.title}</h3>
+            <p class="mt-1.5 text-sm text-ink-2">{g.text}</p>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <!-- FAQ -->
+  <section class="mx-auto mt-28 max-w-6xl px-4 sm:px-6" aria-labelledby="faq-heading">
+    <div class="grid gap-10 lg:grid-cols-[1fr_1.6fr] lg:gap-16">
+      <div>
+        <p class="eyebrow">Questions</p>
+        <h2 id="faq-heading" class="display mt-2 text-4xl text-ink sm:text-5xl">
+          Common questions
+        </h2>
+        <p class="mt-4 text-ink-2">
+          Still unsure about a figure? The{' '}
+          <a href="/how-it-works" class="font-medium text-accent-ink underline">
+            method page
+          </a>{' '}
+          lists every rate and the law behind it.
+        </p>
+      </div>
+      <div class="divide-y divide-line rounded-lg border border-line bg-surface">
+        {faqs.map((f) => (
+          <details class="group">
+            <summary class="flex cursor-pointer list-none items-start justify-between gap-4 px-5 py-4 font-semibold text-ink hover:bg-surface-2 sm:px-6 [&::-webkit-details-marker]:hidden">
+              {f.q}
+              <Icon
+                name="lucide:plus"
+                class="mt-0.5 size-5 shrink-0 text-ink-3 transition-transform duration-200 group-open:rotate-45"
+                aria-hidden="true"
+              />
+            </summary>
+            <p class="px-5 pb-5 text-ink-2 sm:px-6">{f.a}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Closing call to action -->
+  <section class="mx-auto mt-28 max-w-6xl px-4 sm:px-6">
+    <div class="tile tile-accent relative overflow-hidden px-6 py-12 text-center sm:px-12 sm:py-16">
+      <h2 class="display text-3xl sm:text-5xl">Comparing two offers?</h2>
+      <p class="mx-auto mt-4 max-w-xl text-lg opacity-90">
+        Put each one into the calculator and keep its share link. You will see the real monthly
+        difference, not just the CTC.
+      </p>
+      <a
+        href="#calc"
+        class="btn btn-lg mt-8 bg-white text-[oklch(0.25_0.04_165)] shadow-md hover:bg-white/90"
+      >
+        Back to the calculator
+      </a>
     </div>
   </section>
 </BaseLayout>

@@ -98,259 +98,275 @@ const losses = listJoin(
   datePublished={PUBLISHED}
   dateModified={UPDATED}
 >
-  <article class="mx-auto max-w-6xl px-4 pt-8 sm:px-6 sm:pt-12">
-    <header class="max-w-3xl">
-      <Breadcrumbs crumbs={crumbs} />
-      <h1 class="mt-4 text-2xl font-medium tracking-tight text-ink sm:text-3xl">
-        {label} in-hand salary
-      </h1>
-      <p class="mt-3 text-lg text-ink-2">
-        On a {ctcWords} CTC you take home about{' '}
-        <strong class="font-medium text-ink">{monthly} a month</strong>, or{' '}
-        {formatRupees(best.annualTakeHome)} a year, under the {regimeName}.
-      </p>
-      <Byline updated={UPDATED} />
-      <p class="mt-3 text-sm text-ink-3">
-        {SITE.taxYearLabel}. Assumes Basic at half of CTC, PF capped at the wage ceiling (₹25,000
-        from 17 September), gratuity and employer PF inside the CTC, and Karnataka professional tax.{' '}
-        <a href={calculatorLink} class="text-accent-ink underline">
-          Change any of these
+  <article>
+    <header class="relative isolate">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="mx-auto max-w-6xl px-4 pt-8 pb-10 sm:px-6 sm:pt-14">
+        <Breadcrumbs crumbs={crumbs} />
+        <h1 class="display mt-5 text-4xl text-ink sm:text-6xl">
+          {label} <span class="gradient-text">in-hand salary</span>
+        </h1>
+        <p class="mt-5 max-w-2xl text-lg text-ink-2">
+          On a {ctcWords} CTC you take home about{' '}
+          <strong class="font-semibold text-ink">{monthly} a month</strong>, or{' '}
+          {formatRupees(best.annualTakeHome)} a year, under the {regimeName}.
+        </p>
+        <Byline updated={UPDATED} />
+        <p class="mt-5 max-w-3xl text-sm text-ink-3">
+          {SITE.taxYearLabel}. Assumes Basic at half of CTC, PF capped at the wage ceiling (₹25,000
+          from 17 September), gratuity and employer PF inside the CTC, and Karnataka professional
+          tax.{' '}
+          <a href={calculatorLink} class="font-medium text-accent-ink underline">
+            Change any of these
+          </a>
+          .
+        </p>
+      </div>
+    </header>
+
+    <div class="mx-auto max-w-6xl px-4 sm:px-6">
+      <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:gap-8">
+        <section
+          class="panel bg-[linear-gradient(180deg,var(--color-accent-soft),var(--color-surface)_45%)] p-6 sm:p-8"
+          aria-labelledby="summary-heading"
+        >
+          <h2 id="summary-heading" class="sr-only">
+            Summary
+          </h2>
+          <p class="text-sm font-medium text-ink-2">In hand per month</p>
+          <p class="mt-3 text-figure font-semibold tabular-nums text-ink">
+            <span class="cur">₹</span>
+            {formatNumber(best.monthlyTakeHome)}
+          </p>
+          <p class="mt-2 text-sm text-ink-2">
+            {formatRupees(best.annualTakeHome)} a year from a {formatCompactRupees(lakhs(lpa))} CTC.
+          </p>
+          <Fragment set:html={regimeComparison(result)} />
+          <Fragment set:html={compositionBar(result)} />
+        </section>
+
+        <aside class="card p-6" aria-labelledby="facts-heading">
+          <h2 id="facts-heading" class="text-base font-semibold text-ink">
+            At a glance
+          </h2>
+          <dl class="mt-3 divide-y divide-line text-sm">
+            <div class="flex justify-between gap-4 py-2.5">
+              <dt class="text-ink-2">Cheaper regime</dt>
+              <dd class="font-semibold text-ink">
+                {noTaxEither ? 'Either, no tax' : result.better === 'new' ? 'New' : 'Old'}
+              </dd>
+            </div>
+            <div class="flex justify-between gap-4 py-2.5">
+              <dt class="text-ink-2">Income tax a year</dt>
+              <dd class="font-semibold tabular-nums text-ink">{formatRupees(best.tax.totalTax)}</dd>
+            </div>
+            <div class="flex justify-between gap-4 py-2.5">
+              <dt class="text-ink-2">Share of CTC paid as tax</dt>
+              <dd class="font-semibold tabular-nums text-ink">{percent(data.effectiveRate)}</dd>
+            </div>
+            <div class="flex justify-between gap-4 py-2.5">
+              <dt class="text-ink-2">Tax on each extra ₹100</dt>
+              <dd class="font-semibold tabular-nums text-ink">
+                {formatRupees(data.marginalRate * 100)}
+              </dd>
+            </div>
+            <div class="flex justify-between gap-4 py-2.5">
+              <dt class="text-ink-2">Your PF this year</dt>
+              <dd class="font-semibold tabular-nums text-ink">
+                {formatRupees(result.structure.pf.employee * 12)}
+              </dd>
+            </div>
+            <div class="flex justify-between gap-4 py-2.5">
+              <dt class="text-ink-2">Gratuity provision a year</dt>
+              <dd class="font-semibold tabular-nums text-ink">{formatRupees(a.gratuity)}</dd>
+            </div>
+          </dl>
+          <a href={calculatorLink} class="btn btn-primary mt-5 w-full">
+            Open in the calculator
+          </a>
+        </aside>
+      </div>
+
+      <div class="prose-doc mt-16">
+        <h2>Where {label} sits in the tax slabs</h2>
+        {result.regimes.new.tax.totalTax === 0 ? (
+          <p>
+            Your taxable income under the new regime is {formatRupees(newTaxable)}: the salary less
+            the ₹75,000 standard deduction. That is within the ₹12 lakh that the section 156 rebate
+            makes tax-free, so the new regime charges no income tax at all. What you lose from your
+            CTC is {losses}, not tax.
+          </p>
+        ) : relief ? (
+          <p>
+            Your taxable income under the new regime is {formatRupees(newTaxable)}, just above the
+            ₹12 lakh the rebate makes tax-free. Section 156(2)(b) then caps your tax at the amount
+            by which you exceed ₹12 lakh, which is why your tax is{' '}
+            {formatRupees(result.regimes.new.tax.totalTax)} rather than{' '}
+            {formatRupees(result.regimes.new.tax.slabTax * 1.04)}. In this band every extra rupee of
+            taxable income goes to tax until the relief runs out, which is why each extra ₹100 you
+            earn costs {formatRupees(data.marginalRate * 100)} in tax.{' '}
+            <a href="/marginal-relief">How marginal relief works</a>.
+          </p>
+        ) : (
+          <p>
+            Your taxable income under the {regimeName} is {formatRupees(best.taxableIncome)}. You
+            pay {formatRupees(best.tax.totalTax)} a year in income tax including the 4% cess, which
+            is {percent(data.effectiveRate)} of your CTC, and each further rupee of taxable income
+            is taxed at {percent(data.marginalRate)}.
+            {surcharge &&
+              ` Above ₹50 lakh of taxable income a surcharge is added, with marginal relief so that crossing the threshold costs at most the income above it, plus the 4% cess.`}
+          </p>
+        )}
+
+        <h2>{label} in different states</h2>
+        <p>
+          Income tax is the same everywhere in India, but professional tax is set by each state,
+          from nothing in Delhi, Haryana and Uttar Pradesh to ₹2,500 a year in Maharashtra and
+          Karnataka. It is a small difference, but it is the only part of this calculation that
+          changes when you move.
+        </p>
+        <div class="overflow-x-auto">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">State</th>
+                <th scope="col">Professional tax a year</th>
+                <th scope="col">In hand a month</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.states.map((row) => (
+                <tr>
+                  <td>
+                    {GUIDES.has(row.code) ? (
+                      <a href={`/professional-tax/${row.code.toLowerCase()}`}>{row.name}</a>
+                    ) : (
+                      row.name
+                    )}
+                  </td>
+                  <td>{row.professionalTax > 0 ? formatRupees(row.professionalTax) : 'None'}</td>
+                  <td>{formatRupees(row.monthly)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Old or new regime at {label}</h2>
+        {noTaxEither ? (
+          <p>
+            Neither regime charges income tax at this salary, so the choice makes no difference to
+            your pay. The new regime is the default, and you would only consider the old one if your
+            income rises.
+          </p>
+        ) : breakEven.reason === 'new-is-tax-free' ? (
+          <p>
+            The new regime wins outright. It charges no income tax at this salary, and no
+            combination of old-regime deductions can beat zero. The old regime would cost you{' '}
+            {formatRupees(result.regimes.old.tax.totalTax)} a year with only your PF claimed under
+            section 123.
+          </p>
+        ) : breakEven.reason === 'already-cheaper' ? (
+          <p>
+            With this structure the old regime is already cheaper, by{' '}
+            {formatRupees(result.savingByChoosingBetter)} a year.
+          </p>
+        ) : (
+          <>
+            <p>
+              The new regime costs {formatRupees(breakEven.newTax)} a year in tax. For the old
+              regime to cost less you would need to claim{' '}
+              <strong>{formatRupees(breakEven.extraNeeded!)} more</strong> in deductions and
+              exemptions than it already gives you (the ₹50,000 standard deduction, professional tax
+              and your PF under section 123).
+            </p>
+            <p>
+              {breakEven.reachableWithoutHra
+                ? `The capped deductions can get you there without HRA: the rest of section 123, the extra ₹50,000 for NPS, health insurance and home loan interest add up to ${formatRupees(
+                    breakEven.cappedHeadroom,
+                  )}, but only if you also have a home loan.`
+                : `The capped deductions alone cannot get you there: the rest of section 123, the extra ₹50,000 for NPS, health insurance and home loan interest add up to at most ${formatRupees(
+                    breakEven.cappedHeadroom,
+                  )}. You would need an HRA exemption as well.`}{' '}
+              {metroRent.monthlyRent !== null
+                ? `Renting in Bengaluru or another of the eight 50% cities, with section 123, NPS and health insurance maxed out, the old regime starts to win at a rent of about ${formatRupees(
+                    metroRent.monthlyRent,
+                  )} a month.`
+                : 'Even with the largest possible HRA exemption in a 50% city and those deductions maxed out, the old regime does not win at this salary.'}
+            </p>
+          </>
+        )}
+        <p>
+          <a href="/old-vs-new-tax-regime">How the break-even changes across salaries</a>, and{' '}
+          <a href="/hra-exemption">how HRA works in the eight 50% cities</a>.
+        </p>
+
+        <h2>If your employer pays PF on your full Basic</h2>
+        {Math.abs(pfDifference) < 1 ? (
+          <p>
+            Your Basic is {formatRupees(a.basic / 12)} a month, under the PF wage ceiling, so it
+            makes no difference whether your employer caps PF: 12% of your full Basic is already
+            what you pay. <a href="/provident-fund">How the PF ceiling works</a>.
+          </p>
+        ) : (
+          <p>
+            Many employers cap PF at the statutory wage ceiling, which rose from ₹15,000 to ₹25,000
+            a month on 17 September 2026; that is what the figures above assume. If yours
+            contributes on your full Basic of {formatRupees(a.basic / 12)} a month instead, your
+            in-hand falls to {formatRupees(fullPf.monthly)} a month, {formatRupees(pfDifference)}{' '}
+            less: your own contribution rises, and so does your employer's, which comes out of your
+            CTC
+            {fullPfTaxLower ? ', partly offset by lower tax' : ''}. In exchange{' '}
+            {formatRupees(fullPf.employeePfYear)} a year goes into your PF from your side, matched
+            by your employer. Your payslip will say which applies.{' '}
+            <a href="/provident-fund">How the PF ceiling works</a>.
+          </p>
+        )}
+      </div>
+
+      <section class="mt-20" aria-labelledby="breakdown-heading">
+        <p class="eyebrow">Every rupee, accounted for</p>
+        <h2 id="breakdown-heading" class="mt-1 text-3xl font-semibold tracking-tight text-ink">
+          The full {label} breakdown
+        </h2>
+        <p class="mt-1 text-sm text-ink-3">
+          All figures a year, for the {regimeName} unless stated. The{' '}
+          {other.regime === 'new' ? 'new' : 'old'} regime is shown under “How the tax was worked
+          out”.
+        </p>
+        <div class="mt-8" set:html={renderDetails(result)} />
+      </section>
+
+      <nav class="mt-20" aria-labelledby="nearby-heading">
+        <h2 id="nearby-heading" class="text-2xl font-semibold tracking-tight text-ink">
+          Nearby salaries
+        </h2>
+        <ul class="mt-4 flex flex-wrap gap-2">
+          {nearby.map((n) => (
+            <li>
+              <a href={bracketPath(n)} class="btn btn-secondary">
+                {bracketLabel(n)}
+              </a>
+            </li>
+          ))}
+          <li>
+            <a href="/in-hand-salary" class="btn btn-tertiary ml-2 self-center">
+              Every salary
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <p class="mt-12 max-w-3xl text-sm text-ink-3">
+        Figures follow the Income-tax Act, 2025 (slabs under section 202, the rebate and marginal
+        relief under section 156, the standard deduction under section 19), the EPF wage ceiling
+        (raised to ₹25,000 on 17 September 2026) and the state's Professions Tax Act. Estimates
+        only, not tax advice.{' '}
+        <a href="/how-it-works" class="underline">
+          Method and sources
         </a>
         .
       </p>
-    </header>
-
-    <div class="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:gap-8">
-      <section class="card p-5 sm:p-6" aria-labelledby="summary-heading">
-        <h2 id="summary-heading" class="sr-only">
-          Summary
-        </h2>
-        <p class="text-sm text-ink-2">In hand per month</p>
-        <p class="mt-1 text-figure font-medium tabular-nums text-ink">
-          <span class="cur">₹</span>
-          {formatNumber(best.monthlyTakeHome)}
-        </p>
-        <p class="mt-2 text-sm text-ink-2">
-          {formatRupees(best.annualTakeHome)} a year from a {formatCompactRupees(lakhs(lpa))} CTC.
-        </p>
-        <Fragment set:html={regimeComparison(result)} />
-        <Fragment set:html={compositionBar(result)} />
-      </section>
-
-      <aside class="inset p-5" aria-labelledby="facts-heading">
-        <h2 id="facts-heading" class="text-base font-medium text-ink">
-          At a glance
-        </h2>
-        <dl class="mt-3 divide-y divide-line text-sm">
-          <div class="flex justify-between gap-4 py-2.5">
-            <dt class="text-ink-2">Cheaper regime</dt>
-            <dd class="text-ink">
-              {noTaxEither ? 'Either, no tax' : result.better === 'new' ? 'New' : 'Old'}
-            </dd>
-          </div>
-          <div class="flex justify-between gap-4 py-2.5">
-            <dt class="text-ink-2">Income tax a year</dt>
-            <dd class="tabular-nums text-ink">{formatRupees(best.tax.totalTax)}</dd>
-          </div>
-          <div class="flex justify-between gap-4 py-2.5">
-            <dt class="text-ink-2">Share of CTC paid as tax</dt>
-            <dd class="tabular-nums text-ink">{percent(data.effectiveRate)}</dd>
-          </div>
-          <div class="flex justify-between gap-4 py-2.5">
-            <dt class="text-ink-2">Tax on each extra ₹100</dt>
-            <dd class="tabular-nums text-ink">{formatRupees(data.marginalRate * 100)}</dd>
-          </div>
-          <div class="flex justify-between gap-4 py-2.5">
-            <dt class="text-ink-2">Your PF this year</dt>
-            <dd class="tabular-nums text-ink">{formatRupees(result.structure.pf.employee * 12)}</dd>
-          </div>
-          <div class="flex justify-between gap-4 py-2.5">
-            <dt class="text-ink-2">Gratuity provision a year</dt>
-            <dd class="tabular-nums text-ink">{formatRupees(a.gratuity)}</dd>
-          </div>
-        </dl>
-        <a href={calculatorLink} class="btn btn-primary mt-5 w-full">
-          Open in the calculator
-        </a>
-      </aside>
     </div>
-
-    <div class="prose-doc mt-16">
-      <h2>Where {label} sits in the tax slabs</h2>
-      {result.regimes.new.tax.totalTax === 0 ? (
-        <p>
-          Your taxable income under the new regime is {formatRupees(newTaxable)}: the salary less
-          the ₹75,000 standard deduction. That is within the ₹12 lakh that the section 156 rebate
-          makes tax-free, so the new regime charges no income tax at all. What you lose from your
-          CTC is {losses}, not tax.
-        </p>
-      ) : relief ? (
-        <p>
-          Your taxable income under the new regime is {formatRupees(newTaxable)}, just above the ₹12
-          lakh the rebate makes tax-free. Section 156(2)(b) then caps your tax at the amount by
-          which you exceed ₹12 lakh, which is why your tax is{' '}
-          {formatRupees(result.regimes.new.tax.totalTax)} rather than{' '}
-          {formatRupees(result.regimes.new.tax.slabTax * 1.04)}. In this band every extra rupee of
-          taxable income goes to tax until the relief runs out, which is why each extra ₹100 you
-          earn costs {formatRupees(data.marginalRate * 100)} in tax.{' '}
-          <a href="/marginal-relief">How marginal relief works</a>.
-        </p>
-      ) : (
-        <p>
-          Your taxable income under the {regimeName} is {formatRupees(best.taxableIncome)}. You pay{' '}
-          {formatRupees(best.tax.totalTax)} a year in income tax including the 4% cess, which is{' '}
-          {percent(data.effectiveRate)} of your CTC, and each further rupee of taxable income is
-          taxed at {percent(data.marginalRate)}.
-          {surcharge &&
-            ` Above ₹50 lakh of taxable income a surcharge is added, with marginal relief so that crossing the threshold costs at most the income above it, plus the 4% cess.`}
-        </p>
-      )}
-
-      <h2>{label} in different states</h2>
-      <p>
-        Income tax is the same everywhere in India, but professional tax is set by each state, from
-        nothing in Delhi, Haryana and Uttar Pradesh to ₹2,500 a year in Maharashtra and Karnataka.
-        It is a small difference, but it is the only part of this calculation that changes when you
-        move.
-      </p>
-      <div class="overflow-x-auto">
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">State</th>
-              <th scope="col">Professional tax a year</th>
-              <th scope="col">In hand a month</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.states.map((row) => (
-              <tr>
-                <td>
-                  {GUIDES.has(row.code) ? (
-                    <a href={`/professional-tax/${row.code.toLowerCase()}`}>{row.name}</a>
-                  ) : (
-                    row.name
-                  )}
-                </td>
-                <td>{row.professionalTax > 0 ? formatRupees(row.professionalTax) : 'None'}</td>
-                <td>{formatRupees(row.monthly)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <h2>Old or new regime at {label}</h2>
-      {noTaxEither ? (
-        <p>
-          Neither regime charges income tax at this salary, so the choice makes no difference to
-          your pay. The new regime is the default, and you would only consider the old one if your
-          income rises.
-        </p>
-      ) : breakEven.reason === 'new-is-tax-free' ? (
-        <p>
-          The new regime wins outright. It charges no income tax at this salary, and no combination
-          of old-regime deductions can beat zero. The old regime would cost you{' '}
-          {formatRupees(result.regimes.old.tax.totalTax)} a year with only your PF claimed under
-          section 123.
-        </p>
-      ) : breakEven.reason === 'already-cheaper' ? (
-        <p>
-          With this structure the old regime is already cheaper, by{' '}
-          {formatRupees(result.savingByChoosingBetter)} a year.
-        </p>
-      ) : (
-        <>
-          <p>
-            The new regime costs {formatRupees(breakEven.newTax)} a year in tax. For the old regime
-            to cost less you would need to claim{' '}
-            <strong>{formatRupees(breakEven.extraNeeded!)} more</strong> in deductions and
-            exemptions than it already gives you (the ₹50,000 standard deduction, professional tax
-            and your PF under section 123).
-          </p>
-          <p>
-            {breakEven.reachableWithoutHra
-              ? `The capped deductions can get you there without HRA: the rest of section 123, the extra ₹50,000 for NPS, health insurance and home loan interest add up to ${formatRupees(
-                  breakEven.cappedHeadroom,
-                )}, but only if you also have a home loan.`
-              : `The capped deductions alone cannot get you there: the rest of section 123, the extra ₹50,000 for NPS, health insurance and home loan interest add up to at most ${formatRupees(
-                  breakEven.cappedHeadroom,
-                )}. You would need an HRA exemption as well.`}{' '}
-            {metroRent.monthlyRent !== null
-              ? `Renting in Bengaluru or another of the eight 50% cities, with section 123, NPS and health insurance maxed out, the old regime starts to win at a rent of about ${formatRupees(
-                  metroRent.monthlyRent,
-                )} a month.`
-              : 'Even with the largest possible HRA exemption in a 50% city and those deductions maxed out, the old regime does not win at this salary.'}
-          </p>
-        </>
-      )}
-      <p>
-        <a href="/old-vs-new-tax-regime">How the break-even changes across salaries</a>, and{' '}
-        <a href="/hra-exemption">how HRA works in the eight 50% cities</a>.
-      </p>
-
-      <h2>If your employer pays PF on your full Basic</h2>
-      {Math.abs(pfDifference) < 1 ? (
-        <p>
-          Your Basic is {formatRupees(a.basic / 12)} a month, under the PF wage ceiling, so it makes
-          no difference whether your employer caps PF: 12% of your full Basic is already what you
-          pay. <a href="/provident-fund">How the PF ceiling works</a>.
-        </p>
-      ) : (
-        <p>
-          Many employers cap PF at the statutory wage ceiling, which rose from ₹15,000 to ₹25,000 a
-          month on 17 September 2026; that is what the figures above assume. If yours contributes on
-          your full Basic of {formatRupees(a.basic / 12)} a month instead, your in-hand falls to{' '}
-          {formatRupees(fullPf.monthly)} a month, {formatRupees(pfDifference)} less: your own
-          contribution rises, and so does your employer's, which comes out of your CTC
-          {fullPfTaxLower ? ', partly offset by lower tax' : ''}. In exchange{' '}
-          {formatRupees(fullPf.employeePfYear)} a year goes into your PF from your side, matched by
-          your employer. Your payslip will say which applies.{' '}
-          <a href="/provident-fund">How the PF ceiling works</a>.
-        </p>
-      )}
-    </div>
-
-    <section class="mt-16 border-t border-line pt-10" aria-labelledby="breakdown-heading">
-      <h2 id="breakdown-heading" class="text-xl font-medium text-ink">
-        The full {label} breakdown
-      </h2>
-      <p class="mt-1 text-sm text-ink-3">
-        All figures a year, for the {regimeName} unless stated. The{' '}
-        {other.regime === 'new' ? 'new' : 'old'} regime is shown under “How the tax was worked out”.
-      </p>
-      <div class="mt-8" set:html={renderDetails(result)} />
-    </section>
-
-    <nav class="mt-16 border-t border-line pt-10" aria-labelledby="nearby-heading">
-      <h2 id="nearby-heading" class="text-xl font-medium text-ink">
-        Nearby salaries
-      </h2>
-      <ul class="mt-4 flex flex-wrap gap-2">
-        {nearby.map((n) => (
-          <li>
-            <a href={bracketPath(n)} class="btn btn-secondary">
-              {bracketLabel(n)}
-            </a>
-          </li>
-        ))}
-        <li>
-          <a href="/in-hand-salary" class="btn btn-tertiary ml-2 self-center">
-            Every salary
-          </a>
-        </li>
-      </ul>
-    </nav>
-
-    <p class="mt-12 max-w-3xl text-sm text-ink-3">
-      Figures follow the Income-tax Act, 2025 (slabs under section 202, the rebate and marginal
-      relief under section 156, the standard deduction under section 19), the EPF wage ceiling
-      (raised to ₹25,000 on 17 September 2026) and the state's Professions Tax Act. Estimates only,
-      not tax advice.{' '}
-      <a href="/how-it-works" class="underline">
-        Method and sources
-      </a>
-      .
-    </p>
   </article>
 </BaseLayout>

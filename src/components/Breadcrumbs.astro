@@ -8,13 +8,13 @@ interface Props {
 const { crumbs } = Astro.props;
 ---
 
-<nav aria-label="Breadcrumb" class="text-sm text-ink-3">
+<nav aria-label="Breadcrumb" class="text-sm font-medium text-ink-3">
   <ol class="flex flex-wrap items-center gap-x-2 gap-y-1">
     {crumbs.map((crumb, i) => (
-      <li class="flex items-center gap-2">
+      <li class:list={['items-center gap-2', i === crumbs.length - 1 ? 'hidden sm:flex' : 'flex']}>
         {i > 0 && <span aria-hidden="true">/</span>}
         {i === crumbs.length - 1 ? (
-          <span aria-current="page" class="text-ink-2">
+          <span aria-current="page" class="text-accent-ink">
             {crumb.name}
           </span>
         ) : (

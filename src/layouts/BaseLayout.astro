@@ -92,8 +92,8 @@ const graph = {
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="sitemap" href="/sitemap-index.xml" />
-    <meta name="theme-color" content="#fafcfd" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#11181e" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#fcfdfd" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f1312" media="(prefers-color-scheme: dark)" />
 
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={SITE.name} />
@@ -111,7 +111,8 @@ const graph = {
       <script type="application/ld+json" set:html={JSON.stringify(graph)} is:inline></script>
     )}
 
-    <Font cssVariable="--font-plex" preload />
+    <Font cssVariable="--font-geist" preload />
+    <Font cssVariable="--font-geist-mono" />
 
     <!-- Resolve the theme before first paint so dark-mode users never see a white flash. -->
     <script is:inline>
@@ -151,7 +152,7 @@ const graph = {
   <body class="flex min-h-dvh flex-col">
     <a
       href="#main"
-      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-sm focus:bg-surface focus:px-3 focus:py-2 focus:text-ink"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-pill focus:bg-surface focus:px-4 focus:py-2 focus:text-ink focus:shadow-md"
     >
       Skip to content
     </a>
