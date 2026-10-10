@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LPA_BRACKETS } from './brackets';
-import { gratuityData, labourCodeData, pfGuideData } from './explainers';
+import { ctcData, gratuityData, labourCodeData, pfGuideData } from './explainers';
 
 describe('labourCodeData', () => {
   const data = labourCodeData();
@@ -110,7 +110,44 @@ describe('links from the guides', () => {
       ...labourCodeData().esi.map((r) => r.lpa),
       ...pfGuideData().modeRows.map((r) => r.lpa),
       ...gratuityData().rows.map((r) => r.lpa),
+      ...ctcData().rows.map((r) => r.lpa),
     ];
     expect(linked.filter((lpa) => !pages.has(lpa))).toEqual([]);
+  });
+});
+
+describe('ctcData', () => {
+  const data = ctcData();
+  const step = (label: string) => data.steps.find((s) => s.label === label)!;
+
+  it('walks 12 LPA from CTC to in-hand and adds up', () => {
+    expect(step('CTC').amount).toBe(12_00_000);
+    expect(step('Employer PF').amount).toBeCloseTo(-29_360, 6);
+    expect(step('Gratuity provision').amount).toBeCloseTo(-28_846.15, 1);
+    expect(step('Gross salary').amount).toBeCloseTo(11_41_793.85, 1);
+    expect(step('Income tax').amount).toBe(0);
+    expect(step('In hand').amount).toBeCloseTo(11_09_933.85, 1);
+    // Each subtotal is the running sum of the steps above it.
+    let running = 0;
+    for (const s of data.steps) {
+      if (s.kind === 'start') running = s.amount;
+      else if (s.kind === 'minus') running += s.amount;
+      else expect(s.amount).toBeCloseTo(running, 4);
+    }
+  });
+
+  it('gives monthly figures that reconcile across salaries', () => {
+    for (const row of data.rows) {
+      expect(row.grossMonthly - row.deductionsMonthly).toBeCloseTo(row.takeHomeMonthly, 6);
+    }
+    expect(data.rows.find((r) => r.lpa === 12)!.takeHomeMonthly).toBeCloseTo(92_494.49, 1);
+  });
+
+  it('moves variable pay out of the month without changing a fully paid year', () => {
+    // 10% of 15 LPA is 1,50,000, carved out of special allowance: 12,500 a month less, same year.
+    const v = data.variable;
+    expect(v.variableAnnual).toBe(1_50_000);
+    expect(v.monthlyWithout - v.monthlyWith).toBeCloseTo(12_500, 2);
+    expect(v.annualWith).toBeCloseTo(v.annualWithout, 2);
   });
 });

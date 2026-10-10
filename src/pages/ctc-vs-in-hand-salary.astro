@@ -1,0 +1,158 @@
+---
+/**
+ * CTC, gross salary and in-hand salary, walked through with the engine's own numbers. Every table
+ * is computed at build time, so it always matches the calculator.
+ */
+import DocLayout from '../layouts/DocLayout.astro';
+import { bracketPath } from '../lib/brackets';
+import { ctcData } from '../lib/explainers';
+import { formatPercent, formatRupees } from '../lib/format';
+
+const data = ctcData();
+const money = (amount: number) => (amount < 0 ? `−${formatRupees(-amount)}` : formatRupees(amount));
+const gross = data.steps.find((s) => s.kind === 'subtotal')!;
+const inHand = data.steps.find((s) => s.kind === 'total')!;
+const v = data.variable;
+---
+
+<DocLayout
+  title="CTC, gross and in-hand salary: what each one means"
+  description="The three salary figures on every Indian offer letter, worked through for FY 2026-27: what CTC includes, how gross salary is reached, and what is deducted before your in-hand pay."
+  updated="2026-10-10"
+  ogImage="ctc-vs-in-hand-salary"
+  about={['Cost to company', 'Gross salary', 'In-hand salary', 'Income tax in India']}
+>
+  <p>
+    An Indian offer letter can describe the same job with three different numbers. They are not
+    interchangeable, and the gap between the first and the last is what surprises most people in
+    their first month.
+  </p>
+  <ul>
+    <li>
+      <strong>CTC</strong>, cost to company, is everything your employer spends on you in a year,
+      including money that never reaches your bank account.
+    </li>
+    <li>
+      <strong>Gross salary</strong> is what is paid through payroll before deductions: Basic, HRA,
+      special allowance and other allowances.
+    </li>
+    <li>
+      <strong>In-hand salary</strong>, also called take-home or net pay, is what is actually
+      credited each month, after your provident fund, professional tax and income tax.
+    </li>
+  </ul>
+
+  <h2>From CTC to in-hand, step by step</h2>
+  <p>
+    A {data.exampleLpa} LPA offer with the calculator's standard structure: Basic at half of CTC, PF
+    at the wage ceiling, gratuity and employer PF counted inside CTC, Karnataka professional tax and
+    the new tax regime. All figures are for the year.
+  </p>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Step</th>
+          <th scope="col">A year</th>
+          <th scope="col">Where it goes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.steps.map((s) => (
+          <tr>
+            <td>{s.kind === 'minus' ? s.label : <strong>{s.label}</strong>}</td>
+            <td>{s.kind === 'minus' ? money(s.amount) : <strong>{money(s.amount)}</strong>}</td>
+            <td>{s.note ?? ''}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    So a {data.exampleLpa} lakh CTC becomes {formatRupees(gross.amount)} of gross salary and{' '}
+    {formatRupees(inHand.amount)} in hand, or{' '}
+    <strong>{formatRupees(data.takeHomeMonthly)} a month</strong>. The employer PF and gratuity are
+    still yours, but as savings you reach later, not as salary.
+  </p>
+
+  <h2>The gap at different salaries</h2>
+  <p>
+    The same structure at other salaries. Below about ₹12 lakh, provident fund and gratuity make up
+    most of the gap; above it, income tax takes over.
+  </p>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">CTC</th>
+          <th scope="col">Gross a month</th>
+          <th scope="col">Deducted a month</th>
+          <th scope="col">In hand a month</th>
+          <th scope="col">Share of CTC in hand</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.rows.map((r) => (
+          <tr>
+            <td>
+              <a href={bracketPath(r.lpa)}>{r.lpa} LPA</a>
+            </td>
+            <td>{formatRupees(r.grossMonthly)}</td>
+            <td>{formatRupees(r.deductionsMonthly)}</td>
+            <td>{formatRupees(r.takeHomeMonthly)}</td>
+            <td>{formatPercent(r.share, 0)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    "Deducted" is your own PF, any ESI, professional tax and income tax. The share of CTC also
+    counts the employer PF and gratuity that never pass through your payslip.
+  </p>
+
+  <h2>Variable pay is not part of your monthly salary</h2>
+  <p>
+    Many offers put part of the CTC into a performance bonus or variable pay. It is carved out of
+    the same CTC, so it lowers the monthly figure, and it is paid once or twice a year only if
+    targets are met.
+  </p>
+  <p>
+    At {v.lpa} LPA with {v.percent}% variable pay ({formatRupees(v.variableAnnual)} a year), the
+    monthly in-hand falls from {formatRupees(v.monthlyWithout)} to {formatRupees(v.monthlyWith)}. If
+    the bonus is paid in full, the year's total is the same, {formatRupees(v.annualWith)}; you just
+    receive {formatRupees(v.monthlyWithout - v.monthlyWith)} a month later, as a lump sum. If it is
+    not paid, that money is gone. When you compare offers, compare the fixed part.
+  </p>
+
+  <h2>What else can sit inside a CTC</h2>
+  <p>
+    Some employers also count things the calculator does not model, such as a joining or retention
+    bonus, insurance premiums, meal cards or a company car. None of them changes your monthly
+    in-hand, and a one-time bonus makes the first year's CTC look larger than every year after it.
+    Ask for a component-wise breakdown before you compare.
+  </p>
+
+  <h2>Comparing two offers</h2>
+  <ul>
+    <li>
+      Compare <strong>monthly in-hand</strong> on the fixed pay, then add the variable part at the
+      rate it has actually been paid.
+    </li>
+    <li>
+      Check whether employer PF and gratuity are <strong>inside</strong> each CTC. An offer that
+      pays them on top is worth more than the same CTC with them inside.
+    </li>
+    <li>
+      Check whether PF is on the wage ceiling or on full Basic. Full-Basic PF lowers in-hand but
+      saves much more; see the <a href="/provident-fund">provident fund guide</a>.
+    </li>
+    <li>
+      Put both offers into the <a href="/">calculator</a> and use its share link to keep each
+      result, so you can open them side by side.
+    </li>
+  </ul>
+  <p>
+    The <a href="/how-it-works">method page</a> lists every rate and source behind these numbers.
+  </p>
+</DocLayout>

@@ -333,3 +333,122 @@ export function gratuityData(): GratuityData {
     ),
   };
 }
+
+// ---------------------------------------------------------------------------------------------
+// CTC, gross and in-hand
+// ---------------------------------------------------------------------------------------------
+
+export interface WaterfallStep {
+  label: string;
+  /** A year. Negative for amounts taken away. */
+  amount: number;
+  note?: string;
+  kind: 'start' | 'minus' | 'subtotal' | 'total';
+}
+
+export interface CtcRow {
+  lpa: number;
+  grossMonthly: number;
+  /** Employee PF, ESI, professional tax and income tax, a month. */
+  deductionsMonthly: number;
+  takeHomeMonthly: number;
+  /** Share of CTC that reaches the bank over the year. */
+  share: number;
+}
+
+export interface CtcData {
+  exampleLpa: number;
+  steps: WaterfallStep[];
+  takeHomeMonthly: number;
+  rows: CtcRow[];
+  variable: {
+    lpa: number;
+    percent: number;
+    variableAnnual: number;
+    monthlyWithout: number;
+    monthlyWith: number;
+    annualWithout: number;
+    annualWith: number;
+  };
+}
+
+export const CTC_EXAMPLE_LPA = 12;
+export const CTC_LPA = [5, 8, 12, 15, 20, 30, 50] as const;
+export const VARIABLE_EXAMPLE = { lpa: 15, percent: 10 } as const;
+
+export function ctcData(): CtcData {
+  const r = at(CTC_EXAMPLE_LPA);
+  const s = r.structure;
+  const a = s.annual;
+  const best = r.regimes[r.better];
+  const minus = (label: string, amount: number, note?: string): WaterfallStep[] =>
+    amount > 0 ? [{ label, amount: -amount, note, kind: 'minus' }] : [];
+
+  const steps: WaterfallStep[] = [
+    { label: 'CTC', amount: r.input.ctc, kind: 'start' },
+    ...minus(
+      'Employer PF',
+      r.input.employerPfInCtc ? a.employerPf : 0,
+      'Into your PF account and pension',
+    ),
+    ...minus(
+      'Gratuity provision',
+      r.input.gratuityInCtc ? a.gratuity : 0,
+      'Paid only if you leave after qualifying',
+    ),
+    ...minus(
+      'Employer ESI',
+      r.input.employerEsiInCtc ? a.employerEsi : 0,
+      'Buys ESI medical cover',
+    ),
+    ...minus('Employer NPS', a.employerNps, 'Into your NPS account'),
+    ...minus('Variable pay', a.variable, 'Paid separately, if earned'),
+    { label: 'Gross salary', amount: a.grossFixed, kind: 'subtotal' },
+    ...minus('Your PF', s.pf.employee * 12),
+    ...minus('Your ESI', s.esi.employee * 12),
+    ...minus('Professional tax', r.professionalTax.annual),
+    ...(best.tax.totalTax > 0
+      ? minus('Income tax', best.tax.totalTax)
+      : [
+          {
+            label: 'Income tax',
+            amount: 0,
+            note: 'None: within the ₹12 lakh rebate',
+            kind: 'minus' as const,
+          },
+        ]),
+    { label: 'In hand', amount: best.annualTakeHome - a.variable, kind: 'total' },
+  ];
+
+  const rows = CTC_LPA.map((lpa): CtcRow => {
+    const row = at(lpa);
+    const b = row.regimes[row.better];
+    const gross = row.structure.annual.grossFixed / 12;
+    return {
+      lpa,
+      grossMonthly: gross,
+      deductionsMonthly: gross - b.monthlyTakeHome,
+      takeHomeMonthly: b.monthlyTakeHome,
+      share: b.annualTakeHome / row.input.ctc,
+    };
+  });
+
+  const without = at(VARIABLE_EXAMPLE.lpa);
+  const withVariable = at(VARIABLE_EXAMPLE.lpa, {
+    variable: { unit: 'percent', value: VARIABLE_EXAMPLE.percent },
+  });
+  return {
+    exampleLpa: CTC_EXAMPLE_LPA,
+    steps,
+    takeHomeMonthly: best.monthlyTakeHome,
+    rows,
+    variable: {
+      ...VARIABLE_EXAMPLE,
+      variableAnnual: withVariable.structure.annual.variable,
+      monthlyWithout: takeHome(without),
+      monthlyWith: takeHome(withVariable),
+      annualWithout: without.regimes[without.better].annualTakeHome,
+      annualWith: withVariable.regimes[withVariable.better].annualTakeHome,
+    },
+  };
+}
