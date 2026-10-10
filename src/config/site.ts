@@ -4,8 +4,8 @@
  */
 export const SITE = {
   name: 'InHand',
-  domain: 'inhand.in',
-  url: 'https://inhand.in',
+  domain: 'ctcinhand.pages.dev',
+  url: 'https://ctcinhand.pages.dev',
   tagline: 'CTC to in-hand salary calculator for India',
   /**
    * The Income-tax Act, 2025 (in force 1 April 2026) replaced "previous year" /
@@ -16,7 +16,7 @@ export const SITE = {
   shortYearLabel: 'FY 2026-27',
   /** Date the statutory figures in src/lib/tax/rates.ts were last verified. */
   ratesVerifiedOn: '2026-10-09',
-  contactEmail: 'hello@inhand.in',
+  contactEmail: 'workwithvirajjadhav@gmail.com',
   /** Where readers can chip in to keep the site free. Linked from the footer, About and results. */
   support: {
     label: 'Buy me a coffee',

@@ -31,7 +31,7 @@ The site is static, so no adapter is needed. `wrangler.jsonc` sets `pages_build_
 npm run deploy
 ```
 
-That runs `verify` and then `wrangler pages deploy ./dist --project-name=inhand`. The first run
+That runs `verify` and then `wrangler pages deploy ./dist --project-name=ctcinhand`. The first run
 prompts you to log in and create the project. For Git-connected builds instead, set the build
 command to `npm run build` and the output directory to `dist`.
 

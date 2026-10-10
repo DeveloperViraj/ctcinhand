@@ -18,7 +18,7 @@
     "test:watch": "vitest",
     "verify": "npm run lint && npm run format:check && npm run check && npm run test && npm run build",
     "deploy:preview": "npm run build && wrangler pages dev ./dist",
-    "deploy": "npm run verify && wrangler pages deploy ./dist --project-name=inhand",
+    "deploy": "npm run verify && wrangler pages deploy ./dist --project-name=ctcinhand",
     "lighthouse": "node scripts/lighthouse.mjs"
   },
   "dependencies": {

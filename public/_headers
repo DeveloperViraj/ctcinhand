@@ -13,10 +13,10 @@
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Cloudflare also serves every deployment on *.pages.dev. Keep those copies out of search results
-# so only the real domain is indexed.
-https://:project.pages.dev/*
-  X-Robots-Tag: noindex
-
+# The site lives on ctcinhand.pages.dev for now, so that address must stay indexable. Every
+# deployment also gets its own <hash>.ctcinhand.pages.dev copy: keep those out of search results.
+# When a custom domain is added, put this back above the rule below, so only the domain is indexed:
+#   https://:project.pages.dev/*
+#     X-Robots-Tag: noindex
 https://:version.:project.pages.dev/*
   X-Robots-Tag: noindex
