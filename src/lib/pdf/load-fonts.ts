@@ -5,6 +5,7 @@
 
 import textUrl from '../../assets/pdf-fonts/report-sans-text.ttf?url';
 import mediumUrl from '../../assets/pdf-fonts/report-sans-medium.ttf?url';
+import displayUrl from '../../assets/pdf-fonts/report-display.ttf?url';
 import type { PdfFontFiles } from './fonts';
 
 async function fetchBytes(url: string): Promise<Uint8Array> {
@@ -14,6 +15,8 @@ async function fetchBytes(url: string): Promise<Uint8Array> {
 }
 
 export async function loadPdfFonts(): Promise<PdfFontFiles> {
-  const [text, medium] = await Promise.all([fetchBytes(textUrl), fetchBytes(mediumUrl)]);
-  return { text, medium };
+  const [text, medium, display] = await Promise.all(
+    [textUrl, mediumUrl, displayUrl].map(fetchBytes),
+  );
+  return { text, medium, display };
 }

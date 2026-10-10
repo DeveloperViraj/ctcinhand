@@ -86,8 +86,11 @@ function ringBand(b: RingBand): string[] {
   return paths;
 }
 
-/** The rosette: three bands of guilloche rings around a petalled centre. */
-export function rosetteSvg(): string {
+/**
+ * The rosette's path data, centred on the origin with a radius of about 200: three bands of
+ * guilloche rings around a petalled centre. The PDF report draws the same paths.
+ */
+export function rosettePaths(): string[] {
   const paths = [
     ...ringBand({ radius: 186, lines: 4, spacing: 0.5, amplitude: 4, waves: 72, phaseStep: 1 / 4 }),
     ...ringBand({
@@ -119,16 +122,24 @@ export function rosetteSvg(): string {
     }
     paths.push(closedCurve(points));
   }
+  return paths;
+}
+
+export function rosetteSvg(): string {
   return svg(
     '-210 -210 420 420',
-    `<g fill="none" stroke="#000" stroke-width="0.7">${paths.map((d) => `<path d="${d}"/>`).join('')}</g>`,
+    `<g fill="none" stroke="#000" stroke-width="0.7">${rosettePaths()
+      .map((d) => `<path d="${d}"/>`)
+      .join('')}</g>`,
   );
 }
 
+/** The band tile's size: it repeats seamlessly every BAND.width units. */
+export const BAND = { width: 240, height: 24 } as const;
+
 /** A horizontal strip of interleaved waves that tiles seamlessly left to right. */
-export function bandSvg(): string {
-  const width = 240;
-  const height = 24;
+export function bandPaths(): string[] {
+  const { width, height } = BAND;
   const paths: string[] = [];
   const lines = 7;
   for (let j = 0; j < lines; j++) {
@@ -143,10 +154,16 @@ export function bandSvg(): string {
     }
     paths.push(openCurve(points));
   }
+  return paths;
+}
+
+export function bandSvg(): string {
   return svg(
-    `0 0 ${width} ${height}`,
-    `<g fill="none" stroke="#000" stroke-width="0.6">${paths.map((d) => `<path d="${d}"/>`).join('')}</g>`,
-    { width, height },
+    `0 0 ${BAND.width} ${BAND.height}`,
+    `<g fill="none" stroke="#000" stroke-width="0.6">${bandPaths()
+      .map((d) => `<path d="${d}"/>`)
+      .join('')}</g>`,
+    BAND,
   );
 }
 

@@ -5,7 +5,8 @@
  * result does not depend on fonts installed on the build machine; sharp then rasterises it. None
  * of this reaches the browser: the output is a plain PNG per page.
  *
- * The card reuses the IBM Plex subsets cut for the PDF report (same typeface as the site).
+ * The card reuses the Geist subsets cut for the PDF report (the site's text face), with Eczar for
+ * the headline.
  */
 
 import { rosetteSvg } from './art';
@@ -49,7 +50,7 @@ const fontPath = (name: string) => join(process.cwd(), 'src', 'assets', 'pdf-fon
 
 const ogFontPath = (name: string) => join(process.cwd(), 'src', 'assets', 'og-fonts', name);
 
-type Font = { name: string; data: Buffer; weight: 400 | 500 | 700; style: 'normal' };
+type Font = { name: string; data: Buffer; weight: 400 | 600 | 700; style: 'normal' };
 let fonts: Promise<Font[]> | null = null;
 
 function loadFonts() {
@@ -60,8 +61,8 @@ function loadFonts() {
     readFile(ogFontPath('eczar-700-latin-ext.ttf')),
   ]).then(([text, medium, eczar, eczarExt]): Font[] => [
     // satori matches on the CSS weight it is given, not on the file's own weight class.
-    { name: 'Plex', data: text, weight: 400, style: 'normal' },
-    { name: 'Plex', data: medium, weight: 500, style: 'normal' },
+    { name: 'Geist', data: text, weight: 400, style: 'normal' },
+    { name: 'Geist', data: medium, weight: 600, style: 'normal' },
     // Headlines, as on the site. The rupee sign is in the Latin Extended file, so it is a fallback.
     { name: 'Eczar', data: eczar, weight: 700, style: 'normal' },
     { name: 'EczarExt', data: eczarExt, weight: 700, style: 'normal' },
@@ -105,7 +106,7 @@ function card(c: OgCard): Node {
       height: '100%',
       padding: '64px 72px 56px',
       background: COLORS.canvas,
-      fontFamily: 'Plex',
+      fontFamily: 'Geist',
       color: COLORS.ink,
       position: 'relative',
     },
@@ -166,7 +167,7 @@ function card(c: OgCard): Node {
           { display: 'flex', justifyContent: 'space-between', fontSize: 26, color: COLORS.ink3 },
           [
             h('div', {}, `CTC to in-hand salary, ${SITE.taxYearLabel}`),
-            h('div', { color: COLORS.accent, fontWeight: 500 }, SITE.domain),
+            h('div', { color: COLORS.accent, fontWeight: 600 }, SITE.domain),
           ],
         ),
       ]),

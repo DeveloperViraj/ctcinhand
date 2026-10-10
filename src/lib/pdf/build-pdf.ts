@@ -5,16 +5,19 @@
  * (src/scripts/export-pdf.ts) fetches the fonts and saves the file; tests build the same document
  * in Node and read it back.
  *
- * The page follows the site's system: IBM Plex Sans at 435 and 535, one green accent, ink greys
- * and hairline ledgers. A4 portrait with 48pt margins, vertical positions on a 4pt grid. Each block
- * is measured before it is drawn, so a block that does not fit moves whole to the next page, and a
- * table that has to break repeats its column header.
+ * The page follows the site's system: Geist for text and figures, Eczar for the headline figure and
+ * section headings, navy ink, India green for the money you keep, saffron for highlights, hairline
+ * ledgers, and the site's guilloche linework as a cheque band and a faint rosette on the first page.
+ * A4 portrait with 48pt margins, vertical positions on a 4pt grid. Each block is measured before it
+ * is drawn, so a block that does not fit moves whole to the next page, and a table that has to
+ * break repeats its column header.
  *
  * Text is always measured in the style it is drawn in (see Canvas.measure). Measuring after a size
  * change is what once made the header caption overlap the headline figure.
  */
 
-import { BRAND, COIN, HAND_SEGMENTS, HAND_START } from '../brand';
+import { BAND, bandPaths, rosettePaths } from '../art';
+import { BRAND, COIN, HAND_PATH, pathToSubpaths, RUPEE_PATH, type Subpath } from '../brand';
 import { jsPDF } from 'jspdf';
 import { SITE } from '../../config/site';
 import { buildExportDocument, type ExportRow, type ExportSectionId } from '../export-data';
@@ -22,7 +25,14 @@ import { formatCompactRupees, formatNumber } from '../format';
 import type { CalculationResult, RegimeBreakdown } from '../tax/calculate';
 import { STATES } from '../tax/professional-tax';
 import type { Regime } from '../tax/rates';
-import { FONT_FAMILY, registerFonts, toPdfText, type FontWeight, type PdfFontFiles } from './fonts';
+import {
+  DISPLAY_FAMILY,
+  FONT_FAMILY,
+  registerFonts,
+  toPdfText,
+  type FontWeight,
+  type PdfFontFiles,
+} from './fonts';
 
 export interface BuildPdfOptions {
   /** Link back to this exact calculation, printed as "Reopen this calculation". */
@@ -43,14 +53,16 @@ const WIDTH = RIGHT - LEFT;
 /** The footer is a hairline and two lines of small print ending on the bottom margin. */
 const FOOTER_RULE = PAGE_H - MARGIN - 24;
 const CONTENT_BOTTOM = FOOTER_RULE - 20;
-const FIRST_PAGE_TOP = 108;
+const FIRST_PAGE_TOP = 112;
 const NEXT_PAGE_TOP = 92;
 
 const SECTION_GAP = 28;
-const HEADING_GAP = 12;
+/** A section heading: a short saffron rule, the title in Eczar, then this gap before the content. */
+const HEADING_GAP = 10;
+const HEAD = 2 + 6 + 18 + HEADING_GAP;
 
-/** IBM Plex Sans cap height, as a fraction of the font size. */
-const CAP = 0.698;
+/** Cap heights, as a fraction of the font size. */
+const CAP = { sans: 0.71, display: 0.65 };
 
 const snap = (value: number) => Math.ceil(value / 4 - 1e-9) * 4;
 
@@ -58,21 +70,31 @@ const snap = (value: number) => Math.ceil(value / 4 - 1e-9) * 4;
 
 type Rgb = [number, number, number];
 const rgb = (hex: string): Rgb => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as Rgb;
+/** `a` mixed into `b`: mix(a, white, 0.25) is `a` at a quarter strength on paper. */
+const mix = (a: Rgb, b: Rgb, amount: number): Rgb =>
+  a.map((v, i) => Math.round(v * amount + b[i] * (1 - amount))) as Rgb;
 
+/** The site's light theme (src/styles/global.css), converted from OKLCH. */
 const COLOR = {
-  ink: rgb('#17201D'),
-  ink2: rgb('#47534F'),
-  ink3: rgb('#67736F'),
-  line: rgb('#E2E8E5'),
-  lineStrong: rgb('#CCD5D1'),
-  accent: rgb('#0F9A69'),
-  accentSoft: rgb('#E6F6EE'),
-  inset: rgb('#F3F7F5'),
-  chartTax: rgb('#56645F'),
-  chartRest: rgb('#BFE6D3'),
-  warn: rgb('#D9A035'),
+  ink: rgb('#131F35'),
+  ink2: rgb('#455063'),
+  ink3: rgb('#636C7C'),
+  line: rgb('#E0E4EB'),
+  lineStrong: rgb('#C8CED9'),
+  accent: rgb('#0B7643'),
+  accentSoft: rgb('#E4F9EA'),
+  /** The callout's border: the accent at 22% on its soft tint. */
+  accentLine: rgb('#B4DCC5'),
+  saffron: rgb('#F69835'),
+  saffronInk: rgb('#964D09'),
+  chakra: rgb('#183680'),
+  sunken: rgb('#F5F3EE'),
+  chartTax: rgb('#283C62'),
+  chartSave: rgb('#A7D9B7'),
   white: rgb('#FFFFFF'),
 };
+
+type Family = 'sans' | 'display';
 
 interface TextStyle {
   size: number;
@@ -80,21 +102,25 @@ interface TextStyle {
   color: Rgb;
   /** Height of one line box. Text sits in it with its capitals centred. */
   leading: number;
+  family: Family;
 }
 
-const style = (size: number, weight: FontWeight, color: Rgb, leading: number): TextStyle => ({
-  size,
-  weight,
-  color,
-  leading,
-});
+const style = (
+  size: number,
+  weight: FontWeight,
+  color: Rgb,
+  leading: number,
+  family: Family = 'sans',
+): TextStyle => ({ size, weight, color, leading, family });
+const display = (size: number, color: Rgb, leading: number) =>
+  style(size, 'normal', color, leading, 'display');
 const tint = (base: TextStyle, color: Rgb): TextStyle => ({ ...base, color });
 
 const T = {
-  hero: style(32, 'bold', COLOR.ink, 40),
+  hero: display(40, COLOR.ink, 44),
+  heading: display(14, COLOR.ink, 18),
   figure: style(15, 'bold', COLOR.ink, 20),
   amount: style(11, 'bold', COLOR.ink, 16),
-  heading: style(11, 'bold', COLOR.ink, 16),
   body: style(9, 'normal', COLOR.ink2, 12),
   value: style(9, 'normal', COLOR.ink, 12),
   strong: style(9, 'bold', COLOR.ink, 12),
@@ -103,8 +129,10 @@ const T = {
   micro: style(7, 'normal', COLOR.ink3, 10),
 };
 
+const capHeight = (s: TextStyle) => CAP[s.family] * s.size;
+
 /** Baseline of a line whose line box starts at `top`. */
-const baseline = (top: number, s: TextStyle) => top + s.leading / 2 + (CAP * s.size) / 2;
+const baseline = (top: number, s: TextStyle) => top + s.leading / 2 + capHeight(s) / 2;
 
 /* Money -------------------------------------------------------------------------------------- */
 
@@ -154,7 +182,7 @@ class Canvas {
   constructor(readonly pdf: jsPDF) {}
 
   use(s: TextStyle): void {
-    this.pdf.setFont(FONT_FAMILY, s.weight);
+    this.pdf.setFont(s.family === 'display' ? DISPLAY_FAMILY : FONT_FAMILY, s.weight);
     this.pdf.setFontSize(s.size);
     this.pdf.setTextColor(...s.color);
   }
@@ -164,7 +192,13 @@ class Canvas {
     return this.pdf.getTextWidth(toPdfText(text));
   }
 
-  text(text: string, x: number, y: number, s: TextStyle, align: 'left' | 'right' = 'left'): void {
+  text(
+    text: string,
+    x: number,
+    y: number,
+    s: TextStyle,
+    align: 'left' | 'center' | 'right' = 'left',
+  ): void {
     this.use(s);
     this.pdf.text(toPdfText(text), x, y, { align, baseline: 'alphabetic' });
   }
@@ -203,34 +237,56 @@ class Canvas {
     else this.pdf.rect(x, y, w, h, 'F');
   }
 
+  /** A filled, rounded box with a hairline border, like the site's cards. */
+  card(
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    fill: Rgb,
+    border: Rgb,
+    radius: number,
+    width = 0.75,
+  ) {
+    this.pdf.setFillColor(...fill);
+    this.pdf.setDrawColor(...border);
+    this.pdf.setLineWidth(width);
+    // Inset by half the stroke, so the border sits inside the box as a CSS border does.
+    const i = width / 2;
+    this.pdf.roundedRect(x + i, y + i, w - width, h - width, radius, radius, 'FD');
+  }
+
+  /** A section heading from `top`: the site's short saffron rule, then the title in Eczar. */
+  heading(text: string, top: number): void {
+    this.box(LEFT, top, 18, 2, COLOR.saffron, 1);
+    this.text(text, LEFT, baseline(top + 8, T.heading), T.heading);
+  }
+
   /**
-   * A filled rectangle rounded on the left and/or right only, drawn as one path so there is no
-   * seam where two shapes would otherwise overlap.
+   * A circular arc stroked `width` wide, from angle `a0` to `a1` in radians, measured clockwise
+   * from three o'clock (the page's y axis points down). Cubic Béziers, a quarter turn at most each.
    */
-  segment(x: number, y: number, w: number, h: number, color: Rgb, left: number, right: number) {
-    const k = 0.5523; // Bezier handle length for a quarter circle
-    const { pdf } = this;
-    pdf.setFillColor(...color);
-    pdf.moveTo(x + left, y);
-    pdf.lineTo(x + w - right, y);
-    if (right)
-      pdf.curveTo(x + w - right * (1 - k), y, x + w, y + right * (1 - k), x + w, y + right);
-    pdf.lineTo(x + w, y + h - right);
-    if (right)
-      pdf.curveTo(
-        x + w,
-        y + h - right * (1 - k),
-        x + w - right * (1 - k),
-        y + h,
-        x + w - right,
-        y + h,
-      );
-    pdf.lineTo(x + left, y + h);
-    if (left) pdf.curveTo(x + left * (1 - k), y + h, x, y + h - left * (1 - k), x, y + h - left);
-    pdf.lineTo(x, y + left);
-    if (left) pdf.curveTo(x, y + left * (1 - k), x + left * (1 - k), y, x + left, y);
-    pdf.close();
-    pdf.fill();
+  arc(cx: number, cy: number, r: number, a0: number, a1: number, width: number, color: Rgb) {
+    const steps = Math.max(1, Math.ceil((a1 - a0) / (Math.PI / 2)));
+    const span = (a1 - a0) / steps;
+    const k = (4 / 3) * Math.tan(span / 4) * r;
+    const start: [number, number] = [cx + r * Math.cos(a0), cy + r * Math.sin(a0)];
+    let [x, y] = start;
+    const segments: number[][] = [];
+    for (let i = 0; i < steps; i++) {
+      const a = a0 + i * span;
+      const b = a + span;
+      const ex = cx + r * Math.cos(b);
+      const ey = cy + r * Math.sin(b);
+      const c1 = [x - k * Math.sin(a), y + k * Math.cos(a)];
+      const c2 = [ex + k * Math.sin(b), ey - k * Math.cos(b)];
+      segments.push([c1[0] - x, c1[1] - y, c2[0] - x, c2[1] - y, ex - x, ey - y]);
+      [x, y] = [ex, ey];
+    }
+    this.pdf.setDrawColor(...color);
+    this.pdf.setLineWidth(width);
+    this.pdf.setLineCap('butt');
+    this.pdf.lines(segments, start[0], start[1], [1, 1], 'S', false);
   }
 
   /**
@@ -251,14 +307,100 @@ class Canvas {
   }
 }
 
-/** The site's mark (src/lib/brand.ts): an open palm holding a coin, on a green tile. */
+/* Mark and ornament -------------------------------------------------------------------------- */
+
+/** The site's mark (src/lib/brand.ts): an open palm with a rupee coin above it, on a green tile. */
+const HAND = pathToSubpaths(HAND_PATH);
+const RUPEE = pathToSubpaths(RUPEE_PATH);
+
 function drawMark(c: Canvas, x: number, y: number, size: number): void {
   const k = size / 64;
-  c.box(x, y, size, size, rgb(BRAND.green), 16 * k);
-  c.pdf.setFillColor(...COLOR.white);
-  c.pdf.lines(HAND_SEGMENTS, x + HAND_START[0] * k, y + HAND_START[1] * k, [k, k], 'F', true);
+  const fill = (subpaths: Subpath[], colour: Rgb) => {
+    c.pdf.setFillColor(...colour);
+    for (const p of subpaths) {
+      c.pdf.lines(p.segments, x + p.start[0] * k, y + p.start[1] * k, [k, k], 'F', true);
+    }
+  };
+  c.box(x, y, size, size, rgb(BRAND.green), 15 * k);
   c.pdf.setFillColor(...rgb(BRAND.saffron));
   c.pdf.circle(x + COIN.cx * k, y + COIN.cy * k, COIN.r * k, 'F');
+  c.pdf.setDrawColor(...rgb(BRAND.rim));
+  c.pdf.setLineWidth(COIN.rimWidth * k);
+  c.pdf.circle(x + COIN.cx * k, y + COIN.cy * k, COIN.rim * k, 'S');
+  fill(RUPEE, rgb(BRAND.navy));
+  fill(HAND, COLOR.white);
+}
+
+/** A colour along evenly spaced stops, `t` from 0 to 1. */
+function ramp(stops: Rgb[], t: number): Rgb {
+  const s = Math.min(Math.max(t, 0), 1) * (stops.length - 1);
+  const i = Math.min(Math.floor(s), stops.length - 2);
+  return mix(stops[i + 1], stops[i], s - i);
+}
+
+/**
+ * Strokes linework in short runs of `run` segments, each coloured by `colour` at the run's start
+ * (in page coordinates). That is how the site's gradients along its guilloche are drawn here: a
+ * PDF shading cannot follow a stroke, but sixty small steps of colour read as one sweep.
+ */
+function strokeRuns(
+  c: Canvas,
+  subpaths: Subpath[],
+  [ox, oy]: [number, number],
+  [sx, sy]: [number, number],
+  run: number,
+  colour: (x: number, y: number) => Rgb,
+): void {
+  for (const p of subpaths) {
+    let [x, y] = p.start;
+    for (let i = 0; i < p.segments.length; i += run) {
+      const chunk = p.segments.slice(i, i + run);
+      c.pdf.setDrawColor(...colour(ox + x * sx, oy + y * sy));
+      c.pdf.lines(chunk, ox + x * sx, oy + y * sy, [sx, sy], 'S', false);
+      for (const s of chunk) {
+        x += s[s.length - 2];
+        y += s[s.length - 1];
+      }
+    }
+  }
+}
+
+const BAND_PATHS = bandPaths().flatMap(pathToSubpaths);
+const ROSETTE_PATHS = rosettePaths().flatMap(pathToSubpaths);
+
+/**
+ * The cheque band under the first page's header: the site's wave strip, saffron to green to navy
+ * at three-quarter strength, stretched slightly so a whole number of tiles fills the measure.
+ */
+function drawBand(c: Canvas, top: number, height: number): void {
+  const sy = height / BAND.height;
+  const tiles = Math.max(1, Math.round(WIDTH / (BAND.width * sy)));
+  const sx = WIDTH / (tiles * BAND.width);
+  const stops = [COLOR.saffron, COLOR.accent, COLOR.chakra].map((s) => mix(s, COLOR.white, 0.75));
+  c.pdf.setLineWidth(0.35);
+  c.pdf.setLineCap('butt');
+  for (let i = 0; i < tiles; i++) {
+    strokeRuns(c, BAND_PATHS, [LEFT + i * BAND.width * sx, top], [sx, sy], 4, (x) =>
+      ramp(stops, (x - LEFT) / WIDTH),
+    );
+  }
+}
+
+/**
+ * The guilloche rosette, faint, cut off by the first page's top-right corner as it is in the
+ * site's page headers. Coloured round the circle like the site's conic gradient.
+ */
+function drawRosette(c: Canvas, cx: number, cy: number, radius: number): void {
+  const k = radius / 200;
+  const stops = [COLOR.saffron, COLOR.accent, COLOR.chakra, COLOR.saffron].map((s) =>
+    mix(s, COLOR.white, 0.2),
+  );
+  c.pdf.setLineWidth(0.4);
+  strokeRuns(c, ROSETTE_PATHS, [cx, cy], [k, k], 8, (x, y) => {
+    // Clockwise from twelve o'clock, starting at 210 degrees, as CSS conic-gradient measures it.
+    const turn = Math.atan2(x - cx, cy - y) / (2 * Math.PI);
+    return ramp(stops, (((turn - 210 / 360) % 1) + 1) % 1);
+  });
 }
 
 /* Page furniture ----------------------------------------------------------------------------- */
@@ -286,17 +428,21 @@ const isoDate = (iso: string) => {
 const DOC_TITLE = 'Salary breakdown';
 
 function drawFirstHeader(c: Canvas): void {
-  drawMark(c, LEFT, MARGIN, 20);
-  c.text(SITE.name, LEFT + 28, MARGIN + 10 + (CAP * 13) / 2, style(13, 'bold', COLOR.ink, 16));
-  c.text(DOC_TITLE, RIGHT, MARGIN + CAP * 10, style(10, 'bold', COLOR.ink, 12), 'right');
+  drawRosette(c, PAGE_W - 8, 12, 128);
+  drawMark(c, LEFT, MARGIN - 2, 24);
+  const wordmark = display(18, COLOR.ink, 24);
+  c.text(SITE.name, LEFT + 32, MARGIN + 10 + capHeight(wordmark) / 2, wordmark);
+  const title = style(10, 'bold', COLOR.ink, 12);
+  c.text(DOC_TITLE, RIGHT, MARGIN + capHeight(title), title, 'right');
   c.text(SITE.taxYearLabel, RIGHT, MARGIN + 20, T.small, 'right');
-  c.rule(LEFT, RIGHT, MARGIN + 36, COLOR.line);
+  drawBand(c, MARGIN + 36, 10);
 }
 
 function drawRunningHeader(c: Canvas): void {
   drawMark(c, LEFT, MARGIN - 4, 12);
-  const y = MARGIN + 2 + (CAP * 9) / 2;
-  c.text(SITE.name, LEFT + 18, y, style(9, 'bold', COLOR.ink, 12));
+  const wordmark = display(10, COLOR.ink, 12);
+  const y = MARGIN + 2 + capHeight(wordmark) / 2;
+  c.text(SITE.name, LEFT + 18, y, wordmark);
   c.text(`${DOC_TITLE}, ${SITE.taxYearLabel}`, RIGHT, y, T.small, 'right');
   c.rule(LEFT, RIGHT, MARGIN + 20, COLOR.line);
 }
@@ -357,14 +503,20 @@ function drawHero(c: Canvas, result: CalculationResult, shareUrl: string | undef
 
   // Left: the one number people open this for.
   const leftWidth = 272;
-  c.text('In hand per month', LEFT, baseline(top, T.body), T.body);
-  c.text(money(best.monthlyTakeHome), LEFT - 1.5, baseline(top + 16, T.hero), T.hero);
+  c.text('In hand per month', LEFT, baseline(top, T.strong), tint(T.strong, COLOR.ink2));
+  // As on the site: the figure in Eczar, its rupee sign smaller, lighter, raised and in saffron.
+  // Eczar's own sign is heavy at this size, so the sign is Geist's.
+  const figureBaseline = baseline(top + 14, T.hero);
+  const sign = style(T.hero.size * 0.6, 'bold', COLOR.saffronInk, 24);
+  c.text('₹', LEFT, figureBaseline - 0.12 * sign.size, sign);
+  const digits = money(best.monthlyTakeHome).replace('₹', '');
+  c.text(digits, LEFT + c.measure('₹', sign) + 0.04 * T.hero.size, figureBaseline, T.hero);
   const sentence = `${money(best.annualTakeHome)} a year${
     a.variable > 0 ? `, including ${money(a.variable)} variable pay` : ''
   }, from a ${formatCompactRupees(result.input.ctc)} CTC under the ${REGIME_LABEL[
     result.better
   ].toLowerCase()}.`;
-  const leftHeight = 60 + c.paragraph(c.wrap(sentence, T.body, leftWidth), LEFT, top + 60, T.body);
+  const leftHeight = 64 + c.paragraph(c.wrap(sentence, T.body, leftWidth), LEFT, top + 64, T.body);
 
   // Right: what the figure rests on, like the account details on a statement. Label and value
   // share one baseline even though they are set in different sizes.
@@ -407,48 +559,59 @@ function drawMarginalRelief(c: Canvas, result: CalculationResult): void {
   const height = snap(12 + 12 + 4 + lines.length * 12 + 12);
   const top = c.begin(height, 24);
 
-  c.box(LEFT, top, WIDTH, height, COLOR.accentSoft, 6);
+  c.card(LEFT, top, WIDTH, height, COLOR.accentSoft, COLOR.accentLine, 8);
   c.text('Marginal relief applied', LEFT + pad, baseline(top + 12, T.strong), T.strong);
   c.paragraph(lines, LEFT + pad, top + 28, T.body);
   c.y = top + height;
 }
 
 function drawRegimes(c: Canvas, result: CalculationResult): void {
-  const cardHeight = 84;
-  const height = 16 + HEADING_GAP + cardHeight + 12 + 12;
+  const cardHeight = 88;
+  const height = HEAD + 6 + cardHeight + 12 + 12;
   const top = c.begin(height);
-  c.text('Both tax regimes', LEFT, baseline(top, T.heading), T.heading);
+  c.heading('Both tax regimes', top);
 
-  const gap = 8;
+  const gap = 10;
   const cardWidth = (WIDTH - gap) / 2;
-  const cardTop = top + 16 + HEADING_GAP;
+  // Room above the cards for the "Lower tax" tag, which sits across the top border.
+  const cardTop = top + HEAD + 6;
   const saving = result.savingByChoosingBetter;
 
   (['new', 'old'] as const).forEach((regime, i) => {
     const r = result.regimes[regime];
     const isBetter = regime === result.better && saving >= 0.5;
     const x = LEFT + i * (cardWidth + gap);
-    const pad = 12;
-    c.box(x, cardTop, cardWidth, cardHeight, isBetter ? COLOR.accentSoft : COLOR.inset, 4);
-
-    const nameY = baseline(cardTop + pad, T.value);
-    c.text(REGIME_LABEL[regime], x + pad, nameY, T.value);
+    const pad = 14;
+    // The site's regime cards: white, a hairline border, and the cheaper one outlined in green.
+    c.card(
+      x,
+      cardTop,
+      cardWidth,
+      cardHeight,
+      COLOR.white,
+      isBetter ? COLOR.accent : COLOR.line,
+      8,
+      isBetter ? 1 : 0.75,
+    );
     if (isBetter) {
-      const chip = style(7, 'bold', COLOR.white, 10);
-      const w = c.measure('Lower tax', chip) + 10;
-      const middle = nameY - (CAP * T.value.size) / 2;
-      c.box(x + cardWidth - pad - w, middle - 6, w, 12, COLOR.accent, 2);
-      c.text('Lower tax', x + cardWidth - pad - 5, middle + (CAP * chip.size) / 2, chip, 'right');
+      const tag = style(7, 'bold', COLOR.white, 12);
+      const w = c.measure('Lower tax', tag) + 14;
+      const tagX = x + cardWidth - 12 - w;
+      c.box(tagX, cardTop - 6, w, 12, COLOR.accent, 6);
+      c.text('Lower tax', tagX + w / 2, cardTop + capHeight(tag) / 2, tag, 'center');
     }
-    c.text(money(r.monthlyTakeHome), x + pad, baseline(cardTop + 26, T.figure), T.figure);
-    c.text('in hand a month', x + pad, baseline(cardTop + 45, T.small), T.small);
+
+    c.text(REGIME_LABEL[regime], x + pad, baseline(cardTop + 12, T.strong), T.strong);
+    c.text(money(r.monthlyTakeHome), x + pad, baseline(cardTop + 28, T.figure), T.figure);
+    c.text('in hand a month', x + pad, baseline(cardTop + 47, T.small), T.small);
+    c.rule(x + pad, x + cardWidth - pad, cardTop + 62, COLOR.line);
     c.runs(
       [
-        [money(r.tax.totalTax), T.body],
-        [' tax a year', T.small],
+        [money(r.tax.totalTax), T.strong],
+        [' tax a year', T.body],
       ],
       x + pad,
-      baseline(cardTop + 60, T.body),
+      baseline(cardTop + 66, T.body),
     );
   });
 
@@ -469,7 +632,11 @@ function drawRegimes(c: Canvas, result: CalculationResult): void {
   c.y = top + height;
 }
 
-/** Where the CTC goes: one stacked bar, take-home in the accent and the rest in two greys. */
+/**
+ * Where the CTC goes: the site's donut, take-home in green, income tax in navy and the savings you
+ * reach later (PF, gratuity) in a light green, with the share kept in the middle. The legend
+ * repeats every segment with its amount and share, so nothing depends on telling colours apart.
+ */
 function drawComposition(c: Canvas, result: CalculationResult): void {
   const total = result.structure.annual.ctcComponents;
   if (total <= 0) return;
@@ -481,50 +648,51 @@ function drawComposition(c: Canvas, result: CalculationResult): void {
   const segments = [
     { label: 'Reaches your bank', value: takeHome, color: COLOR.accent },
     { label: 'Income tax', value: tax, color: COLOR.chartTax },
-    { label: 'PF, gratuity and other', value: rest, color: COLOR.chartRest },
+    { label: 'PF, gratuity and other', value: rest, color: COLOR.chartSave },
   ].filter((s) => s.value > 0);
 
-  const barHeight = 10;
-  const legendHeight = 12 + 16 + 10;
-  const height = 16 + HEADING_GAP + barHeight + 14 + legendHeight;
+  const size = 88;
+  const height = HEAD + size;
   const top = c.begin(height);
-  c.text(
-    `Where your ${formatCompactRupees(total)} CTC goes`,
-    LEFT,
-    baseline(top, T.heading),
-    T.heading,
-  );
+  c.heading(`Where your ${formatCompactRupees(total)} CTC goes`, top);
 
-  // Segments with 2pt white gaps, rounded only at the two outer ends.
-  const gap = 2;
-  const barTop = top + 16 + HEADING_GAP;
-  const available = WIDTH - gap * (segments.length - 1);
-  const radius = 2;
-  let x = LEFT;
-  segments.forEach((seg, i) => {
-    const last = i === segments.length - 1;
-    // The last segment takes whatever is left, so rounding never leaves a sliver at the end.
-    const width = last ? RIGHT - x : Math.max(2, (seg.value / total) * available);
-    const r = Math.min(radius, width / 2);
-    c.segment(x, barTop, width, barHeight, seg.color, i === 0 ? r : 0, last ? r : 0);
-    x += width + gap;
-  });
+  // The ring: the site's proportions (a 16-unit stroke on a 128-unit chart), starting at twelve
+  // o'clock and running clockwise, with a small gap after each segment.
+  const chartTop = top + HEAD;
+  const ring = size / 8;
+  const r = (size - ring) / 2;
+  const cx = LEFT + size / 2;
+  const cy = chartTop + size / 2;
+  c.pdf.setDrawColor(...COLOR.sunken);
+  c.pdf.setLineWidth(ring);
+  c.pdf.circle(cx, cy, r, 'S');
+  const gap = 2.5 / 52;
+  let angle = -Math.PI / 2;
+  for (const seg of segments) {
+    const sweep = (seg.value / total) * 2 * Math.PI;
+    const visible = sweep - (segments.length > 1 ? gap : 0);
+    if (visible > 0) c.arc(cx, cy, r, angle, angle + visible, ring, seg.color);
+    angle += sweep;
+  }
 
-  // Direct-labelled legend, one column per segment, in bar order.
-  const legendTop = barTop + barHeight + 14;
-  const columnWidth = (WIDTH - 2 * 16) / 3;
+  const kept = (takeHome / total) * 100;
+  const share = style(14, 'bold', COLOR.ink, 18);
+  c.text(`${kept.toFixed(kept >= 99.95 ? 0 : 1)}%`, cx, cy + 1, share, 'center');
+  c.text('in hand', cx, cy + 12, T.small, 'center');
+
+  // Legend: one row per segment, hairlines between, centred on the ring.
+  const x = LEFT + size + 32;
+  const rowHeight = 26;
+  const legendTop = chartTop + (size - segments.length * rowHeight) / 2;
   segments.forEach((seg, i) => {
-    const cx = LEFT + i * (columnWidth + 16);
-    const labelY = baseline(legendTop, T.body);
-    c.box(cx, labelY - 7, 7, 7, seg.color, 1.5);
-    c.text(seg.label, cx + 12, labelY, T.body);
-    c.text(money(seg.value), cx + 12, baseline(legendTop + 12, T.amount), T.amount);
-    c.text(
-      `${((seg.value / total) * 100).toFixed(1)}% of CTC`,
-      cx + 12,
-      baseline(legendTop + 28, T.small),
-      T.small,
-    );
+    const rowTop = legendTop + i * rowHeight;
+    if (i > 0) c.rule(x, RIGHT, rowTop, COLOR.line);
+    const b = baseline(rowTop + 5, T.amount);
+    c.pdf.setFillColor(...seg.color);
+    c.pdf.circle(x + 4, b - capHeight(T.amount) / 2, 4, 'F');
+    c.text(seg.label, x + 16, b, T.value);
+    c.text(money(seg.value), RIGHT - 84, b, T.amount, 'right');
+    c.text(`${((seg.value / total) * 100).toFixed(1)}% of CTC`, RIGHT, b, T.small, 'right');
   });
   c.y = top + height;
 }
@@ -551,8 +719,8 @@ interface Ledger {
 
 const VALUE_COLUMN = 92;
 const ROW_PAD = 4;
-/** Title, gap, then the column captions over a dashed rule. */
-const LEDGER_HEAD = 16 + HEADING_GAP + 16;
+/** Heading, then the column captions over a hairline. */
+const LEDGER_HEAD = HEAD + 16;
 
 /** Wraps every row once, up front, so heights are known before anything is drawn. */
 function measureRows(c: Canvas, ledger: Ledger) {
@@ -570,8 +738,8 @@ function measureRows(c: Canvas, ledger: Ledger) {
 
 function drawLedgerHead(c: Canvas, ledger: Ledger, top: number, continued: boolean): void {
   const title = continued ? `${ledger.title}, continued` : ledger.title;
-  c.text(title, LEFT, baseline(top, T.heading), T.heading);
-  const headTop = top + 16 + HEADING_GAP;
+  c.heading(title, top);
+  const headTop = top + HEAD;
   const y = baseline(headTop, T.small) - 2;
   c.text('Component', LEFT, y, T.small);
   ledger.columns.forEach((label, i) => {
@@ -579,13 +747,13 @@ function drawLedgerHead(c: Canvas, ledger: Ledger, top: number, continued: boole
     const accent = i === ledger.accentColumn;
     c.text(label, right, y, accent ? tint(T.label, COLOR.accent) : T.small, 'right');
   });
-  c.rule(LEFT, RIGHT, headTop + 12, COLOR.lineStrong, 0.75, [1.5, 1.5]);
+  c.rule(LEFT, RIGHT, headTop + 12, COLOR.lineStrong, 0.5);
 }
 
 /**
- * The site's ledger: a dashed rule under the captions, hairlines between rows, none after the
- * last, and the total set at 535 below a stronger rule. Amounts are right-aligned; Plex's default
- * figures are tabular, so the columns line up digit for digit.
+ * The site's ledger: a hairline under the captions and between rows, none after the last, and the
+ * total in Geist 600 below a stronger rule. Amounts are right-aligned, and the font's figures were
+ * made tabular when it was cut, so the columns line up digit for digit.
  */
 function drawLedger(c: Canvas, ledger: Ledger): void {
   const rows = measureRows(c, ledger);
@@ -879,12 +1047,12 @@ function drawGratuity(c: Canvas, result: CalculationResult): void {
       )} a month of Labour Code wages.`
     : `Gratuity needs ${g.minimumYears} years of service. It is part of your CTC but you receive nothing before then.`;
   const lines = c.wrap(text, T.body, WIDTH);
-  const top = c.begin(16 + HEADING_GAP + lines.length * 12);
-  c.text('Gratuity', LEFT, baseline(top, T.heading), T.heading);
-  c.y = top + 16 + HEADING_GAP + c.paragraph(lines, LEFT, top + 16 + HEADING_GAP, T.body);
+  const top = c.begin(HEAD + lines.length * 12);
+  c.heading('Gratuity', top);
+  c.y = top + HEAD + c.paragraph(lines, LEFT, top + HEAD, T.body);
 }
 
-/** Each note has a thin amber rule beside it, the page's only use of a warning colour. */
+/** Each note has a thin saffron rule beside it. */
 function drawNotes(c: Canvas, notices: string[]): void {
   if (notices.length === 0) return;
   const indent = 12;
@@ -892,19 +1060,19 @@ function drawNotes(c: Canvas, notices: string[]): void {
   notices.forEach((notice, i) => {
     const lines = c.wrap(notice, T.body, WIDTH - indent);
     const noteHeight = lines.length * 12;
-    const head = i === 0 ? 16 + HEADING_GAP : 0;
+    const head = i === 0 ? HEAD : 0;
     const top = c.begin(head + noteHeight, i === 0 ? SECTION_GAP : gap);
-    if (i === 0) c.text('Notes on your numbers', LEFT, baseline(top, T.heading), T.heading);
+    if (i === 0) c.heading('Notes on your numbers', top);
     const noteTop = top + head;
-    c.box(LEFT, noteTop + 1, 2, noteHeight - 2, COLOR.warn);
+    c.box(LEFT, noteTop + 1, 2, noteHeight - 2, COLOR.saffron, 1);
     c.paragraph(lines, LEFT + indent, noteTop, T.body);
     c.y = noteTop + noteHeight;
   });
 }
 
 function drawErrors(c: Canvas, errors: string[]): void {
-  c.text('This structure does not add up', LEFT, baseline(c.y, T.heading), T.heading);
-  c.y += 16 + HEADING_GAP;
+  c.heading('This structure does not add up', c.y);
+  c.y += HEAD;
   for (const error of errors) {
     const lines = c.wrap(error, T.body, WIDTH);
     c.y += c.paragraph(lines, LEFT, c.y, T.body) + 8;

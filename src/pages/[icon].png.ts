@@ -26,7 +26,7 @@ export const GET: APIRoute = async ({ params }) => {
   const { size, fullBleed } = ICONS[params.icon as IconName];
   // Home-screen icons get a square tile (the platform cuts its own shape) and keep the rupee sign;
   // the small favicon drops it.
-  const svg = logoSvg({ rupee: size >= 120, rx: fullBleed ? 0 : 16 });
+  const svg = logoSvg({ detail: size >= 120, rx: fullBleed ? 0 : 15 });
   const png = await sharp(Buffer.from(svg), { density: 1536 }).resize(size, size).png().toBuffer();
   return new Response(new Uint8Array(png), { headers: { 'Content-Type': 'image/png' } });
 };

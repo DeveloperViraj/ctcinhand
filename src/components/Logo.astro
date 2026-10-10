@@ -4,11 +4,11 @@ import { logoSvg } from '../lib/brand';
 
 interface Props {
   class?: string;
-  /** Leave the rupee sign off the coin, for very small sizes. */
+  /** Leave the rim and rupee sign off the coin, for very small sizes. */
   plain?: boolean;
 }
 const { class: className, plain = false } = Astro.props;
-const markup = logoSvg({ rupee: !plain }).replace(
+const markup = logoSvg({ detail: !plain }).replace(
   '<svg ',
   `<svg aria-hidden="true" focusable="false" class="${className ?? ''}" `,
 );

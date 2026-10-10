@@ -1,6 +1,7 @@
 /**
- * Fonts for the PDF report: two static cuts of IBM Plex Sans (the site's typeface), renamed and
- * subset by scripts/build-pdf-fonts.py. Together they weigh about 20 KB.
+ * Fonts for the PDF report, the site's own: two static cuts of Geist for text and figures, and
+ * Eczar Bold for headlines, renamed and subset by scripts/build-pdf-fonts.py. Together they weigh
+ * about 33 KB.
  *
  * Loading the files is left to the caller (see load-fonts.ts for the browser), so the report can
  * be built in Node from bytes read off disk.
@@ -11,28 +12,32 @@ import charset from '../../assets/pdf-fonts/charset.json';
 
 /** Raw TrueType bytes for each weight. */
 export interface PdfFontFiles {
-  /** Body text, weight 435. */
+  /** Geist 400: body text. */
   text: Uint8Array;
-  /** Headings, figures and totals, weight 535. */
+  /** Geist 600: emphasis, figures and totals. */
   medium: Uint8Array;
+  /** Eczar 700: the headline figure, section headings and the wordmark. */
+  display: Uint8Array;
 }
 
 export const FONT_FAMILY = 'InHandSans';
+export const DISPLAY_FAMILY = 'InHandDisplay';
 
 /**
- * jsPDF knows only "normal" and "bold" styles, so the medium cut is registered as "bold". It is
- * still 535, not a heavy bold.
+ * jsPDF knows only "normal" and "bold" styles, so Geist's 600 cut is registered as "bold". The
+ * display family has one weight, registered as "normal".
  */
 export type FontWeight = 'normal' | 'bold';
 
 export function registerFonts(pdf: jsPDF, fonts: PdfFontFiles): void {
-  const files: [string, Uint8Array, FontWeight][] = [
-    ['report-sans-text.ttf', fonts.text, 'normal'],
-    ['report-sans-medium.ttf', fonts.medium, 'bold'],
+  const files: [string, Uint8Array, string, FontWeight][] = [
+    ['report-sans-text.ttf', fonts.text, FONT_FAMILY, 'normal'],
+    ['report-sans-medium.ttf', fonts.medium, FONT_FAMILY, 'bold'],
+    ['report-display.ttf', fonts.display, DISPLAY_FAMILY, 'normal'],
   ];
-  for (const [name, bytes, weight] of files) {
+  for (const [name, bytes, family, weight] of files) {
     pdf.addFileToVFS(name, toBase64(bytes));
-    pdf.addFont(name, FONT_FAMILY, weight, undefined, 'Identity-H');
+    pdf.addFont(name, family, weight, undefined, 'Identity-H');
   }
 }
 

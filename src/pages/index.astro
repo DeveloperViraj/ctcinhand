@@ -2,7 +2,6 @@
 import { Icon } from 'astro-icon/components';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Calculator from '../components/Calculator.astro';
-import Stamp from '../components/Stamp.astro';
 import { SITE } from '../config/site';
 import { bracketLabel, bracketPath, lakhs } from '../lib/brackets';
 import { labourCodeData } from '../lib/explainers';
@@ -199,7 +198,7 @@ const schema = [
       class="art-rosette art-spin absolute -top-10 -right-40 -z-10 size-[300px] opacity-25 sm:-right-48 sm:size-[460px] md:-top-28 md:size-[820px] md:opacity-35 dark:md:opacity-45"
       aria-hidden="true"
     ></div>
-    <div class="mx-auto grid max-w-6xl items-center gap-8 px-4 pt-10 pb-12 sm:px-6 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_13rem] lg:pb-14">
+    <div class="mx-auto grid max-w-6xl items-center gap-8 px-4 pt-10 pb-12 sm:px-6 sm:pt-16 lg:pb-14">
       <div>
         <a
           href="/provident-fund"
@@ -234,7 +233,6 @@ const schema = [
           )}
         </ul>
       </div>
-      <Stamp class="hidden size-52 -rotate-12 animate-rise [animation-delay:300ms] lg:block" />
     </div>
     <div class="mx-auto max-w-6xl animate-rise px-3 [animation-delay:240ms] sm:px-6">
       <Calculator />

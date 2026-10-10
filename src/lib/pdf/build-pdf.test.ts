@@ -23,6 +23,7 @@ const fontDir = new URL('../../assets/pdf-fonts/', import.meta.url);
 const fonts: PdfFontFiles = {
   text: readFileSync(new URL('report-sans-text.ttf', fontDir)),
   medium: readFileSync(new URL('report-sans-medium.ttf', fontDir)),
+  display: readFileSync(new URL('report-display.ttf', fontDir)),
 };
 const sampleDir = process.env.PDF_SAMPLE_DIR ?? join(tmpdir(), 'inhand-pdf-samples');
 const preparedOn = new Date(2026, 8, 28);
@@ -51,31 +52,48 @@ function readObjects(pdf: ArrayBuffer): Map<number, { dict: string; stream?: str
   return objects;
 }
 
+/** A ToUnicode CMap stream as glyph id -> character. */
+function readToUnicode(stream: string): Map<number, string> {
+  const map = new Map<number, string>();
+  for (const [, gid, code] of stream.matchAll(/<([0-9a-f]{4})><([0-9a-f]{4})>/gi)) {
+    map.set(parseInt(gid, 16), String.fromCharCode(parseInt(code, 16)));
+  }
+  return map;
+}
+
 /**
- * Text per page, decoded through the fonts' ToUnicode maps, which is exactly what a viewer does on
- * copy and paste. Both weights are cut from the same glyph set, so glyph ids agree across them.
+ * Text per page, decoded through each font's ToUnicode map, which is exactly what a viewer does on
+ * copy and paste. The text and display faces have different glyph ids, so the reader follows the
+ * font selections (Tf) through the content stream.
  */
 function pageTexts(pdf: ArrayBuffer): string[] {
   const objects = readObjects(pdf);
-  const toUnicode = new Map<number, string>();
-  for (const { stream } of objects.values()) {
-    if (!stream?.includes('beginbfchar')) continue;
-    for (const [, gid, code] of stream.matchAll(/<([0-9a-f]{4})><([0-9a-f]{4})>/gi)) {
-      const char = String.fromCharCode(parseInt(code, 16));
-      const existing = toUnicode.get(parseInt(gid, 16));
-      if (existing && existing !== char) throw new Error(`Glyph ${gid} maps to two characters`);
-      toUnicode.set(parseInt(gid, 16), char);
+  const fonts = new Map<string, Map<number, string>>();
+  for (const { dict } of objects.values()) {
+    const resources = /\/Font\s*<<([^>]*)>>/.exec(dict);
+    if (!resources) continue;
+    for (const [, name, ref] of resources[1].matchAll(/\/(\w+)\s+(\d+) 0 R/g)) {
+      const toUnicode = /\/ToUnicode (\d+) 0 R/.exec(objects.get(Number(ref))!.dict);
+      if (toUnicode) fonts.set(name, readToUnicode(objects.get(Number(toUnicode[1]))!.stream!));
     }
   }
-  const decode = (hex: string) =>
-    (hex.match(/.{4}/g) ?? []).map((gid) => toUnicode.get(parseInt(gid, 16)) ?? '�').join('');
 
   const pages = [...objects.values()]
     .filter(({ dict }) => /\/Type\s*\/Page\b/.test(dict))
     .map(({ dict }) => Number(/\/Contents (\d+) 0 R/.exec(dict)![1]));
   return pages.map((ref) => {
     const content = objects.get(ref)!.stream ?? '';
-    return [...content.matchAll(/<([0-9a-fA-F]*)>\s*Tj/g)].map((m) => decode(m[1])).join('\n');
+    let font = new Map<number, string>();
+    const lines: string[] = [];
+    for (const m of content.matchAll(/\/(\w+) [\d.]+ Tf|<([0-9a-fA-F]*)>\s*Tj/g)) {
+      if (m[1]) {
+        font = fonts.get(m[1]) ?? new Map();
+        continue;
+      }
+      const gids = m[2].match(/.{4}/g) ?? [];
+      lines.push(gids.map((gid) => font.get(parseInt(gid, 16)) ?? '�').join(''));
+    }
+    return lines.join('\n');
   });
 }
 
