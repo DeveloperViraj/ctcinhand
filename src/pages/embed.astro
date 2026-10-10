@@ -15,7 +15,13 @@ import { HRA_CITY_OPTIONS } from '../lib/tax/hra';
 import { STATES } from '../lib/tax/professional-tax';
 import '../styles/global.css';
 
-const summary = renderSummary(calculate(DEFAULT_INPUT));
+// Links point at the full site in a new tab, as the script keeps them once it runs (see embed.ts):
+// only /embed may be framed, so a link followed inside the frame would replace the widget.
+const summary = renderSummary(calculate(DEFAULT_INPUT)).replace(
+  /<a href="([#/][^"]*)"/g,
+  (_, href: string) =>
+    `<a target="_blank" rel="noopener" href="${href.startsWith('#') ? `${SITE.url}/${href}` : `${SITE.url}${href}`}"`,
+);
 ---
 
 <!doctype html>
