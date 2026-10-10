@@ -1,14 +1,6 @@
 @import 'tailwindcss';
 
 /*
- * InHand design system.
- *
- * The palette is a quiet nod to the tricolour, mapped to jobs rather than painted on: navy ink for
- * text (the chakra), India green for action and for the money you keep, saffron for highlights and
- * ornament, on near-white paper. The ornament itself comes from Indian money and craft: guilloche
- * linework like the security printing on rupee notes and cheques, and kolam dot patterns. Eczar,
- * a typeface designed for Devanagari and Latin together, sets the headlines.
- *
  * Tailwind's default palette and type scale are cleared so stray `bg-blue-500` or `text-9xl`
  * classes fail to compile instead of drifting the design.
  */
@@ -22,19 +14,16 @@
   --color-transparent: transparent;
   --color-current: currentColor;
 
-  /* Surfaces: paper, very slightly warm */
   --color-canvas: oklch(0.99 0.004 85);
   --color-canvas-2: oklch(0.972 0.007 85);
   --color-surface: oklch(1 0 0);
   --color-surface-2: oklch(0.979 0.005 85);
   --color-sunken: oklch(0.964 0.007 85);
 
-  /* Text: chakra navy */
   --color-ink: oklch(0.24 0.045 262);
   --color-ink-2: oklch(0.43 0.035 262);
   --color-ink-3: oklch(0.53 0.028 262);
 
-  /* Rules */
   --color-line: oklch(0.918 0.01 262);
   --color-line-strong: oklch(0.85 0.016 262);
 
@@ -53,10 +42,8 @@
   --color-saffron-strong: oklch(0.7 0.16 55);
   --color-saffron-soft: oklch(0.965 0.035 75);
   --color-saffron-ink: oklch(0.5 0.12 55);
-  /* Navy for linework in the ornament. */
   --color-chakra: oklch(0.36 0.13 264);
 
-  /* Money that went up or down */
   --color-positive: oklch(0.48 0.12 152);
   --color-positive-soft: oklch(0.96 0.035 152);
   --color-negative: oklch(0.55 0.19 27);
@@ -72,14 +59,12 @@
   --color-chart-tax: oklch(0.36 0.07 262);
   --color-chart-rest: oklch(0.84 0.07 155);
 
-  /* Status, for warnings and errors only */
   --color-warn-soft: oklch(0.97 0.04 88);
   --color-warn-line: oklch(0.85 0.09 80);
   --color-warn-ink: oklch(0.43 0.09 60);
   --color-danger: oklch(0.55 0.19 27);
   --color-danger-soft: oklch(0.965 0.025 20);
 
-  /* Type scale: dense at the bottom for the tool, generous at the top for the page. */
   --text-*: initial;
   --text-xs: 0.75rem;
   --text-xs--line-height: 1.125rem;
@@ -103,7 +88,6 @@
   --text-6xl--line-height: 1.02;
   --text-7xl: 4.5rem;
   --text-7xl--line-height: 1;
-  /* The live in-hand figure. */
   --text-figure: clamp(2.75rem, 2rem + 3vw, 4.25rem);
   --text-figure--line-height: 1;
   --text-figure--letter-spacing: -0.04em;
@@ -133,7 +117,6 @@
   --shadow-sm: 0 1px 2px oklch(0.24 0.05 262 / 0.05), 0 2px 8px -2px oklch(0.24 0.05 262 / 0.06);
   --shadow-md:
     0 2px 4px -1px oklch(0.24 0.05 262 / 0.05), 0 12px 24px -8px oklch(0.24 0.05 262 / 0.1);
-  /* The calculator panel: a long, soft shadow, like a device resting on the page. */
   --shadow-float:
     0 1px 1px oklch(0.24 0.05 262 / 0.04), 0 8px 16px -6px oklch(0.24 0.05 262 / 0.06),
     0 32px 64px -24px oklch(0.28 0.06 262 / 0.18);
@@ -272,27 +255,23 @@
 }
 
 @layer components {
-  /* The default container: a hairline border, no shadow. */
   .card {
     border: 1px solid var(--color-line);
     border-radius: var(--radius-lg);
     background: var(--color-surface);
   }
 
-  /* A block nested inside a card. */
   .inset {
     border-radius: var(--radius-md);
     background: var(--color-surface-2);
   }
 
-  /* The one tinted callout a screen can afford. */
   .callout {
     border: 1px solid color-mix(in oklch, var(--color-accent) 22%, transparent);
     border-radius: var(--radius-md);
     background: var(--color-accent-soft);
   }
 
-  /* The calculator: the product, so it is the one thing that floats. */
   .panel {
     position: relative;
     border: 1px solid var(--color-line);
@@ -301,7 +280,6 @@
     box-shadow: var(--shadow-float);
   }
 
-  /* Small pill label: "Updated for FY 2026-27". Sentence case, never capitals. */
   .badge {
     display: inline-flex;
     align-items: center;
@@ -326,7 +304,6 @@
     font-weight: 600;
   }
 
-  /* Tag inside cards: "Lower tax", "Best". */
   .tag {
     display: inline-flex;
     align-items: center;
@@ -340,10 +317,6 @@
     white-space: nowrap;
   }
 
-  /*
-   * The number chip. A tinted, borderless field with the value right-aligned in the accent, so
-   * every editable number on the page is recognisable at a glance.
-   */
   .chip {
     display: inline-flex;
     align-items: baseline;
@@ -412,7 +385,6 @@
     color: var(--color-negative);
   }
 
-  /* The hero field: the CTC chip, larger. */
   .chip-xl {
     min-height: 3.25rem;
     padding: 0.5rem 1rem;
@@ -580,7 +552,6 @@
     box-shadow: 0 0 0 4px color-mix(in oklch, var(--color-accent) 18%, transparent);
   }
 
-  /* Buttons: pills. Primary is the accent; "solid" is ink, for navigation-level calls to action. */
   .btn {
     display: inline-flex;
     align-items: center;
@@ -645,7 +616,6 @@
     padding: 0 1.5rem;
     font-size: var(--text-base);
   }
-  /* The quiet action: a dashed underline rather than a box. */
   .btn-tertiary {
     height: auto;
     min-width: 0;
@@ -678,7 +648,6 @@
     animation: spin 700ms linear infinite;
   }
 
-  /* Preset amounts under the CTC field. */
   .preset {
     padding: 0.25rem 0.75rem;
     border: 1px solid var(--color-line);
@@ -704,7 +673,6 @@
     color: var(--color-accent-ink);
   }
 
-  /* The rupee sign beside a large figure: smaller, lighter. */
   .cur {
     margin-right: 0.06em;
     color: var(--color-saffron-ink);
@@ -713,7 +681,6 @@
     vertical-align: 0.12em;
   }
 
-  /* Tables of money. Hairlines, right-aligned figures. */
   .ledger {
     width: 100%;
     border-collapse: collapse;
@@ -779,7 +746,6 @@
     font-weight: 400;
   }
 
-  /* The headline section pattern: big type, tight tracking. */
   .display {
     font-family: var(--font-display);
     font-weight: 700;
@@ -793,17 +759,12 @@
     color: transparent;
   }
 
-  /* Section eyebrow: small, accent, sentence case. */
   .eyebrow {
     color: var(--color-accent-ink);
     font-size: var(--text-sm);
     font-weight: 600;
   }
 
-  /*
-   * Hero atmosphere: two soft accent glows and a faint grid that fades out from the centre. Pure
-   * CSS, behind everything, and it never moves.
-   */
   .hero-glow {
     position: absolute;
     inset: 0;
@@ -840,7 +801,6 @@
     opacity: 0.55;
   }
 
-  /* Feature tiles: a few, of different sizes, each with its own small illustration. */
   .tile {
     position: relative;
     overflow: hidden;
@@ -870,7 +830,6 @@
     color: var(--color-on-accent);
   }
 
-  /* The full breakdown: each block a card of its own. */
   .breakdown > * {
     border: 1px solid var(--color-line);
     border-radius: var(--radius-lg);
@@ -930,7 +889,6 @@
     background: var(--color-chakra);
     pointer-events: none;
   }
-  /* A strip of kolam that fades out at both ends, between sections. */
   .divider-kolam {
     height: 32px;
     -webkit-mask:
@@ -944,7 +902,6 @@
     background: var(--color-chakra);
     opacity: 0.22;
   }
-  /* The saffron brush stroke under a key phrase. */
   .brush {
     position: relative;
     white-space: nowrap;
@@ -962,13 +919,11 @@
     background: var(--color-saffron);
     opacity: 0.85;
   }
-  /* Small Devanagari accents: decorative, set in Eczar. */
   .deva {
     font-family: var(--font-deva), var(--font-display);
     font-weight: 600;
   }
 
-  /* Glass: the floating header. */
   .glass {
     background: color-mix(in oklch, var(--color-surface) 72%, transparent);
     backdrop-filter: blur(16px) saturate(1.6);
@@ -976,7 +931,6 @@
   }
 }
 
-/* Long-form text: guides, method, legal. */
 @layer components {
   .prose-doc {
     max-width: 70ch;
@@ -997,7 +951,6 @@
     font-weight: 700;
     letter-spacing: -0.015em;
   }
-  /* A short saffron rule above each section heading, like the mark on a ledger page. */
   .prose-doc h2::before {
     content: '';
     display: block;
@@ -1057,7 +1010,6 @@
     font-family: var(--font-mono);
     font-size: 0.85em;
   }
-  /* Tables sit in a rounded, bordered frame with a tinted header row. */
   .prose-doc .overflow-x-auto {
     border: 1px solid var(--color-line);
     border-radius: var(--radius-md);
@@ -1195,7 +1147,6 @@
   transition: flex-grow var(--duration-3) var(--ease-out-soft);
 }
 
-/* Donut segments glide to their new share. */
 .donut-seg {
   transition:
     stroke-dasharray var(--duration-3) var(--ease-out-soft),
@@ -1358,7 +1309,6 @@
   }
 }
 
-/* Printing a salary breakdown is a real thing people do. */
 @media print {
   :root {
     color-scheme: light;

@@ -267,10 +267,6 @@ export function mountCalculator(): void {
     }`;
   }
 
-  /* ---------------------------------------------------------------------------------------- */
-  /* Sliders                                                                                   */
-  /* ---------------------------------------------------------------------------------------- */
-
   const fieldFor = (range: HTMLInputElement) => $<HTMLInputElement>(range.dataset.sliderFor!);
 
   function paintSlider(range: HTMLInputElement) {
@@ -296,10 +292,6 @@ export function mountCalculator(): void {
     });
   }
 
-  /* ---------------------------------------------------------------------------------------- */
-  /* The live figure                                                                           */
-  /* ---------------------------------------------------------------------------------------- */
-
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   /** Restarts a CSS animation even if it is already running. */
@@ -310,7 +302,7 @@ export function mountCalculator(): void {
   }
 
   /**
-   * The one flourish: the figure counts to its new value while a rule draws itself underneath,
+   * The figure counts to its new value while a rule draws itself underneath,
    * so it is obvious the result already updated and there is no "Calculate" button to hunt for.
    */
   function animateHeadline(to: number) {
@@ -410,10 +402,6 @@ export function mountCalculator(): void {
       syncStickyBar();
     });
   }
-
-  /* ---------------------------------------------------------------------------------------- */
-  /* Render                                                                                    */
-  /* ---------------------------------------------------------------------------------------- */
 
   let urlTimer: number | undefined;
   let lastGood: CalculatorState = structuredClone(state);

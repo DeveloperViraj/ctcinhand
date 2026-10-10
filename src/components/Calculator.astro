@@ -24,7 +24,6 @@ const RUPEES = { value: 'rupees', label: '₹/yr' };
 const checkbox = 'mt-0.5 size-4 shrink-0 rounded-xs accent-[var(--color-accent)]';
 const legend = 'text-base font-semibold text-ink';
 
-/** One tap to the salaries people most often type. */
 const PRESETS = [
   { label: '6L', value: 6_00_000 },
   { label: '10L', value: 10_00_000 },
@@ -44,7 +43,6 @@ const PRESETS = [
   <!-- overflow-clip, not hidden: hidden would make the panel a scroll container and stop the sticky result. -->
   <div class="panel overflow-clip">
     <div class="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,27rem)]">
-      <!-- Inputs -->
       <div class="p-5 sm:p-8" data-inputs>
         <div class="flex items-center justify-between gap-3">
           <label for="ctc" class="text-sm font-semibold text-ink">
@@ -154,7 +152,6 @@ const PRESETS = [
           />
         </div>
 
-        <!-- Mode -->
         <div class="mt-7 flex items-center justify-between gap-4 rounded-md border border-line bg-surface-2 px-4 py-3.5">
           <div>
             <p class="text-sm font-semibold text-ink" id="mode-label">
@@ -456,7 +453,6 @@ const PRESETS = [
     </div>
   </div>
 
-  <!-- The full breakdown -->
   <section class="mt-16" aria-labelledby="breakdown-heading">
     <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
       <div>

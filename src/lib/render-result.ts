@@ -62,10 +62,6 @@ function ledger(
   </section>`;
 }
 
-/* ------------------------------------------------------------------------------------------- */
-/* Summary                                                                                      */
-/* ------------------------------------------------------------------------------------------- */
-
 /**
  * Both regimes, always in the same order so nothing jumps while you type. The cheaper one is
  * tagged; the saving is spelled out underneath in the money-went-up colour.
@@ -187,9 +183,8 @@ export function renderSummary(result: CalculationResult): string {
   const a = result.structure.annual;
   const monthly = best.monthlyTakeHome;
 
-  // The one place our arithmetic visibly beats every competitor we examined: above Rs 12 lakh,
-  // section 156(2)(b) caps tax at the income above the threshold. Calculators that treat the
-  // rebate as a simple on/off switch publish results where earning more leaves you with less.
+  // Above Rs 12 lakh, section 156(2)(b) caps tax at the income above the threshold. Treating the
+  // rebate as an on/off switch would show earning more as leaving you with less.
   const relief = best.tax.rebateIsMarginalRelief
     ? `<div class="callout mt-6 p-4">
         <p class="text-sm font-semibold text-ink">Marginal relief applied</p>
@@ -240,10 +235,6 @@ export function renderSummary(result: CalculationResult): string {
     ${regimeComparison(result)}
   </div>`;
 }
-
-/* ------------------------------------------------------------------------------------------- */
-/* Details                                                                                      */
-/* ------------------------------------------------------------------------------------------- */
 
 function taxDetail(r: RegimeBreakdown): string {
   const rows = [

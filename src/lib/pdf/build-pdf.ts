@@ -5,15 +5,10 @@
  * (src/scripts/export-pdf.ts) fetches the fonts and saves the file; tests build the same document
  * in Node and read it back.
  *
- * The page follows the site's system: Geist for text and figures, Eczar for the headline figure and
- * section headings, navy ink, India green for the money you keep, saffron for highlights, hairline
- * ledgers, and the site's guilloche linework as a cheque band and a faint rosette on the first page.
  * A4 portrait with 48pt margins, vertical positions on a 4pt grid. Each block is measured before it
  * is drawn, so a block that does not fit moves whole to the next page, and a table that has to
- * break repeats its column header.
- *
- * Text is always measured in the style it is drawn in (see Canvas.measure). Measuring after a size
- * change is what once made the header caption overlap the headline figure.
+ * break repeats its column header. Text is always measured in the style it is drawn in (see
+ * Canvas.measure); measuring after a size change makes text overlap.
  */
 
 import { BAND, bandPaths, rosettePaths } from '../art';
@@ -41,8 +36,6 @@ export interface BuildPdfOptions {
   generatedOn?: Date;
 }
 
-/* Geometry ----------------------------------------------------------------------------------- */
-
 const PAGE_W = 595.28;
 const PAGE_H = 841.89;
 const MARGIN = 48;
@@ -65,8 +58,6 @@ const HEAD = 2 + 6 + 18 + HEADING_GAP;
 const CAP = { sans: 0.71, display: 0.65 };
 
 const snap = (value: number) => Math.ceil(value / 4 - 1e-9) * 4;
-
-/* Colour and type ---------------------------------------------------------------------------- */
 
 type Rgb = [number, number, number];
 const rgb = (hex: string): Rgb => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as Rgb;
@@ -134,8 +125,6 @@ const capHeight = (s: TextStyle) => CAP[s.family] * s.size;
 /** Baseline of a line whose line box starts at `top`. */
 const baseline = (top: number, s: TextStyle) => top + s.leading / 2 + capHeight(s) / 2;
 
-/* Money -------------------------------------------------------------------------------------- */
-
 const MINUS = '−';
 
 /** Whole rupees, lakh grouping, and a real minus sign for deductions. */
@@ -171,8 +160,6 @@ export function roundColumn(values: number[], target: number, pinned: boolean[] 
   }
   return rounded;
 }
-
-/* Canvas ------------------------------------------------------------------------------------- */
 
 /** jsPDF plus a flow cursor, page breaks and text helpers that always set the style first. */
 class Canvas {
@@ -307,8 +294,6 @@ class Canvas {
   }
 }
 
-/* Mark and ornament -------------------------------------------------------------------------- */
-
 /** The site's mark (src/lib/brand.ts): an open palm with a rupee coin above it, on a green tile. */
 const HAND = pathToSubpaths(HAND_PATH);
 const RUPEE = pathToSubpaths(RUPEE_PATH);
@@ -403,8 +388,6 @@ function drawRosette(c: Canvas, cx: number, cy: number, radius: number): void {
   });
 }
 
-/* Page furniture ----------------------------------------------------------------------------- */
-
 const MONTHS = [
   'January',
   'February',
@@ -465,8 +448,6 @@ function drawFooter(c: Canvas, page: number, pages: number, preparedOn: Date): v
   c.pdf.link(RIGHT - w, second - 7, w, 9, { url: SITE.url });
 }
 
-/* Summary blocks ----------------------------------------------------------------------------- */
-
 const REGIME_LABEL: Record<Regime, string> = { new: 'New regime', old: 'Old regime' };
 
 function basedOn(result: CalculationResult): [string, string][] {
@@ -497,7 +478,6 @@ function drawHero(c: Canvas, result: CalculationResult, shareUrl: string | undef
   const a = result.structure.annual;
   const top = c.y;
 
-  // Left: the one number people open this for.
   const leftWidth = 272;
   c.text('In hand per month', LEFT, baseline(top, T.strong), tint(T.strong, COLOR.ink2));
   // As on the site: the figure in Eczar, its rupee sign smaller, lighter, raised and in saffron.
@@ -578,7 +558,6 @@ function drawRegimes(c: Canvas, result: CalculationResult): void {
     const isBetter = regime === result.better && saving >= 0.5;
     const x = LEFT + i * (cardWidth + gap);
     const pad = 14;
-    // The site's regime cards: white, a hairline border, and the cheaper one outlined in green.
     c.card(
       x,
       cardTop,
@@ -676,7 +655,6 @@ function drawComposition(c: Canvas, result: CalculationResult): void {
   c.text(`${kept.toFixed(kept >= 99.95 ? 0 : 1)}%`, cx, cy + 1, share, 'center');
   c.text('in hand', cx, cy + 12, T.small, 'center');
 
-  // Legend: one row per segment, hairlines between, centred on the ring.
   const x = LEFT + size + 32;
   const rowHeight = 26;
   const legendTop = chartTop + (size - segments.length * rowHeight) / 2;
@@ -692,8 +670,6 @@ function drawComposition(c: Canvas, result: CalculationResult): void {
   });
   c.y = top + height;
 }
-
-/* Ledgers ------------------------------------------------------------------------------------ */
 
 type Cell = number | null;
 
@@ -1031,8 +1007,6 @@ function taxLedgers(result: CalculationResult): Ledger[] {
   ];
 }
 
-/* Closing blocks ----------------------------------------------------------------------------- */
-
 /** Only drawn when the offer has no gratuity line in its CTC to carry the projection. */
 function drawGratuity(c: Canvas, result: CalculationResult): void {
   if (result.input.gratuityInCtc && result.structure.annual.gratuity > 0) return;
@@ -1048,7 +1022,6 @@ function drawGratuity(c: Canvas, result: CalculationResult): void {
   c.y = top + HEAD + c.paragraph(lines, LEFT, top + HEAD, T.body);
 }
 
-/** Each note has a thin saffron rule beside it. */
 function drawNotes(c: Canvas, notices: string[]): void {
   if (notices.length === 0) return;
   const indent = 12;
@@ -1074,8 +1047,6 @@ function drawErrors(c: Canvas, errors: string[]): void {
     c.y += c.paragraph(lines, LEFT, c.y, T.body) + 8;
   }
 }
-
-/* Entry point -------------------------------------------------------------------------------- */
 
 export function buildPdf(
   result: CalculationResult,

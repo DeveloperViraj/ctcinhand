@@ -40,7 +40,6 @@ const variants = (dir, family) => [
   },
 ];
 
-// https://astro.build/config
 export default defineConfig({
   site: SITE_URL,
   output: 'static',
@@ -60,7 +59,6 @@ export default defineConfig({
       options: { variants: variants(GEIST, 'geist') },
     },
     {
-      // Display face for headlines: Eczar, by Rosetta, designed for Devanagari and Latin together.
       provider: fontProviders.local(),
       name: 'Eczar',
       cssVariable: '--font-eczar',

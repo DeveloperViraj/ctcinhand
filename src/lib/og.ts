@@ -63,7 +63,7 @@ function loadFonts() {
     // satori matches on the CSS weight it is given, not on the file's own weight class.
     { name: 'Geist', data: text, weight: 400, style: 'normal' },
     { name: 'Geist', data: medium, weight: 600, style: 'normal' },
-    // Headlines, as on the site. The rupee sign is in the Latin Extended file, so it is a fallback.
+    // The rupee sign is in Eczar's Latin Extended file, so that file is a fallback family.
     { name: 'Eczar', data: eczar, weight: 700, style: 'normal' },
     { name: 'EczarExt', data: eczarExt, weight: 700, style: 'normal' },
   ]);

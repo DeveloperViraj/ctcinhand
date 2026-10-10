@@ -1,8 +1,6 @@
 /**
- * The InHand mark: an open palm with a rupee coin above it, on a green tile. Redrawn from the
- * owner's concept as clean geometry (straight lines and true circular arcs), in the site's own
- * colours: India green tile, white hand, saffron coin with a darker rim, navy rupee sign. One source
- * for the header, favicon, app icons, Organization logo, social cards and the PDF report.
+ * The InHand mark: an open palm with a rupee coin above it, on a green tile. One source for the
+ * header, favicon, app icons, Organization logo, social cards and the PDF report.
  */
 
 export const BRAND = {

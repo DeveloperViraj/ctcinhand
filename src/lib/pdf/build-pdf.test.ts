@@ -28,8 +28,6 @@ const fonts: PdfFontFiles = {
 const sampleDir = process.env.PDF_SAMPLE_DIR ?? join(tmpdir(), 'inhand-pdf-samples');
 const preparedOn = new Date(2026, 8, 28);
 
-/* A just-enough PDF reader ------------------------------------------------------------------- */
-
 const latin1 = (bytes: Uint8Array) => Buffer.from(bytes).toString('latin1');
 
 /** Every object's dictionary and (inflated) stream, by object number. */
@@ -96,8 +94,6 @@ function pageTexts(pdf: ArrayBuffer): string[] {
     return lines.join('\n');
   });
 }
-
-/* Scenarios ---------------------------------------------------------------------------------- */
 
 const input = (overrides: Partial<CalculatorInput>): CalculatorInput => ({
   ...DEFAULT_INPUT,

@@ -1,10 +1,6 @@
 /**
  * Data for the three explainers on Labour Code wages, provident fund and gratuity. Every figure
  * comes from the calculator engine at build time, so the guides cannot drift from the calculator.
- *
- * These are the areas where most salary calculators are still wrong in Tax Year 2026-27: they
- * compute PF and gratuity on Basic alone, ignore the 50% wage rule, test ESI on gross pay, and
- * still use the Rs 15,000 PF ceiling after it rose to Rs 25,000 in September 2026.
  */
 
 import { lakhs } from './brackets';
@@ -36,10 +32,6 @@ function lastPassing(test: (ctc: number) => boolean, low: number, high: number):
   return low;
 }
 
-// ---------------------------------------------------------------------------------------------
-// Labour Code wages
-// ---------------------------------------------------------------------------------------------
-
 export interface WageRow {
   basicPercent: number;
   basicMonthly: number;
@@ -61,7 +53,7 @@ export interface GratuityShiftRow {
   lpa: number;
   basicMonthly: number;
   wages: number;
-  /** One year's gratuity on Basic alone, as most calculators still compute it. */
+  /** One year's gratuity on Basic alone, for comparison with the Labour Code figure. */
   onBasic: number;
   /** One year's gratuity on Labour Code wages. */
   onWages: number;
@@ -146,10 +138,6 @@ export function labourCodeData(): LabourCodeData {
     esiCeiling: at(3).structure.esi.ceiling,
   };
 }
-
-// ---------------------------------------------------------------------------------------------
-// Provident fund
-// ---------------------------------------------------------------------------------------------
 
 export interface PfWageRow {
   wages: number;
@@ -238,10 +226,6 @@ export function pfGuideData(): PfGuideData {
     ),
   };
 }
-
-// ---------------------------------------------------------------------------------------------
-// Gratuity
-// ---------------------------------------------------------------------------------------------
 
 export interface GratuityRow {
   lpa: number;
@@ -333,10 +317,6 @@ export function gratuityData(): GratuityData {
     ),
   };
 }
-
-// ---------------------------------------------------------------------------------------------
-// CTC, gross and in-hand
-// ---------------------------------------------------------------------------------------------
 
 export interface WaterfallStep {
   label: string;

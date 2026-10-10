@@ -1,14 +1,7 @@
 /**
- * The site's ornament, generated at build time.
- *
- * - The rosette is guilloche: families of fine wavy rings whose phase shifts from line to line,
- *   the same technique as the security printing on rupee notes and cheques.
- * - The band is a strip of the same linework, like the top edge of a cheque.
- * - The kolam tile is a lattice of dots with loops drawn around them, after the threshold
- *   drawings made fresh each morning across South India.
- *
- * Every piece is drawn in black and used as a CSS mask, so the page colours it per theme with a
- * gradient and one cached file serves light and dark alike.
+ * The site's ornament, generated at build time. The rosette and band are guilloche: families of
+ * fine wavy lines whose phase shifts from line to line. Every piece is drawn in black and used as a
+ * CSS mask, so the page colours it per theme and one cached file serves light and dark alike.
  */
 
 const fmt = (n: number) => (Math.round(n * 10) / 10).toString();

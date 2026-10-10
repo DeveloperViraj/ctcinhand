@@ -19,10 +19,6 @@ export interface Slab {
 
 export const TAX_YEAR = '2026-27';
 
-// ---------------------------------------------------------------------------------------------
-// Slabs
-// ---------------------------------------------------------------------------------------------
-
 /** New regime, Income-tax Act 2025 s.202(1) Table. Same for every age. Unchanged by Finance Act 2026. */
 export const NEW_REGIME_SLABS: readonly Slab[] = [
   { upTo: 4_00_000, rate: 0 },
@@ -58,18 +54,14 @@ export const OLD_REGIME_SLABS = {
   ],
 } as const satisfies Record<string, readonly Slab[]>;
 
-// ---------------------------------------------------------------------------------------------
 // Standard deduction: Income-tax Act 2025 s.19(1) Table Sl. 2, capped at the salary itself
-// ---------------------------------------------------------------------------------------------
 
 export const STANDARD_DEDUCTION: Record<Regime, number> = {
   new: 75_000, // Sl. 2(a): where tax is computed under s.202(1)
   old: 50_000, // Sl. 2(b): any other case
 };
 
-// ---------------------------------------------------------------------------------------------
 // Rebate: Income-tax Act 2025 s.156 (formerly s.87A). Resident individuals only.
-// ---------------------------------------------------------------------------------------------
 
 export interface RebateRule {
   /** Full rebate applies when total income does not exceed this. */
@@ -87,11 +79,9 @@ export const REBATE: Record<Regime, RebateRule> = {
   old: { incomeLimit: 5_00_000, maxRebate: 12_500, marginalRelief: false }, // s.156(1)
 };
 
-// ---------------------------------------------------------------------------------------------
 // Surcharge on income-tax, with marginal relief at every threshold.
 // Old regime: Finance Act 2026 Part I-B Para F. New regime: Finance Act 2026 s.3(4)(b) Table Sl.10.
 // A tier applies when total income EXCEEDS its threshold (exactly Rs 50L carries no surcharge).
-// ---------------------------------------------------------------------------------------------
 
 export interface SurchargeTier {
   readonly above: number;
