@@ -1,16 +1,12 @@
 ---
 import { AUTHOR } from '../config/author';
 import { SITE } from '../config/site';
+import { formatMonthYear } from '../lib/format';
 import { authorPath } from '../lib/seo';
 import Logo from './Logo.astro';
 import SupportLink from './SupportLink.astro';
 
-const verified = new Date(`${SITE.ratesVerifiedOn}T00:00:00+05:30`).toLocaleDateString('en-IN', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-  timeZone: 'Asia/Kolkata',
-});
+const verified = formatMonthYear(SITE.ratesVerifiedOn);
 const groups = [
   {
     label: 'Guides',
@@ -61,7 +57,7 @@ const groups = [
         </p>
         <p class="mt-5 inline-flex items-center gap-2 rounded-pill border border-line bg-surface px-3 py-1.5 text-xs font-medium text-ink-2">
           <span class="size-1.5 rounded-full bg-accent" aria-hidden="true"></span>
-          Rates checked against official sources on {verified}
+          Rates checked against official sources, {verified}
         </p>
         <p class="mt-6 text-ink-2">Free, with no sign-up. If it saved you a spreadsheet:</p>
         <SupportLink class="mt-3" />

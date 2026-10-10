@@ -14,7 +14,10 @@ export const SITE = {
    */
   taxYearLabel: 'Tax Year 2026-27 (FY 2026-27)',
   shortYearLabel: 'FY 2026-27',
-  /** Date the statutory figures in src/lib/tax/rates.ts were last verified. */
+  /**
+   * Date the statutory figures were last verified against their sources. Pages show only the month
+   * ("October 2026"); re-verify at the start of each month, then move this date.
+   */
   ratesVerifiedOn: '2026-10-09',
   contactEmail: 'workwithvirajjadhav@gmail.com',
   /** Where readers can chip in to keep the site free. Linked from the footer, About and results. */

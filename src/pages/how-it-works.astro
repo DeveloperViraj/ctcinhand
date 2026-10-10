@@ -1,6 +1,7 @@
 ---
 import DocLayout from '../layouts/DocLayout.astro';
 import { SITE } from '../config/site';
+import { formatMonthYear } from '../lib/format';
 // The calculation in five steps. Devanagari numerals are ornament; the step numbers are in the text.
 const STEPS = [
   {
@@ -30,10 +31,7 @@ const STEPS = [
   },
 ];
 
-const verifiedLabel = new Date(`${SITE.ratesVerifiedOn}T00:00:00+05:30`).toLocaleDateString(
-  'en-IN',
-  { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' },
-);
+const verifiedLabel = formatMonthYear(SITE.ratesVerifiedOn);
 ---
 
 <DocLayout
@@ -362,7 +360,7 @@ const verifiedLabel = new Date(`${SITE.ratesVerifiedOn}T00:00:00+05:30`).toLocal
 
   <h2>When this was checked</h2>
   <p>
-    Statutory rates were last verified on {verifiedLabel} against the Income-tax Act 2025 and Rules
+    Statutory rates were last verified in {verifiedLabel} against the Income-tax Act 2025 and Rules
     2026, the Finance Act 2026, Ministry of Labour FAQs, EPFO and ESIC notifications, and state
     professional tax Acts; the professional tax tables for Gujarat, Madhya Pradesh, Assam, Bihar,
     Jharkhand, Kerala, Chennai, Odisha, Tripura, Sikkim, Manipur, Mizoram, Nagaland and Puducherry

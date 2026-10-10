@@ -33,6 +33,27 @@ function trim(value: number): string {
   return value.toFixed(2).replace(/\.?0+$/, '');
 }
 
+const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+/** "2026-10-09" -> "October 2026". Read from the string, so no time zone can move it a month. */
+export function formatMonthYear(iso: string): string {
+  const [year, month] = iso.split('-').map(Number);
+  return `${MONTHS[month - 1]} ${year}`;
+}
+
 export function formatPercent(fraction: number, decimals = 1): string {
   const safe = Number.isFinite(fraction) ? fraction : 0;
   return `${(safe * 100).toFixed(decimals).replace(/\.0$/, '')}%`;

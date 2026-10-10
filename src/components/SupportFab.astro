@@ -1,0 +1,22 @@
+---
+/**
+ * The floating "Buy me a coffee" button, bottom right on every page except the embed. A plain
+ * link, like SupportLink: nothing loads from Buy Me a Coffee until it is clicked.
+ *
+ * Where there is room beside the content (96rem and up) it is a labelled pill. Narrower screens
+ * show the label for a few seconds after load, then fold it into a round cup so the button never
+ * sits on top of the result's buttons; hover or keyboard focus opens it again. On the calculator,
+ * below lg, it rides above the phone's in-hand bar. The styles are in global.css (.support-fab).
+ */
+import { Icon } from 'astro-icon/components';
+import { SITE } from '../config/site';
+---
+
+<!-- Its own landmark, so screen-reader users can find it like the rest of the page. -->
+<aside aria-label={`Support ${SITE.name}`}>
+  <a href={SITE.support.url} target="_blank" rel="noopener" class="support-fab">
+    <Icon name="lucide:coffee" class="size-5 shrink-0" aria-hidden="true" />
+    <span class="support-fab-label">{SITE.support.label}</span>
+    <span class="sr-only"> (opens in a new tab)</span>
+  </a>
+</aside>

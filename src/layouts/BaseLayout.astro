@@ -4,6 +4,7 @@ import { AUTHOR } from '../config/author';
 import { SITE } from '../config/site';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import SupportFab from '../components/SupportFab.astro';
 import { ogImagePath, OG_HEIGHT, OG_WIDTH } from '../lib/og';
 import {
   absolute,
@@ -163,5 +164,6 @@ const graph = {
       <slot />
     </main>
     <SiteFooter />
+    <SupportFab />
   </body>
 </html>

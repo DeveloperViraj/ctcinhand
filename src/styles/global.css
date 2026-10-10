@@ -1281,6 +1281,83 @@
   }
 }
 
+/*
+ * The floating "Buy me a coffee" button (SupportFab.astro). Saffron with navy text in both themes:
+ * the theme's own ink turns near-white in dark mode, which fails contrast on saffron.
+ */
+.support-fab {
+  position: fixed;
+  right: calc(1rem + env(safe-area-inset-right));
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  height: 3rem;
+  padding: 0 1.125rem 0 0.875rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-saffron);
+  color: oklch(0.24 0.045 262);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  box-shadow: var(--shadow-md);
+  transition:
+    background-color var(--duration-2),
+    transform var(--duration-2) var(--ease-out-soft),
+    bottom var(--duration-3) var(--ease-out-soft);
+}
+.support-fab:hover {
+  background: var(--color-saffron-strong);
+  transform: translateY(-2px);
+}
+.support-fab-label {
+  overflow: hidden;
+  max-width: 10rem;
+  margin-left: 0.5rem;
+}
+
+/*
+ * Without a margin beside the content, a labelled pill would cover the result's buttons. Show the
+ * label long enough to be noticed, then fold to a round cup. Hover and focus outrank the finished
+ * animation only with !important, which is why it appears here.
+ */
+@media (width < 96rem) {
+  .support-fab {
+    animation: support-fab-fold 500ms var(--ease-out-soft) 4s both;
+  }
+  .support-fab-label {
+    animation: support-fab-fold-label 500ms var(--ease-out-soft) 4s both;
+  }
+  .support-fab:is(:hover, :focus-visible) {
+    padding-right: 1.125rem !important;
+  }
+  .support-fab:is(:hover, :focus-visible) .support-fab-label {
+    max-width: 10rem !important;
+    margin-left: 0.5rem !important;
+    opacity: 1 !important;
+  }
+}
+@keyframes support-fab-fold {
+  to {
+    padding-right: 0.875rem;
+  }
+}
+@keyframes support-fab-fold-label {
+  to {
+    max-width: 0;
+    margin-left: 0;
+    opacity: 0;
+  }
+}
+
+/* On the calculator, keep it above the phone's in-hand bar while that bar is showing. */
+@media (width < 64rem) {
+  body:has([data-sticky-total]:not([hidden])) .support-fab {
+    bottom: calc(4.75rem + env(safe-area-inset-bottom));
+  }
+}
+
 /* Printing a salary breakdown is a real thing people do. */
 @media print {
   :root {
@@ -1296,6 +1373,7 @@
   [data-sticky-total],
   details > summary,
   .hero-glow,
+  .support-fab,
   .no-print {
     display: none !important;
   }

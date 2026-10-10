@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  formatMonthYear,
   formatCompactRupees,
   formatNumber,
   formatPercent,
@@ -55,5 +56,13 @@ describe('parsing what people actually type', () => {
     expect(parseRupees('abc')).toBeNull();
     expect(parseRupees('12L4')).toBeNull();
     expect(parseRupees('-5000')).toBeNull();
+  });
+});
+
+describe('month and year', () => {
+  it('reads the month from the date string', () => {
+    expect(formatMonthYear('2026-10-09')).toBe('October 2026');
+    expect(formatMonthYear('2027-01-01')).toBe('January 2027');
+    expect(formatMonthYear('2026-12-31')).toBe('December 2026');
   });
 });

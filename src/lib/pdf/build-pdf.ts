@@ -21,7 +21,7 @@ import { BRAND, COIN, HAND_PATH, pathToSubpaths, RUPEE_PATH, type Subpath } from
 import { jsPDF } from 'jspdf';
 import { SITE } from '../../config/site';
 import { buildExportDocument, type ExportRow, type ExportSectionId } from '../export-data';
-import { formatCompactRupees, formatNumber } from '../format';
+import { formatCompactRupees, formatMonthYear, formatNumber } from '../format';
 import type { CalculationResult, RegimeBreakdown } from '../tax/calculate';
 import { STATES } from '../tax/professional-tax';
 import type { Regime } from '../tax/rates';
@@ -420,10 +420,6 @@ const MONTHS = [
   'December',
 ];
 const longDate = (d: Date) => `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
-const isoDate = (iso: string) => {
-  const [y, m, d] = iso.split('-').map(Number);
-  return `${d} ${MONTHS[m - 1]} ${y}`;
-};
 
 const DOC_TITLE = 'Salary breakdown';
 
@@ -459,7 +455,7 @@ function drawFooter(c: Canvas, page: number, pages: number, preparedOn: Date): v
   );
   c.text(`Page ${page} of ${pages}`, RIGHT, first, T.micro, 'right');
   c.text(
-    `Statutory rates verified ${isoDate(SITE.ratesVerifiedOn)}. Prepared ${longDate(preparedOn)}.`,
+    `Statutory rates verified ${formatMonthYear(SITE.ratesVerifiedOn)}. Prepared ${longDate(preparedOn)}.`,
     LEFT,
     second,
     T.micro,

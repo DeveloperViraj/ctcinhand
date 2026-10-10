@@ -5,7 +5,7 @@ import Calculator from '../components/Calculator.astro';
 import { SITE } from '../config/site';
 import { bracketLabel, bracketPath, lakhs } from '../lib/brackets';
 import { labourCodeData } from '../lib/explainers';
-import { formatRupees } from '../lib/format';
+import { formatMonthYear, formatRupees } from '../lib/format';
 import { describePtPattern } from '../lib/pt-pattern';
 import { calculate } from '../lib/tax/calculate';
 import { DEFAULT_INPUT } from '../lib/tax/defaults';
@@ -125,10 +125,7 @@ const guides = [
   },
 ];
 
-const verifiedLabel = new Date(`${SITE.ratesVerifiedOn}T00:00:00+05:30`).toLocaleDateString(
-  'en-IN',
-  { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' },
-);
+const verifiedLabel = formatMonthYear(SITE.ratesVerifiedOn);
 
 /** Share of CTC that reaches the bank in a year, with the calculator's standard structure. */
 const reaches = (lpa: number) => {
