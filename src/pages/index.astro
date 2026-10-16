@@ -76,6 +76,12 @@ const popular = [6, 8, 10, 12, 15, 18, 20, 25, 30, 50].map((lpa) => {
 
 const guides = [
   {
+    href: '/salary-hike-calculator',
+    icon: 'lucide:trending-up',
+    title: 'Salary hike calculator',
+    text: 'What a raise on CTC really adds to your monthly pay.',
+  },
+  {
     href: '/ctc-vs-in-hand-salary',
     icon: 'lucide:wallet',
     title: 'CTC, gross and in-hand',
@@ -443,7 +449,7 @@ const schema = [
         Every rule, explained with real numbers.
       </h2>
     </div>
-    <ul class="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <ul class="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {guides.map((g) => (
         <li>
           <a href={g.href} class="tile flex h-full flex-col p-5 no-underline">

@@ -32,6 +32,10 @@ export function allOgCards(): OgCard[] {
       slug: 'gratuity-calculator',
       title: 'Gratuity: 15/26 a year, from one year for fixed-term staff',
     },
+    {
+      slug: 'salary-hike-calculator',
+      title: 'Salary hike calculator: what your raise adds in hand',
+    },
     ...LPA_BRACKETS.map((lpa) => {
       const result = calculate({ ...DEFAULT_INPUT, ctc: lakhs(lpa) });
       const best = result.regimes[result.better];

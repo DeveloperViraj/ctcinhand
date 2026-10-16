@@ -1,0 +1,230 @@
+---
+/**
+ * The salary hike calculator: a raise on CTC turned into the change in monthly in-hand pay, with
+ * the tables and the "raise that costs you" example computed at build time by the engine.
+ */
+import DocLayout from '../layouts/DocLayout.astro';
+import NumberField from '../components/form/NumberField.astro';
+import SelectField from '../components/form/SelectField.astro';
+import { bracketPath, lakhs } from '../lib/brackets';
+import { formatCompactRupees, formatRupees } from '../lib/format';
+import { calculatorLink, compareHike, renderHike } from '../lib/hike';
+import { DEFAULT_INPUT } from '../lib/tax/defaults';
+import { HRA_CITY_OPTIONS } from '../lib/tax/hra';
+import { STATES } from '../lib/tax/professional-tax';
+
+const STATE = DEFAULT_INPUT.stateCode;
+const CITY = DEFAULT_INPUT.city;
+const START = lakhs(10);
+const HIKE = 20;
+const initial = renderHike({
+  ctc: START,
+  newCtc: Math.round(START * (1 + HIKE / 100)),
+  stateCode: STATE,
+  city: CITY,
+});
+
+const at = (from: number, to: number) => compareHike(from, to, STATE, CITY)!;
+const pct = (fraction: number) => `${(Math.round(fraction * 1000) / 10).toFixed(1)}%`;
+
+const HIKES = [10, 20, 30];
+const table = [6, 8, 10, 12, 15, 20, 25, 30, 40, 50].map((lpa) => {
+  const ctc = lakhs(lpa);
+  return {
+    lpa,
+    now: at(ctc, ctc + 1).before.monthly,
+    cells: HIKES.map((h) => at(ctc, Math.round(ctc * (1 + h / 100)))),
+  };
+});
+const row = (lpa: number) => table.find((r) => r.lpa === lpa)!;
+const low = row(10).cells[1];
+const edge = row(12).cells[1];
+const high = row(50).cells[0];
+
+// The ₹50,000 raise above ₹12.5 lakh that costs the most in-hand pay.
+let worst = at(lakhs(12.5), lakhs(12.5) + 50_000);
+for (let ctc = lakhs(12.5); ctc <= lakhs(15); ctc += 5_000) {
+  const o = at(ctc, ctc + 50_000);
+  if (o.monthlyGain < worst.monthlyGain) worst = o;
+}
+const worstYear = Math.abs(Math.round(worst.split.inHand));
+---
+
+<DocLayout
+  title="Salary hike calculator: what your raise adds in hand"
+  description="Turn a hike on your CTC into the change in your monthly in-hand salary for FY 2026-27, with income tax, PF and professional tax for your state, and see where the extra money goes."
+  updated="2026-10-16"
+  ogImage="salary-hike-calculator"
+  about={['Salary hike', 'In-hand salary', 'Income tax']}
+  deva="कमाई"
+>
+  <p>
+    A hike is quoted on your CTC, but what you feel is the change in your monthly in-hand pay. The
+    two are rarely the same: income tax, provident fund and the ₹12 lakh rebate all move between
+    them. Enter your current CTC and the hike, or the new CTC from your offer letter.
+  </p>
+
+  <form
+    id="hike"
+    class="panel not-prose overflow-clip"
+    novalidate
+    aria-label="Salary hike calculator"
+  >
+    <div class="grid gap-x-8 gap-y-5 p-5 sm:grid-cols-2">
+      <NumberField
+        id="h-ctc"
+        label="Current CTC"
+        value={START.toLocaleString('en-IN')}
+        prefix="₹"
+        width="7.5rem"
+        hint="A year"
+        money
+      />
+      <NumberField
+        id="h-pct"
+        label="Hike"
+        value={String(HIKE)}
+        suffix="%"
+        width="3.5rem"
+        inputmode="decimal"
+        hint="Or type the new CTC below"
+      />
+      <NumberField
+        id="h-new"
+        label="New CTC"
+        value={Math.round(START * (1 + HIKE / 100)).toLocaleString('en-IN')}
+        prefix="₹"
+        width="7.5rem"
+        hint="Updates with the hike, and the other way round"
+        money
+      />
+      <div class="grid grid-cols-2 gap-3">
+        <SelectField id="h-state" label="Work state">
+          {STATES.map((s) => (
+            <option value={s.code} selected={s.code === STATE}>
+              {s.name}
+            </option>
+          ))}
+        </SelectField>
+        <SelectField id="h-city" label="City">
+          {HRA_CITY_OPTIONS.map((c) => (
+            <option value={c} selected={c === CITY}>
+              {c === 'Other' ? 'Anywhere else' : c}
+            </option>
+          ))}
+        </SelectField>
+      </div>
+    </div>
+    <output
+      id="h-result"
+      for="h-ctc h-pct h-new h-state h-city"
+      class="block border-t border-line bg-[linear-gradient(180deg,var(--color-accent-soft),var(--color-surface))] p-5 sm:p-6"
+      aria-live="polite"
+      set:html={initial}
+    />
+  </form>
+
+  <p>
+    Both salaries use the calculator's standard structure: Basic at half of CTC, PF at the statutory
+    ceiling and gratuity inside CTC, with each side taking whichever regime is cheaper. If your
+    offer is structured differently, put the new CTC into the <a href="/">full calculator</a> and
+    match each component.
+  </p>
+
+  <h2>What a hike adds in hand</h2>
+  <p>
+    The extra in-hand pay a month, and how much your in-hand rises in percent, for hikes of 10%, 20%
+    and 30% on common salaries, in Bengaluru.
+  </p>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Current CTC</th>
+          <th scope="col">In hand now</th>
+          {HIKES.map((h) => (
+            <th scope="col">{h}% hike</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {table.map((r) => (
+          <tr>
+            <td>
+              <a href={bracketPath(r.lpa)}>{r.lpa} LPA</a>
+            </td>
+            <td>{formatRupees(r.now)}</td>
+            {r.cells.map((o) => (
+              <td>
+                +{formatRupees(o.monthlyGain)} <span class="text-ink-3">({pct(o.inHandHike)})</span>
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Why your in-hand rise is not your hike</h2>
+  <ul>
+    <li>
+      <strong>Up to about ₹12 lakh, in-hand rises a little faster than CTC.</strong> There is no
+      income tax yet, and PF at the statutory ceiling and professional tax stay the same as your pay
+      grows. A 20% hike on {formatCompactRupees(low.before.ctc)} raises in-hand pay by{' '}
+      {pct(low.inHandHike)}.
+    </li>
+    <li>
+      <strong>Crossing ₹12 lakh of taxable income ends the rebate.</strong> Above the limit the full
+      slab tax applies, eased only at first by marginal relief, so a raise across it loses a large
+      share to tax. A 20% hike on {formatCompactRupees(edge.before.ctc)} raises in-hand pay by only{' '}
+      {pct(edge.inHandHike)}.
+    </li>
+    <li>
+      <strong>Above ₹50 lakh, surcharge starts.</strong> A 10% hike on{' '}
+      {formatCompactRupees(high.before.ctc)} raises in-hand pay by {pct(high.inHandHike)}, because
+      the 10% surcharge begins once taxable income passes ₹50 lakh.
+    </li>
+    <li>
+      <strong>PF and gratuity grow with Basic.</strong> Part of every raise goes into your provident
+      fund and the gratuity provision. That money is still yours, just not in this month's salary.
+    </li>
+  </ul>
+
+  <h2>When a raise leaves you with less</h2>
+  <p>
+    Just above ₹12 lakh of taxable income, the rebate tapers off rather than stopping dead: your tax
+    is capped at the income above the limit. The 4% cess is still charged on top, so inside this
+    band each extra rupee of income costs slightly more than a rupee in tax.
+  </p>
+  <p>
+    With the standard structure, a raise of ₹50,000 from {formatCompactRupees(worst.before.ctc)} to{' '}
+    {formatCompactRupees(worst.after.ctc)} adds {formatRupees(worst.split.tax)} of income tax and
+    leaves you <strong>{formatRupees(worstYear)} a year worse off</strong>. Past the band, a raise
+    is taxed at the ordinary slab rates again and in-hand pay climbs normally.
+  </p>
+  <p>
+    If a raise would land you in this band, it is worth asking payroll whether part of it can be
+    paid as an employer contribution to NPS, which the new regime still lets you deduct (section
+    124), or simply negotiating a raise large enough to clear it. The{' '}
+    <a href="/marginal-relief">marginal relief guide</a> shows the band in detail.
+  </p>
+
+  <h2>Next steps</h2>
+  <ul>
+    <li>
+      <a href={calculatorLink(lakhs(12), STATE, CITY)}>See any new CTC broken down in full</a>, with
+      both regimes, every deduction and a PDF to keep.
+    </li>
+    <li>
+      <a href="/old-vs-new-tax-regime">Check which regime suits you</a> once your salary changes.
+    </li>
+    <li>
+      <a href="/in-hand-salary">In-hand salary at every CTC</a>, from 3 to 100 lakh.
+    </li>
+  </ul>
+</DocLayout>
+
+<script>
+  import { mountHike } from '../scripts/hike';
+  mountHike();
+</script>
