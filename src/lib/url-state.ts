@@ -28,8 +28,8 @@ export const DEFAULT_STATE: CalculatorState = { mode: 'quick', input: DEFAULT_IN
  */
 export function effectiveInput(state: CalculatorState): CalculatorInput {
   if (state.mode === 'advanced') return state.input;
-  const { ctc, stateCode, city, monthlyRent } = state.input;
-  return { ...DEFAULT_INPUT, ctc, stateCode, city, monthlyRent };
+  const { ctc, joiningBonus, stateCode, city, monthlyRent } = state.input;
+  return { ...DEFAULT_INPUT, ctc, joiningBonus, stateCode, city, monthlyRent };
 }
 
 const STATE_CODES = new Set(STATES.map((s) => s.code));
@@ -79,6 +79,7 @@ export function encodeState(state: CalculatorState, everything = false): string 
 
   if (state.mode !== DEFAULT_STATE.mode) p.set('m', state.mode);
   put('c', String(round(i.ctc)), String(d.ctc));
+  put('jb', String(round(i.joiningBonus ?? 0)), String(d.joiningBonus ?? 0));
   put('b', encodeComponent(i.basic), encodeComponent(d.basic));
   put('h', encodeComponent(i.hra), encodeComponent(d.hra));
   put('l', encodeComponent(i.lta), encodeComponent(d.lta));
@@ -133,6 +134,7 @@ export function decodeState(search: string): CalculatorState {
     mode: mode === 'advanced' || mode === 'quick' ? mode : DEFAULT_STATE.mode,
     input: {
       ctc: num(p.get('c'), d.ctc, 0, 1e10),
+      joiningBonus: num(p.get('jb'), d.joiningBonus ?? 0, 0, 1e10),
       basic: decodeComponent(p.get('b'), d.basic) as ComponentValue,
       hra: decodeComponent(p.get('h'), d.hra, 200) as ComponentValue,
       lta: decodeComponent(p.get('l'), d.lta, 200) as ComponentValue,

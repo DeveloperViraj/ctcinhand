@@ -5,6 +5,7 @@
 
 import { parseRupees } from '../lib/format';
 import { ctcAfterHike, hikePercent, renderHike } from '../lib/hike';
+import { bindCityToState } from './city-select';
 
 export function mountHike(): void {
   const form = document.getElementById('hike') as HTMLFormElement | null;
@@ -15,6 +16,7 @@ export function mountHike(): void {
   const state = document.getElementById('h-state') as HTMLSelectElement | null;
   const city = document.getElementById('h-city') as HTMLSelectElement | null;
   if (!form || !output || !ctc || !pct || !next || !state || !city) return;
+  bindCityToState(state, city);
 
   const grouped = (n: number) => n.toLocaleString('en-IN', { maximumFractionDigits: 0 });
   const percent = (raw: string): number | null => {

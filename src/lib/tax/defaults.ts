@@ -8,6 +8,7 @@ import { NO_DEDUCTIONS } from './deductions';
  */
 export const DEFAULT_INPUT: CalculatorInput = {
   ctc: 12_00_000,
+  joiningBonus: 0,
   basic: { unit: 'percent', value: 50 },
   hra: { unit: 'percent', value: 50 },
   lta: { unit: 'percent', value: 0 },

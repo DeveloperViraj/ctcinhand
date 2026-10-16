@@ -1,4 +1,8 @@
 ---
+/**
+ * Light or dark, nothing else. A first visit follows the device's setting; a click switches to the
+ * other theme and remembers it. The icon shows the theme a click switches to.
+ */
 import { Icon } from 'astro-icon/components';
 ---
 
@@ -6,42 +10,35 @@ import { Icon } from 'astro-icon/components';
   type="button"
   class="theme-toggle inline-flex size-9 items-center justify-center rounded-pill text-ink-2 transition-colors hover:bg-sunken hover:text-ink"
   data-theme-toggle
-  aria-label="Colour theme: system. Click to change."
-  title="Colour theme"
+  aria-label="Switch to dark theme"
+  title="Switch theme"
 >
-  <Icon name="lucide:monitor" class="icon-system size-[18px]" aria-hidden="true" />
-  <Icon name="lucide:sun" class="icon-light size-[18px]" aria-hidden="true" />
-  <Icon name="lucide:moon" class="icon-dark size-[18px]" aria-hidden="true" />
+  <Icon name="lucide:moon" class="icon-to-dark size-[18px]" aria-hidden="true" />
+  <Icon name="lucide:sun" class="icon-to-light size-[18px]" aria-hidden="true" />
 </button>
 
 <style>
   .theme-toggle :global(svg) {
     display: none;
   }
-  :global(html[data-theme-pref='system']) .theme-toggle :global(.icon-system),
-  :global(html[data-theme-pref='light']) .theme-toggle :global(.icon-light),
-  :global(html[data-theme-pref='dark']) .theme-toggle :global(.icon-dark) {
+  :global(html:not([data-theme='dark'])) .theme-toggle :global(.icon-to-dark),
+  :global(html[data-theme='dark']) .theme-toggle :global(.icon-to-light) {
     display: block;
   }
 </style>
 
 <script>
-  const ORDER = ['system', 'light', 'dark'] as const;
-  type Pref = (typeof ORDER)[number];
-
-  const currentPref = (): Pref => {
-    const v = document.documentElement.dataset.themePref;
-    return v === 'light' || v === 'dark' ? v : 'system';
-  };
+  const isDark = () => document.documentElement.dataset.theme === 'dark';
 
   for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')) {
     const sync = () =>
-      btn.setAttribute('aria-label', `Colour theme: ${currentPref()}. Click to change.`);
+      btn.setAttribute('aria-label', `Switch to ${isDark() ? 'light' : 'dark'} theme`);
     sync();
     btn.addEventListener('click', () => {
-      const next = ORDER[(ORDER.indexOf(currentPref()) + 1) % ORDER.length];
-      window.__setThemePref?.(next);
+      window.__setThemePref?.(isDark() ? 'light' : 'dark');
       sync();
     });
+    // A first-time visitor's theme follows the device, which can change while the page is open.
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', sync);
   }
 </script>

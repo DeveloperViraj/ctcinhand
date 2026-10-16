@@ -463,6 +463,9 @@ function basedOn(result: CalculationResult): [string, string][] {
         : 'Not deducted';
   return [
     ['Annual CTC', money(input.ctc)],
+    ...((input.joiningBonus ?? 0) > 0
+      ? [['Joining bonus, left out', money(input.joiningBonus ?? 0)] as [string, string]]
+      : []),
     ['Work location', place],
     ...(input.monthlyRent > 0
       ? [['Rent paid', `${money(input.monthlyRent)} a month`] as [string, string]]

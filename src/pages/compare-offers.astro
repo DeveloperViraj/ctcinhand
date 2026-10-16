@@ -9,7 +9,7 @@ import NumberField from '../components/form/NumberField.astro';
 import Segmented from '../components/form/Segmented.astro';
 import SelectField from '../components/form/SelectField.astro';
 import { DEFAULT_OFFERS, renderComparison } from '../lib/offers';
-import { HRA_CITY_OPTIONS } from '../lib/tax/hra';
+import { cityOptionsHtml } from '../lib/city-options';
 import { STATES } from '../lib/tax/professional-tax';
 
 const DEFAULTS = DEFAULT_OFFERS;
@@ -86,11 +86,7 @@ const sides = DEFAULTS.map((o, i) => ({ key: i === 0 ? 'a' : 'b', o }));
                 ))}
               </SelectField>
               <SelectField id={`${key}-city`} label="City">
-                {HRA_CITY_OPTIONS.map((c) => (
-                  <option value={c} selected={c === o.city}>
-                    {c === 'Other' ? 'Anywhere else' : c}
-                  </option>
-                ))}
+                <Fragment set:html={cityOptionsHtml(o.stateCode, o.city)} />
               </SelectField>
             </div>
             <details class="group rounded-md border border-line px-3 py-2">
@@ -136,7 +132,7 @@ const sides = DEFAULTS.map((o, i) => ({ key: i === 0 ? 'a' : 'b', o }));
       <output
         id="offers-result"
         for="a-ctc b-ctc"
-        class="block bg-[linear-gradient(180deg,var(--color-accent-soft),var(--color-surface))] p-5 sm:p-6"
+        class="block result-wash p-5 sm:p-6"
         aria-live="polite"
         set:html={initial}
       />

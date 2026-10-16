@@ -3,6 +3,7 @@
  * main page, and a link that opens the full breakdown for the current figures.
  */
 
+import { bindCityToState } from './city-select';
 import { formatNumber, parseRupees } from '../lib/format';
 import { morphInto } from '../lib/morph';
 import { renderSummary } from '../lib/render-result';
@@ -21,6 +22,7 @@ export function mountEmbed(): void {
   const full = document.getElementById('e-full') as HTMLAnchorElement | null;
   const range = form?.querySelector<HTMLInputElement>('input[data-slider-for="e-ctc"]') ?? null;
   if (!form || !summary || !ctc || !state || !city || !full) return;
+  bindCityToState(state, city);
 
   const scale: SliderScale = { kind: 'log', min: 1_00_000, max: 2_00_00_000 };
   const grouped = (n: number) => n.toLocaleString('en-IN', { maximumFractionDigits: 0 });

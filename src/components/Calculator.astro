@@ -2,7 +2,7 @@
 import { Icon } from 'astro-icon/components';
 import { calculate } from '../lib/tax/calculate';
 import { DEFAULT_INPUT } from '../lib/tax/defaults';
-import { HRA_CITY_OPTIONS } from '../lib/tax/hra';
+import { cityOptionsHtml } from '../lib/city-options';
 import { STATES } from '../lib/tax/professional-tax';
 import { renderDetails, renderSummary } from '../lib/render-result';
 import NumberField from './form/NumberField.astro';
@@ -50,7 +50,7 @@ const PRESETS = [
           </label>
           <span class="text-xs text-ink-3">Type a number or something like 18L</span>
         </div>
-        <div class="chip chip-xl mt-3 w-full justify-start" style="--chip-width:100%">
+        <label for="ctc" class="chip chip-xl mt-3 w-full justify-start" style="--chip-width:100%">
           <span class="chip-unit" aria-hidden="true">
             ₹
           </span>
@@ -62,18 +62,15 @@ const PRESETS = [
             autocomplete="off"
             spellcheck="false"
             value="12,00,000"
-            aria-describedby="ctc-note ctc-presets-label"
+            aria-describedby="ctc-presets-label"
             data-money
           />
-        </div>
-        <!-- Offer letters often fold one-time payments into the headline CTC; they never reach a payslip. -->
-        <p id="ctc-note" class="mt-2 flex items-start gap-1.5 text-xs text-ink-3">
-          <Icon name="lucide:info" class="mt-px size-3.5 shrink-0" aria-hidden="true" />
-          <span>
-            Take out one-time pay first, such as a joining bonus or relocation allowance. It is not
-            part of your monthly salary.
-          </span>
-        </p>
+          <Icon
+            name="lucide:pencil"
+            class="ml-auto size-5 shrink-0 text-ink-3"
+            aria-hidden="true"
+          />
+        </label>
         <div class="mt-4">
           <input
             type="range"
@@ -115,6 +112,18 @@ const PRESETS = [
           ))}
         </div>
 
+        <div class="mt-6">
+          <NumberField
+            id="joining"
+            label="Joining bonus in this CTC"
+            value="0"
+            prefix="₹"
+            width="6.5rem"
+            hint="Optional. It is paid once, so it is left out of your monthly pay."
+            money
+          />
+        </div>
+
         <div class="mt-8 grid gap-5 sm:grid-cols-2">
           <SelectField id="state" label="Work state" hintId="pt-status">
             {STATES.map((s) => (
@@ -124,11 +133,7 @@ const PRESETS = [
             ))}
           </SelectField>
           <SelectField id="city" label="City you live in" hint="Sets the 50% or 40% HRA limit.">
-            {HRA_CITY_OPTIONS.map((c) => (
-              <option value={c} selected={c === DEFAULT_INPUT.city}>
-                {c === 'Other' ? 'Anywhere else' : c}
-              </option>
-            ))}
+            <Fragment set:html={cityOptionsHtml(DEFAULT_INPUT.stateCode, DEFAULT_INPUT.city)} />
           </SelectField>
         </div>
 
@@ -422,7 +427,7 @@ const PRESETS = [
 
       <!-- Summary: beside the inputs on a wide screen, below them on a phone. -->
       <aside
-        class="border-t border-line bg-[linear-gradient(180deg,var(--color-accent-soft),var(--color-surface-2)_55%)] lg:border-t-0 lg:border-l"
+        class="border-t border-line result-wash [--wash-end:var(--color-surface-2)] lg:border-t-0 lg:border-l"
         aria-label="Result"
       >
         <div class="lg:sticky lg:top-20" data-summary>

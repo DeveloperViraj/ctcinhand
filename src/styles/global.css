@@ -33,6 +33,8 @@
   --color-accent-ink: oklch(0.44 0.105 155);
   --color-accent-soft: oklch(0.962 0.03 155);
   --color-accent-soft-2: oklch(0.925 0.05 155);
+  /* The soft tint behind a result. */
+  --color-wash: oklch(0.962 0.03 155);
   --color-on-accent: oklch(1 0 0);
   /* A teal second stop for smooth gradients (slider fill, logo). */
   --color-accent-2: oklch(0.55 0.1 185);
@@ -143,54 +145,59 @@
 
 [data-theme='dark'] {
   color-scheme: dark;
-  --color-canvas: oklch(0.165 0.022 262);
-  --color-canvas-2: oklch(0.188 0.024 262);
-  --color-surface: oklch(0.205 0.026 262);
-  --color-surface-2: oklch(0.235 0.028 262);
-  --color-sunken: oklch(0.18 0.023 262);
+  /*
+   * Near-black, nearly neutral surfaces in the manner of Linear or Vercel: depth comes from small
+   * steps in lightness and hairline borders. Green is kept for action and money, never for panels.
+   */
+  --color-canvas: oklch(0.155 0.004 265);
+  --color-canvas-2: oklch(0.175 0.004 265);
+  --color-surface: oklch(0.19 0.005 265);
+  --color-surface-2: oklch(0.215 0.006 265);
+  --color-sunken: oklch(0.17 0.004 265);
 
-  --color-ink: oklch(0.96 0.008 262);
-  --color-ink-2: oklch(0.8 0.016 262);
-  --color-ink-3: oklch(0.68 0.018 262);
+  --color-ink: oklch(0.96 0.003 265);
+  --color-ink-2: oklch(0.79 0.006 265);
+  --color-ink-3: oklch(0.66 0.008 265);
 
-  --color-line: oklch(0.3 0.026 262);
-  --color-line-strong: oklch(0.38 0.03 262);
+  --color-line: oklch(0.28 0.006 265);
+  --color-line-strong: oklch(0.36 0.008 265);
 
-  --color-accent: oklch(0.75 0.14 155);
-  --color-accent-strong: oklch(0.8 0.14 155);
-  --color-accent-ink: oklch(0.8 0.12 155);
-  --color-accent-soft: oklch(0.27 0.045 160);
-  --color-accent-soft-2: oklch(0.33 0.06 160);
-  --color-on-accent: oklch(0.17 0.03 262);
+  --color-accent: oklch(0.76 0.15 158);
+  --color-accent-strong: oklch(0.81 0.14 158);
+  --color-accent-ink: oklch(0.8 0.13 158);
+  --color-accent-soft: oklch(0.235 0.018 158);
+  --color-accent-soft-2: oklch(0.28 0.03 158);
+  --color-on-accent: oklch(0.16 0.02 160);
   --color-accent-2: oklch(0.74 0.1 185);
+  --color-wash: oklch(0.225 0.006 265);
 
   --color-saffron: oklch(0.8 0.15 65);
   --color-saffron-strong: oklch(0.84 0.14 70);
-  --color-saffron-soft: oklch(0.3 0.06 60);
+  --color-saffron-soft: oklch(0.27 0.035 60);
   --color-saffron-ink: oklch(0.85 0.12 72);
   --color-chakra: oklch(0.72 0.11 264);
 
   --color-positive: oklch(0.8 0.14 155);
-  --color-positive-soft: oklch(0.28 0.05 155);
+  --color-positive-soft: oklch(0.25 0.03 155);
   --color-negative: oklch(0.74 0.15 30);
-  --color-negative-soft: oklch(0.29 0.055 28);
+  --color-negative-soft: oklch(0.26 0.04 28);
 
-  --color-chart-take: oklch(0.75 0.14 155);
-  --color-chart-save: oklch(0.45 0.07 158);
-  --color-chart-tax: oklch(0.86 0.03 262);
-  --color-chart-rest: oklch(0.45 0.07 158);
+  --color-chart-take: oklch(0.76 0.15 158);
+  --color-chart-save: oklch(0.47 0.06 158);
+  --color-chart-tax: oklch(0.86 0.02 265);
+  --color-chart-rest: oklch(0.47 0.06 158);
 
-  --color-warn-soft: oklch(0.27 0.04 75);
+  --color-warn-soft: oklch(0.25 0.03 75);
   --color-warn-line: oklch(0.45 0.08 75);
   --color-warn-ink: oklch(0.87 0.09 85);
   --color-danger: oklch(0.72 0.15 27);
-  --color-danger-soft: oklch(0.27 0.05 25);
+  --color-danger-soft: oklch(0.26 0.04 25);
 
   --shadow-xs: 0 1px 2px oklch(0 0 0 / 0.4);
   --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.35), 0 2px 8px -2px oklch(0 0 0 / 0.4);
   --shadow-md: 0 2px 4px -1px oklch(0 0 0 / 0.4), 0 12px 24px -8px oklch(0 0 0 / 0.5);
   --shadow-float:
-    0 0 0 1px oklch(1 0 0 / 0.04), 0 8px 16px -6px oklch(0 0 0 / 0.5),
+    0 0 0 1px oklch(1 0 0 / 0.05), 0 8px 16px -6px oklch(0 0 0 / 0.5),
     0 32px 64px -24px oklch(0 0 0 / 0.7);
 }
 
@@ -271,6 +278,10 @@
     border-radius: var(--radius-md);
     background: var(--color-accent-soft);
   }
+  [data-theme='dark'] .callout {
+    border-color: var(--color-line-strong);
+    background: var(--color-surface-2);
+  }
 
   .panel {
     position: relative;
@@ -324,10 +335,11 @@
     gap: 0.25rem;
     min-height: 2.5rem;
     padding: 0.4375rem 0.75rem;
-    border: 1px solid transparent;
+    border: 1px solid var(--color-line-strong);
     border-radius: var(--radius-chip);
-    background: var(--color-accent-soft);
-    color: var(--color-accent-ink);
+    background: var(--color-surface);
+    color: var(--color-ink);
+    box-shadow: inset 0 1px 2px oklch(0.24 0.05 262 / 0.06);
     font-size: var(--text-lg);
     line-height: 1.5rem;
     font-weight: 600;
@@ -340,7 +352,7 @@
       box-shadow var(--duration-2);
   }
   .chip:hover {
-    background: var(--color-accent-soft-2);
+    border-color: color-mix(in oklch, var(--color-accent) 55%, var(--color-line-strong));
   }
   .chip:focus-within {
     border-color: var(--color-accent);
@@ -360,8 +372,8 @@
     outline: none;
   }
   .chip input:-webkit-autofill {
-    box-shadow: 0 0 0 1000px var(--color-accent-soft) inset;
-    -webkit-text-fill-color: var(--color-accent-ink);
+    box-shadow: 0 0 0 1000px var(--color-surface) inset;
+    -webkit-text-fill-color: var(--color-ink);
   }
   .chip input::placeholder {
     color: var(--color-ink-3);
@@ -376,6 +388,7 @@
     color: var(--color-ink-3);
   }
   .chip-unit {
+    color: var(--color-ink-3);
     font-size: var(--text-base);
     font-weight: 500;
   }
@@ -416,25 +429,24 @@
     outline: none;
   }
   .range::-webkit-slider-runnable-track {
-    height: 6px;
+    height: 4px;
     border-radius: var(--radius-pill);
     background: linear-gradient(
       to right,
-      var(--color-accent-2),
       var(--color-accent) var(--pct),
       var(--color-sunken) var(--pct)
     );
     box-shadow: inset 0 0 0 1px var(--color-line);
   }
   .range::-moz-range-track {
-    height: 6px;
+    height: 4px;
     border-radius: var(--radius-pill);
     background: var(--color-sunken);
   }
   .range::-moz-range-progress {
-    height: 6px;
+    height: 4px;
     border-radius: var(--radius-pill);
-    background: linear-gradient(to right, var(--color-accent-2), var(--color-accent));
+    background: var(--color-accent);
   }
   .range::-webkit-slider-thumb {
     width: 1.375rem;
@@ -780,25 +792,17 @@
     background:
       radial-gradient(
         40% 50% at 30% 40%,
-        color-mix(in oklch, var(--color-accent) 22%, transparent),
+        color-mix(in oklch, var(--color-saffron) 12%, transparent),
         transparent 70%
       ),
       radial-gradient(
         35% 45% at 72% 30%,
-        color-mix(in oklch, var(--color-accent-2) 18%, transparent),
+        color-mix(in oklch, var(--color-accent) 10%, transparent),
         transparent 70%
       );
   }
-  .hero-glow::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(to right, var(--color-line) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
-    background-size: 56px 56px;
-    mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 30%, transparent 75%);
-    opacity: 0.55;
+  [data-theme='dark'] .hero-glow::before {
+    opacity: 0.5;
   }
 
   .tile {
@@ -828,6 +832,26 @@
       ),
       linear-gradient(160deg, var(--color-accent), var(--color-accent-strong));
     color: var(--color-on-accent);
+  }
+  [data-theme='dark'] .tile-accent {
+    border-color: var(--color-line-strong);
+    background:
+      radial-gradient(
+        120% 90% at 100% 0%,
+        color-mix(in oklch, var(--color-saffron) 10%, transparent),
+        transparent 60%
+      ),
+      var(--color-surface-2);
+    color: var(--color-ink);
+  }
+
+  /* The soft tint behind a result: green-tinted in light, a plain raised surface in dark. */
+  .result-wash {
+    background: linear-gradient(
+      180deg,
+      var(--color-wash),
+      var(--wash-end, var(--color-surface)) 55%
+    );
   }
 
   /* Home page tool cards: the band's saffron-green-navy gradient as the border, lifting on hover. */

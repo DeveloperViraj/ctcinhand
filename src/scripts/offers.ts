@@ -8,6 +8,7 @@ import { parseRupees } from '../lib/format';
 import { decodeOffers, DEFAULT_OFFERS, encodeOffers, renderComparison } from '../lib/offers';
 import type { OfferInput } from '../lib/offers';
 import type { PfMode } from '../lib/tax/provident-fund';
+import { bindCityToState, refreshCities } from './city-select';
 
 type Key = 'a' | 'b';
 const KEYS: Key[] = ['a', 'b'];
@@ -52,7 +53,8 @@ export function mountOffers(): void {
     set('bonus', grouped(o.joiningBonus ?? 0));
     set('basic', String(o.basicPercent ?? 50));
     set('state', o.stateCode);
-    set('city', o.city);
+    const citySelect = input(k, 'city');
+    if (citySelect instanceof HTMLSelectElement) refreshCities(citySelect, o.stateCode, o.city);
     set('rent', grouped(o.monthlyRent ?? 0));
     const unit = radio(`${k}-var-unit`);
     if (unit) unit.value = o.variable.unit;
@@ -74,6 +76,14 @@ export function mountOffers(): void {
     window.clearTimeout(urlTimer);
     urlTimer = window.setTimeout(syncUrl, 300);
   };
+
+  for (const k of KEYS) {
+    const state = input(k, 'state');
+    const city = input(k, 'city');
+    if (state instanceof HTMLSelectElement && city instanceof HTMLSelectElement) {
+      bindCityToState(state, city);
+    }
+  }
 
   if (new URLSearchParams(window.location.search).has('ac')) {
     const linked = decodeOffers(window.location.search, DEFAULT_OFFERS);

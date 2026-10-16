@@ -9,6 +9,7 @@
 import { formatNumber, formatRupees, parseRupees } from '../lib/format';
 import { morphInto } from '../lib/morph';
 import { renderDetails, renderSummary } from '../lib/render-result';
+import { bindCityToState, refreshCities } from './city-select';
 import { fromPosition, toPosition, type SliderScale } from '../lib/slider-scale';
 import { calculate, type CalculatorInput, type ComponentValue } from '../lib/tax/calculate';
 import { STATES, type PtResult } from '../lib/tax/professional-tax';
@@ -41,6 +42,7 @@ export function mountCalculator(): void {
 
   const el = {
     ctc: $<HTMLInputElement>('ctc')!,
+    joining: $<HTMLInputElement>('joining')!,
     state: $<HTMLSelectElement>('state')!,
     city: $<HTMLSelectElement>('city')!,
     rent: $<HTMLInputElement>('rent')!,
@@ -96,6 +98,7 @@ export function mountCalculator(): void {
   });
 
   const stateByCode = new Map(STATES.map((s) => [s.code, s]));
+  bindCityToState(el.state, el.city);
   let state: CalculatorState = initialState();
   let lastHeadline = 0;
 
@@ -134,8 +137,9 @@ export function mountCalculator(): void {
   function applyToForm() {
     const i = state.input;
     el.ctc.value = i.ctc ? grouped(i.ctc) : '';
+    el.joining.value = grouped(i.joiningBonus ?? 0);
     el.state.value = i.stateCode;
-    el.city.value = i.city;
+    refreshCities(el.city, i.stateCode, i.city);
     el.rent.value = grouped(i.monthlyRent);
     setComponent(el.basic, el.basicUnit, i.basic);
     setComponent(el.hra, el.hraUnit, i.hra);
@@ -176,6 +180,7 @@ export function mountCalculator(): void {
     const ptOverrideRaw = el.ptOverride.value.trim();
     return {
       ctc: parseRupees(el.ctc.value) ?? 0,
+      joiningBonus: num(el.joining),
       basic: component(el.basic, el.basicUnit),
       hra: component(el.hra, el.hraUnit),
       lta: component(el.lta, el.ltaUnit),

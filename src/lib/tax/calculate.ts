@@ -33,8 +33,13 @@ export interface ComponentValue {
 }
 
 export interface CalculatorInput {
-  /** Annual cost to company. */
+  /** Annual cost to company, as written on the offer letter. */
   ctc: number;
+  /**
+   * A one-time joining bonus included in `ctc`. It is paid once, so it is taken out before
+   * anything is calculated: every figure is for the recurring CTC.
+   */
+  joiningBonus?: number;
   /** Basic + DA, as a percent of CTC or a rupee amount per year. */
   basic: ComponentValue;
   /** HRA, as a percent of basic or a rupee amount per year. */
@@ -121,7 +126,11 @@ export function calculate(input: CalculatorInput): CalculationResult {
   const errors: string[] = [];
   const notices: string[] = [];
 
-  const ctc = Math.max(0, input.ctc);
+  const joiningBonus = Math.max(0, input.joiningBonus ?? 0);
+  const ctc = Math.max(0, input.ctc - joiningBonus);
+  if (joiningBonus > 0 && joiningBonus >= input.ctc) {
+    errors.push('The joining bonus is more than the CTC. Enter the CTC including the bonus.');
+  }
   const basicAnnual = Math.max(0, resolve(input.basic, ctc));
   const hraAnnual = Math.max(0, resolve(input.hra, basicAnnual));
   const ltaAnnual = Math.max(0, resolve(input.lta, basicAnnual));

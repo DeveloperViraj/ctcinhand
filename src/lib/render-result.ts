@@ -229,6 +229,11 @@ export function renderSummary(result: CalculationResult): string {
         result.better
       ].toLowerCase()}.
     </p>
+    ${
+      (result.input.joiningBonus ?? 0) > 0
+        ? `<p class="mt-1 text-sm text-ink-3">Leaves out the ${formatRupees(result.input.joiningBonus ?? 0)} joining bonus in your CTC: it is paid once, so every figure here is for the remaining ${formatCompactRupees(result.structure.input.ctcAnnual)}.</p>`
+        : ''
+    }
     ${notes}
     ${relief}
     ${compositionBar(result)}
