@@ -10,14 +10,28 @@ const nav = [
   { href: '/', label: 'Calculator' },
   { href: '/in-hand-salary', label: 'Salaries' },
   { href: '/old-vs-new-tax-regime', label: 'Old vs new' },
-  { href: '/how-it-works', label: 'How it works' },
+  { href: '/how-it-works', label: 'How it works', wide: true },
+];
+const tools = [
+  {
+    href: '/salary-hike-calculator',
+    label: 'Salary hike calculator',
+    text: 'What a raise adds to your monthly pay',
+    icon: 'lucide:trending-up',
+    isNew: true,
+  },
+  {
+    href: '/gratuity-calculator',
+    label: 'Gratuity calculator',
+    text: 'On Labour Code wages, from one year for fixed-term',
+    icon: 'lucide:hand-coins',
+    isNew: false,
+  },
 ];
 // The phone menu has room for the guides as well.
 const more = [
   { href: '/ctc-vs-in-hand-salary', label: 'CTC vs in-hand' },
   { href: '/provident-fund', label: 'Provident fund' },
-  { href: '/salary-hike-calculator', label: 'Hike calculator' },
-  { href: '/gratuity-calculator', label: 'Gratuity calculator' },
   { href: '/professional-tax', label: 'Professional tax' },
 ];
 const isCurrent = (href: string) =>
@@ -35,8 +49,58 @@ const isCurrent = (href: string) =>
     </a>
     <nav aria-label="Primary" class="flex items-center gap-1">
       <ul class="hidden items-center gap-0.5 text-sm md:flex">
-        {nav.map((item) => (
+        {nav.slice(0, 1).map((item) => (
           <li>
+            <a
+              href={item.href}
+              aria-current={isCurrent(item.href) ? 'page' : undefined}
+              class="rounded-pill px-3.5 py-2 font-medium text-ink-2 no-underline transition-colors hover:bg-sunken hover:text-ink aria-[current=page]:bg-sunken aria-[current=page]:text-ink"
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
+        <li>
+          <details class="tools relative" data-header-menu>
+            <summary
+              class:list={[
+                'flex cursor-pointer list-none items-center gap-1 rounded-pill px-3.5 py-2 font-medium text-ink-2 transition-colors hover:bg-sunken hover:text-ink [&::-webkit-details-marker]:hidden',
+                tools.some((t) => isCurrent(t.href)) && 'bg-sunken text-ink',
+              ]}
+            >
+              Tools
+              <Icon name="lucide:chevron-down" class="tools-chevron size-3.5" aria-hidden="true" />
+            </summary>
+            <div class="absolute top-12 left-1/2 w-80 -translate-x-1/2 rounded-lg border border-line bg-surface p-2 shadow-md">
+              <ul>
+                {tools.map((t) => (
+                  <li>
+                    <a
+                      href={t.href}
+                      aria-current={isCurrent(t.href) ? 'page' : undefined}
+                      class="flex items-start gap-3 rounded-sm px-3 py-2.5 no-underline hover:bg-sunken"
+                    >
+                      <Icon
+                        name={t.icon}
+                        class="mt-0.5 size-4 shrink-0 text-accent"
+                        aria-hidden="true"
+                      />
+                      <span class="min-w-0 flex-1">
+                        <span class="flex items-center gap-2 font-medium text-ink">
+                          {t.label}
+                          {t.isNew && <span class="badge-dot">New</span>}
+                        </span>
+                        <span class="block text-xs text-ink-3">{t.text}</span>
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </details>
+        </li>
+        {nav.slice(1).map((item) => (
+          <li class:list={[item.wide && 'hidden lg:block']}>
             <a
               href={item.href}
               aria-current={isCurrent(item.href) ? 'page' : undefined}
@@ -51,7 +115,7 @@ const isCurrent = (href: string) =>
       <a href="/#calc" class="btn btn-solid btn-sm hidden sm:inline-flex">
         Calculate
       </a>
-      <details class="menu relative md:hidden">
+      <details class="menu relative md:hidden" data-header-menu>
         <summary
           class="flex size-9 cursor-pointer list-none items-center justify-center rounded-pill text-ink-2 hover:bg-sunken hover:text-ink [&::-webkit-details-marker]:hidden"
           aria-label="Menu"
@@ -61,7 +125,7 @@ const isCurrent = (href: string) =>
         </summary>
         <div class="absolute top-12 right-0 w-64 rounded-lg border border-line bg-surface p-2 shadow-md">
           <ul class="text-sm">
-            {[...nav, ...more].map((item) => (
+            {[...nav.slice(0, 1), ...tools, ...nav.slice(1), ...more].map((item) => (
               <li>
                 <a
                   href={item.href}
@@ -88,4 +152,31 @@ const isCurrent = (href: string) =>
   .menu[open] :global(.menu-close) {
     display: block;
   }
+  .tools[open] :global(.tools-chevron) {
+    transform: rotate(180deg);
+  }
 </style>
+
+<script>
+  // Native <details> menus stay open until toggled. Close them on Escape, on a click elsewhere, and
+  // when another one opens, as a menu is expected to.
+  const menus = Array.from(document.querySelectorAll<HTMLDetailsElement>('[data-header-menu]'));
+  const closeAll = (except?: HTMLDetailsElement) => {
+    for (const menu of menus) if (menu !== except) menu.open = false;
+  };
+  for (const menu of menus) {
+    menu.addEventListener('toggle', () => {
+      if (menu.open) closeAll(menu);
+    });
+  }
+  document.addEventListener('click', (event) => {
+    if (!menus.some((menu) => menu.contains(event.target as Node))) closeAll();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    const open = menus.find((menu) => menu.open);
+    if (!open) return;
+    open.open = false;
+    open.querySelector('summary')?.focus();
+  });
+</script>
