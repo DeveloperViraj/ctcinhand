@@ -1,0 +1,191 @@
+---
+/**
+ * Compare two job offers side by side: each offer through the same engine, with the verdict and
+ * the table rendered at build time for the default pair and redrawn in the browser as you type.
+ */
+import DocLayout from '../layouts/DocLayout.astro';
+import ComponentField from '../components/form/ComponentField.astro';
+import NumberField from '../components/form/NumberField.astro';
+import Segmented from '../components/form/Segmented.astro';
+import SelectField from '../components/form/SelectField.astro';
+import { DEFAULT_OFFERS, renderComparison } from '../lib/offers';
+import { HRA_CITY_OPTIONS } from '../lib/tax/hra';
+import { STATES } from '../lib/tax/professional-tax';
+
+const DEFAULTS = DEFAULT_OFFERS;
+const initial = renderComparison(DEFAULTS);
+const grouped = (n: number | null) => (n ?? 0).toLocaleString('en-IN');
+const sides = DEFAULTS.map((o, i) => ({ key: i === 0 ? 'a' : 'b', o }));
+---
+
+<DocLayout
+  title="Compare job offers: which one puts more in your bank"
+  description="Compare two job offers side by side for FY 2026-27: monthly in-hand salary, variable pay, joining bonus after tax, income tax and PF, with a clear verdict on which pays more."
+  updated="2026-10-16"
+  ogImage="compare-offers"
+  about={['Job offer comparison', 'In-hand salary', 'Joining bonus']}
+  deva="कमाई"
+>
+  <p>
+    A higher CTC does not always mean more money each month. Variable pay, a joining bonus, the PF
+    rules and even the city change what actually reaches your bank. Enter both offers as they appear
+    on the offer letters and see them side by side.
+  </p>
+
+  <form id="offers" class="not-prose" novalidate aria-label="Compare two job offers">
+    <div class="grid gap-4 md:grid-cols-2">
+      {sides.map(({ key, o }) => (
+        <fieldset class="min-w-0 rounded-lg border border-line bg-surface p-4 shadow-xs sm:p-5">
+          <legend class="sr-only">{o.name}</legend>
+          <label for={`${key}-name`} class="text-xs font-medium text-ink-3">
+            {key === 'a' ? 'Offer A' : 'Offer B'}, name it
+          </label>
+          <input
+            id={`${key}-name`}
+            name={`${key}-name`}
+            type="text"
+            value={o.name}
+            maxlength="40"
+            autocomplete="off"
+            class="mt-1 w-full rounded-xs border-0 border-b border-line bg-transparent px-0 pb-1.5 font-display text-xl font-bold text-ink focus:border-accent"
+          />
+          <div class="mt-4 space-y-4">
+            <NumberField
+              id={`${key}-ctc`}
+              label="CTC"
+              value={grouped(o.ctc)}
+              prefix="₹"
+              width="7.5rem"
+              money
+            />
+            <ComponentField
+              id={`${key}-var`}
+              label="Variable pay inside CTC"
+              value={String(o.variable.value)}
+              units={[
+                { value: 'percent', label: '%' },
+                { value: 'rupees', label: '₹' },
+              ]}
+              unit={o.variable.unit}
+            />
+            <NumberField
+              id={`${key}-bonus`}
+              label="Joining bonus"
+              value={grouped(o.joiningBonus)}
+              prefix="₹"
+              width="7rem"
+              hint="One-time, on top of CTC"
+              money
+            />
+            <div class="grid grid-cols-2 gap-3">
+              <SelectField id={`${key}-state`} label="Work state">
+                {STATES.map((s) => (
+                  <option value={s.code} selected={s.code === o.stateCode}>
+                    {s.name}
+                  </option>
+                ))}
+              </SelectField>
+              <SelectField id={`${key}-city`} label="City">
+                {HRA_CITY_OPTIONS.map((c) => (
+                  <option value={c} selected={c === o.city}>
+                    {c === 'Other' ? 'Anywhere else' : c}
+                  </option>
+                ))}
+              </SelectField>
+            </div>
+            <details class="group rounded-md border border-line px-3 py-2">
+              <summary class="cursor-pointer text-sm font-medium text-ink-2">
+                Salary structure and rent
+              </summary>
+              <div class="mt-3 space-y-4 pb-1">
+                <NumberField
+                  id={`${key}-basic`}
+                  label="Basic, % of CTC"
+                  value={String(o.basicPercent)}
+                  suffix="%"
+                  width="3.5rem"
+                  inputmode="decimal"
+                />
+                <Segmented
+                  name={`${key}-pf`}
+                  legend="PF"
+                  options={[
+                    { value: 'ceiling', label: 'Capped' },
+                    { value: 'actual', label: 'Full Basic' },
+                    { value: 'none', label: 'None' },
+                  ]}
+                  value={o.pfMode}
+                />
+                <NumberField
+                  id={`${key}-rent`}
+                  label="Monthly rent"
+                  value={grouped(o.monthlyRent)}
+                  prefix="₹"
+                  width="6rem"
+                  hint="Only the old regime gives relief for rent"
+                  money
+                />
+              </div>
+            </details>
+          </div>
+        </fieldset>
+      ))}
+    </div>
+
+    <div class="panel mt-4 overflow-clip">
+      <output
+        id="offers-result"
+        for="a-ctc b-ctc"
+        class="block bg-[linear-gradient(180deg,var(--color-accent-soft),var(--color-surface))] p-5 sm:p-6"
+        aria-live="polite"
+        set:html={initial}
+      />
+      <div class="flex flex-wrap items-center gap-3 border-t border-line px-5 py-4 sm:px-6">
+        <button type="button" id="offers-share" class="btn btn-primary btn-sm">
+          <span data-share-label>Copy link to this comparison</span>
+        </button>
+        <p class="text-xs text-ink-3">
+          The link carries both offers, so you can send it to someone or reopen it later.
+        </p>
+      </div>
+    </div>
+  </form>
+
+  <h2>How to compare two offers</h2>
+  <ul>
+    <li>
+      <strong>Start with the monthly in-hand.</strong> It is the fixed pay that lands every month,
+      after income tax, PF and professional tax, and the fairest single number to compare.
+    </li>
+    <li>
+      <strong>Treat variable pay as a maybe.</strong> It sits inside CTC but is paid once or twice a
+      year, and often at less than 100%. The table shows the year with it in full, so you can judge
+      how much you are counting on it.
+    </li>
+    <li>
+      <strong>A joining bonus is one year only.</strong> It is taxed like salary at your highest
+      slab, and most offer letters ask for it back if you leave within twelve months.
+    </li>
+    <li>
+      <strong>PF on your full Basic means less in hand but more saved.</strong> Some employers pay
+      PF on the whole Basic rather than the ₹25,000 ceiling. Your monthly pay drops, and your PF
+      balance grows by the same amount from each side.
+    </li>
+    <li>
+      <strong>The city matters too.</strong> Professional tax differs by state, and under the old
+      regime the HRA exemption depends on your rent and whether you live in one of the eight 50%
+      cities.
+    </li>
+  </ul>
+  <p>
+    Each offer uses the calculator's engine with Basic at the share you enter, HRA at half of Basic
+    and special allowance taking the rest. For any other structure, open an offer's full breakdown
+    and match each component from the letter. To see what a raise does instead, use the{' '}
+    <a href="/salary-hike-calculator">salary hike calculator</a>.
+  </p>
+</DocLayout>
+
+<script>
+  import { mountOffers } from '../scripts/offers';
+  mountOffers();
+</script>

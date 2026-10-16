@@ -830,6 +830,38 @@
     color: var(--color-on-accent);
   }
 
+  /* Home page tool cards: the band's saffron-green-navy gradient as the border, lifting on hover. */
+  .tool-card {
+    display: block;
+    height: 100%;
+    padding: 1.5rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-lg);
+    background:
+      linear-gradient(var(--color-surface), var(--color-surface)) padding-box,
+      linear-gradient(135deg, var(--color-saffron), var(--color-accent) 55%, var(--color-chakra))
+        border-box;
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+    transition:
+      transform var(--duration-3) var(--ease-out-soft),
+      box-shadow var(--duration-3) var(--ease-out-soft);
+  }
+  .tool-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+  }
+  .tool-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--color-saffron-soft), var(--color-accent-soft));
+    color: var(--color-saffron-ink);
+  }
+
   .breakdown > * {
     border: 1px solid var(--color-line);
     border-radius: var(--radius-lg);

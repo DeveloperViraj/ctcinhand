@@ -5,9 +5,11 @@ import { formatMonthYear } from '../lib/format';
 import { authorPath } from '../lib/seo';
 import Logo from './Logo.astro';
 import SupportLink from './SupportLink.astro';
+import { TOOLS } from '../lib/tools';
 
 const verified = formatMonthYear(SITE.ratesVerifiedOn);
 const groups = [
+  { label: 'Tools', links: TOOLS.map((t) => ({ href: t.href, label: t.label })) },
   {
     label: 'Guides',
     links: [
@@ -18,8 +20,6 @@ const groups = [
       { href: '/marginal-relief', label: 'Marginal relief above ₹12 lakh' },
       { href: '/labour-code-wages', label: 'The Labour Code wage rule' },
       { href: '/provident-fund', label: 'Provident fund and the new ceiling' },
-      { href: '/salary-hike-calculator', label: 'Salary hike calculator' },
-      { href: '/gratuity-calculator', label: 'Gratuity calculator' },
       { href: '/professional-tax', label: 'Professional tax by state' },
     ],
   },
@@ -63,7 +63,7 @@ const groups = [
         <p class="mt-6 text-ink-2">Free, with no sign-up. If it saved you a spreadsheet:</p>
         <SupportLink class="mt-3" />
       </div>
-      <nav aria-label="Footer" class="grid gap-10 sm:grid-cols-2">
+      <nav aria-label="Footer" class="grid gap-10 sm:grid-cols-3">
         {groups.map((g) => (
           <div>
             <p class="font-semibold text-ink">{g.label}</p>

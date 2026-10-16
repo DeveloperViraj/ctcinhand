@@ -36,6 +36,7 @@ export function allOgCards(): OgCard[] {
       slug: 'salary-hike-calculator',
       title: 'Salary hike calculator: what your raise adds in hand',
     },
+    { slug: 'compare-offers', title: 'Compare two job offers: which pays more in hand' },
     ...LPA_BRACKETS.map((lpa) => {
       const result = calculate({ ...DEFAULT_INPUT, ctc: lakhs(lpa) });
       const best = result.regimes[result.better];

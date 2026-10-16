@@ -2,6 +2,7 @@
 import { Icon } from 'astro-icon/components';
 import { SITE } from '../config/site';
 import { pagePath } from '../lib/seo';
+import { TOOLS } from '../lib/tools';
 import ThemeToggle from './ThemeToggle.astro';
 import Logo from './Logo.astro';
 
@@ -12,22 +13,7 @@ const nav = [
   { href: '/old-vs-new-tax-regime', label: 'Old vs new' },
   { href: '/how-it-works', label: 'How it works', wide: true },
 ];
-const tools = [
-  {
-    href: '/salary-hike-calculator',
-    label: 'Salary hike calculator',
-    text: 'What a raise adds to your monthly pay',
-    icon: 'lucide:trending-up',
-    isNew: true,
-  },
-  {
-    href: '/gratuity-calculator',
-    label: 'Gratuity calculator',
-    text: 'On Labour Code wages, from one year for fixed-term',
-    icon: 'lucide:hand-coins',
-    isNew: false,
-  },
-];
+const tools = TOOLS;
 // The phone menu has room for the guides as well.
 const more = [
   { href: '/ctc-vs-in-hand-salary', label: 'CTC vs in-hand' },
@@ -64,10 +50,11 @@ const isCurrent = (href: string) =>
           <details class="tools relative" data-header-menu>
             <summary
               class:list={[
-                'flex cursor-pointer list-none items-center gap-1 rounded-pill px-3.5 py-2 font-medium text-ink-2 transition-colors hover:bg-sunken hover:text-ink [&::-webkit-details-marker]:hidden',
-                tools.some((t) => isCurrent(t.href)) && 'bg-sunken text-ink',
+                'tools-pill flex cursor-pointer list-none items-center gap-1.5 rounded-pill px-3.5 py-1.5 font-semibold text-saffron-ink [&::-webkit-details-marker]:hidden',
+                tools.some((t) => isCurrent(t.href)) && 'is-current',
               ]}
             >
+              <Icon name="lucide:sparkles" class="size-3.5" aria-hidden="true" />
               Tools
               <Icon name="lucide:chevron-down" class="tools-chevron size-3.5" aria-hidden="true" />
             </summary>
@@ -124,8 +111,25 @@ const isCurrent = (href: string) =>
           <Icon name="lucide:x" class="menu-close size-5" aria-hidden="true" />
         </summary>
         <div class="absolute top-12 right-0 w-64 rounded-lg border border-line bg-surface p-2 shadow-md">
+          <p class="px-3 pt-1 pb-1.5 text-xs font-semibold text-saffron-ink">Tools</p>
           <ul class="text-sm">
-            {[...nav.slice(0, 1), ...tools, ...nav.slice(1), ...more].map((item) => (
+            {tools.map((t) => (
+              <li>
+                <a
+                  href={t.href}
+                  aria-current={isCurrent(t.href) ? 'page' : undefined}
+                  class="flex items-center gap-2.5 rounded-sm px-3 py-2.5 font-medium text-ink no-underline hover:bg-saffron-soft aria-[current=page]:text-accent-ink"
+                >
+                  <Icon name={t.icon} class="size-4 shrink-0 text-saffron-ink" aria-hidden="true" />
+                  <span class="flex-1">{t.label}</span>
+                  {t.isNew && <span class="badge-dot">New</span>}
+                </a>
+              </li>
+            ))}
+          </ul>
+          <hr class="my-2 border-line" />
+          <ul class="text-sm">
+            {[...nav, ...more].map((item) => (
               <li>
                 <a
                   href={item.href}
@@ -154,6 +158,45 @@ const isCurrent = (href: string) =>
   }
   .tools[open] :global(.tools-chevron) {
     transform: rotate(180deg);
+  }
+  /*
+   * The Tools pill stands apart from the plain links: a saffron tint inside a border that runs
+   * saffron to green to navy, like the site's band, and drifts slowly.
+   */
+  .tools-pill {
+    border: 1px solid transparent;
+    background:
+      linear-gradient(var(--color-saffron-soft), var(--color-saffron-soft)) padding-box,
+      linear-gradient(
+          90deg,
+          var(--color-saffron),
+          var(--color-accent),
+          var(--color-chakra),
+          var(--color-saffron)
+        )
+        border-box;
+    background-size:
+      100% 100%,
+      300% 100%;
+    animation: tools-drift 8s linear infinite;
+    transition: filter var(--duration-2);
+  }
+  .tools-pill:hover,
+  .tools[open] .tools-pill,
+  .tools-pill.is-current {
+    filter: saturate(1.25) brightness(0.98);
+  }
+  @keyframes tools-drift {
+    to {
+      background-position:
+        0 0,
+        300% 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tools-pill {
+      animation: none;
+    }
   }
 </style>
 

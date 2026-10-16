@@ -6,6 +6,7 @@ import { SITE } from '../config/site';
 import { bracketLabel, bracketPath, lakhs } from '../lib/brackets';
 import { labourCodeData } from '../lib/explainers';
 import { formatMonthYear, formatRupees } from '../lib/format';
+import { TOOLS } from '../lib/tools';
 import { describePtPattern } from '../lib/pt-pattern';
 import { calculate } from '../lib/tax/calculate';
 import { DEFAULT_INPUT } from '../lib/tax/defaults';
@@ -75,12 +76,6 @@ const popular = [6, 8, 10, 12, 15, 18, 20, 25, 30, 50].map((lpa) => {
 });
 
 const guides = [
-  {
-    href: '/salary-hike-calculator',
-    icon: 'lucide:trending-up',
-    title: 'Salary hike calculator',
-    text: 'What a raise on CTC really adds to your monthly pay.',
-  },
   {
     href: '/ctc-vs-in-hand-salary',
     icon: 'lucide:wallet',
@@ -203,13 +198,13 @@ const schema = [
     <div class="mx-auto grid max-w-6xl items-center gap-8 px-4 pt-10 pb-12 sm:px-6 sm:pt-16 lg:pb-14">
       <div>
         <a
-          href="/salary-hike-calculator"
+          href="/compare-offers"
           class="badge animate-rise no-underline transition-colors hover:text-ink"
         >
           <span class="badge-dot">New</span>
           <span>
-            Salary hike calculator
-            <span class="hidden sm:inline">: what your raise adds in hand</span>
+            Compare two job offers
+            <span class="hidden sm:inline"> side by side</span>
           </span>
           <Icon name="lucide:chevron-right" class="size-3.5 text-ink-3" aria-hidden="true" />
         </a>
@@ -240,6 +235,39 @@ const schema = [
     <div class="mx-auto max-w-6xl animate-rise px-3 [animation-delay:240ms] sm:px-6">
       <Calculator />
     </div>
+  </section>
+
+  <section class="mx-auto mt-20 max-w-6xl px-4 sm:px-6" aria-labelledby="tools-heading">
+    <div class="max-w-2xl">
+      <p class="eyebrow">Tools</p>
+      <h2 id="tools-heading" class="display mt-2 text-4xl text-ink sm:text-5xl">
+        Weighing an offer or a raise?
+      </h2>
+    </div>
+    <ul class="mt-10 grid gap-4 md:grid-cols-3">
+      {TOOLS.map((t) => (
+        <li>
+          <a href={t.href} class="tool-card group">
+            <span class="tool-icon" aria-hidden="true">
+              <Icon name={t.icon} class="size-5" />
+            </span>
+            <span class="mt-5 flex items-center gap-2 text-xl font-semibold tracking-tight text-ink">
+              {t.label}
+              {t.isNew && <span class="badge-dot">New</span>}
+            </span>
+            <span class="mt-2 block text-ink-2">{t.text}</span>
+            <span class="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-accent-ink">
+              Open
+              <Icon
+                name="lucide:arrow-right"
+                class="size-4 transition-transform group-hover:translate-x-0.5"
+                aria-hidden="true"
+              />
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
   </section>
 
   <div class="divider-kolam mx-auto mt-24 max-w-3xl" aria-hidden="true"></div>
@@ -450,7 +478,7 @@ const schema = [
         Every rule, explained with real numbers.
       </h2>
     </div>
-    <ul class="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <ul class="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {guides.map((g) => (
         <li>
           <a href={g.href} class="tile flex h-full flex-col p-5 no-underline">
@@ -511,14 +539,14 @@ const schema = [
       ></div>
       <h2 class="display text-3xl sm:text-5xl">Comparing two offers?</h2>
       <p class="mx-auto mt-4 max-w-xl text-lg opacity-90">
-        Put each one into the calculator and keep its share link. You will see the real monthly
-        difference, not just the CTC.
+        Put them side by side: CTC, variable pay, joining bonus and city. See which one actually
+        puts more in your bank each month, not just which has the bigger CTC.
       </p>
       <a
-        href="#calc"
+        href="/compare-offers"
         class="btn btn-lg mt-8 bg-white text-[oklch(0.25_0.04_165)] shadow-md hover:bg-white/90"
       >
-        Back to the calculator
+        Compare two offers
       </a>
     </div>
   </section>
