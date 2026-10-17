@@ -6,7 +6,7 @@ import { SITE } from '../config/site';
 <DocLayout
   title="Privacy policy"
   description={`How ${SITE.name} handles your data: calculations run in your browser, we keep no record of your figures, and the page address carries your inputs so results can be shared.`}
-  updated="2026-10-09"
+  updated="2026-10-17"
   legal
 >
   <p>
@@ -67,10 +67,27 @@ import { SITE } from '../config/site';
     for details.
   </p>
 
-  <h2>Analytics and cookies</h2>
+  <h2>Visit statistics and cookies</h2>
   <p>
-    {SITE.name} does not currently use analytics tools, tracking pixels or advertising cookies.
-    Fonts and icons are served from this site, not from third-party font services.
+    To see how many people use the site and which pages help them, {SITE.name} uses{' '}
+    <a href="https://www.cloudflare.com/web-analytics/" rel="noopener">
+      Cloudflare Web Analytics
+    </a>
+    . A small script from Cloudflare reports each page view: the page path, the site you came from,
+    your country, browser, operating system and device type, and how quickly the page loaded. We see
+    only totals, such as page views per day.
+  </p>
+  <p>
+    Cloudflare states that Web Analytics uses no cookies or local storage, does not track individual
+    visitors across websites, and{' '}
+    <a href="https://developers.cloudflare.com/web-analytics/faq/" rel="noopener">
+      does not log query strings
+    </a>
+    , so the salary figures in the page address are not part of these statistics.
+  </p>
+  <p>
+    The site sets no advertising cookies and uses no tracking pixels. Fonts and icons are served
+    from this site, not from third-party font services.
   </p>
 
   <h2>Advertising</h2>
@@ -105,9 +122,9 @@ import { SITE } from '../config/site';
 
   <h2>Your rights</h2>
   <p>
-    Because we do not collect personal data about you, there is nothing held by us to access,
-    correct or delete. Data stored in your browser is under your control and can be removed at any
-    time by clearing site data.
+    Because we do not collect personal data about you (the visit statistics above are anonymous
+    totals), there is nothing held by us to access, correct or delete. Data stored in your browser
+    is under your control and can be removed at any time by clearing site data.
   </p>
 
   <h2>Changes to this policy</h2>
