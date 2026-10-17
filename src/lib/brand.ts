@@ -22,8 +22,8 @@ export const RUPEE_PATH =
 export const COIN = { cx: 32, cy: 23, r: 12.6, rim: 10.2, rimWidth: 1.6 } as const;
 
 /**
- * The mark as SVG markup. `detail` false drops the rim and the rupee sign, for favicons, where
- * they would only blur; `rx` 0 gives the square tile home-screen icons want.
+ * The mark as SVG markup, also used as the favicon. `detail` false drops the rim and the rupee
+ * sign; `rx` 0 gives the square tile home-screen icons want.
  */
 export function logoSvg({ detail = true, rx = 15 } = {}): string {
   const { cx, cy, r, rim, rimWidth } = COIN;
@@ -31,15 +31,6 @@ export function logoSvg({ detail = true, rx = 15 } = {}): string {
     ? `<circle cx="${cx}" cy="${cy}" r="${rim}" fill="none" stroke="${BRAND.rim}" stroke-width="${rimWidth}"/><path d="${RUPEE_PATH}" fill="${BRAND.navy}"/>`
     : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="${rx}" fill="${BRAND.green}"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="${BRAND.saffron}"/>${coinDetail}<path d="${HAND_PATH}" fill="${BRAND.white}"/></svg>`;
-}
-
-/**
- * The mark drawn for browser tabs (16 to 48 pixels): just a white rupee sign filling the green tile.
- * The coin and hand turn to mush at 16 pixels, so the tab keeps only what has to be read.
- */
-export function faviconSvg({ rx = 14 } = {}): string {
-  const rupee = `<path d="${RUPEE_PATH}" transform="translate(32 32) scale(3.6) translate(-32 -23)" fill="${BRAND.white}" stroke="${BRAND.white}" stroke-width="0.45" stroke-linejoin="round"/>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="${rx}" fill="${BRAND.green}"/>${rupee}</svg>`;
 }
 
 /** One closed outline for jsPDF's lines(): a start point and relative segments. */

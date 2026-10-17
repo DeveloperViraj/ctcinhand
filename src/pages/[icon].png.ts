@@ -1,5 +1,5 @@
 /**
- * App and touch icons, rendered from the favicon at build time so they can never drift from it.
+ * App and touch icons, rendered from the logo at build time so they can never drift from it.
  *
  * Home-screen and app icons are full-bleed squares: iOS and Android cut their own rounded shape,
  * and a transparent corner would show as black. The mark sits well inside the central 80% safe
@@ -7,7 +7,7 @@
  */
 import type { APIRoute } from 'astro';
 import sharp from 'sharp';
-import { faviconSvg, logoSvg } from '../lib/brand';
+import { logoSvg } from '../lib/brand';
 
 const ICONS = {
   'apple-touch-icon': { size: 180, fullBleed: true },
@@ -24,9 +24,9 @@ export function getStaticPaths() {
 
 export const GET: APIRoute = async ({ params }) => {
   const { size, fullBleed } = ICONS[params.icon as IconName];
-  // Home-screen icons are the full mark on a square tile (the platform cuts its own shape); the
-  // small favicon is the tab-size drawing: the rupee sign alone.
-  const svg = size >= 120 ? logoSvg({ rx: fullBleed ? 0 : 15 }) : faviconSvg();
+  // Home-screen icons are a square tile (the platform cuts its own shape); the favicon keeps the
+  // logo's rounded corners.
+  const svg = logoSvg({ rx: fullBleed ? 0 : 15 });
   const png = await sharp(Buffer.from(svg), { density: 1536 }).resize(size, size).png().toBuffer();
   return new Response(new Uint8Array(png), { headers: { 'Content-Type': 'image/png' } });
 };

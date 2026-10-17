@@ -1,6 +1,6 @@
-/** The favicon: the tab-size drawing of the mark (src/lib/brand.ts), a white rupee sign on green. */
+/** The favicon: the site's logo (src/lib/brand.ts), the same as in the header. */
 import type { APIRoute } from 'astro';
-import { faviconSvg } from '../lib/brand';
+import { logoSvg } from '../lib/brand';
 
 export const GET: APIRoute = () =>
-  new Response(faviconSvg(), { headers: { 'Content-Type': 'image/svg+xml' } });
+  new Response(logoSvg(), { headers: { 'Content-Type': 'image/svg+xml' } });

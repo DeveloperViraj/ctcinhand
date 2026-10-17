@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { faviconSvg, HAND_PATH, logoSvg, pathToSubpaths, RUPEE_PATH } from './brand';
+import { HAND_PATH, logoSvg, pathToSubpaths, RUPEE_PATH } from './brand';
 
 describe('pathToSubpaths', () => {
   it('turns lines and cubics into relative segments', () => {
@@ -37,14 +37,5 @@ describe('logoSvg', () => {
     expect(logoSvg()).toContain(RUPEE_PATH);
     expect(logoSvg({ detail: false })).not.toContain(RUPEE_PATH);
     expect(logoSvg({ rx: 0 })).toContain('rx="0"');
-  });
-});
-
-describe('faviconSvg', () => {
-  it('is just the rupee sign, large and white, so it reads at 16 pixels', () => {
-    const svg = faviconSvg();
-    expect(svg).toContain(RUPEE_PATH);
-    expect(svg).toContain('scale(3.6)');
-    expect(svg).not.toContain(HAND_PATH);
   });
 });
