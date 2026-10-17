@@ -5,7 +5,7 @@ import sitemap from '@astrojs/sitemap';
 import icon from 'astro-icon';
 
 // Keep in sync with SITE.url in src/config/site.ts
-const SITE_URL = 'https://ctcinhand.pages.dev';
+const SITE_URL = 'https://ctcsalarycalculator.com';
 
 // Unicode ranges copied from @fontsource-variable/geist/unicode.json
 const GEIST = '@fontsource-variable/geist/files';

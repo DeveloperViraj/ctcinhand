@@ -6,8 +6,8 @@ export const SITE = {
   name: 'CTC Salary Calculator',
   /** For the home-screen label, which has room for about twelve characters. */
   shortName: 'CTC Salary',
-  domain: 'ctcinhand.pages.dev',
-  url: 'https://ctcinhand.pages.dev',
+  domain: 'ctcsalarycalculator.com',
+  url: 'https://ctcsalarycalculator.com',
   tagline: 'CTC to in-hand salary calculator for India',
   /**
    * The Income-tax Act, 2025 (in force 1 April 2026) replaced "previous year" /

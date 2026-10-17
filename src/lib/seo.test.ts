@@ -19,16 +19,16 @@ describe('pagePath', () => {
 
 describe('absolute', () => {
   it('keeps the slash only on the root', () => {
-    expect(absolute('/')).toBe('https://ctcinhand.pages.dev/');
-    expect(absolute('/about')).toBe('https://ctcinhand.pages.dev/about');
+    expect(absolute('/')).toBe('https://ctcsalarycalculator.com/');
+    expect(absolute('/about')).toBe('https://ctcsalarycalculator.com/about');
   });
 });
 
 const base = {
-  url: 'https://ctcinhand.pages.dev/marginal-relief',
+  url: 'https://ctcsalarycalculator.com/marginal-relief',
   headline: 'Marginal relief',
   description: 'd',
-  image: 'https://ctcinhand.pages.dev/og/default.png',
+  image: 'https://ctcsalarycalculator.com/og/default.png',
   datePublished: '2026-09-30',
   dateModified: '2026-09-30',
 };
@@ -36,20 +36,20 @@ const base = {
 describe('article', () => {
   it('credits the organisation when no author is configured', () => {
     expect(article({ ...base, author: null }).author).toEqual({
-      '@id': 'https://ctcinhand.pages.dev/#organization',
+      '@id': 'https://ctcsalarycalculator.com/#organization',
     });
   });
 
   it('credits the named person when one is configured', () => {
     const author = { name: 'A Person', slug: 'a-person', role: 'Engineer', bio: ['Hi.'] };
     expect(article({ ...base, author }).author).toEqual({
-      '@id': 'https://ctcinhand.pages.dev/authors/a-person#person',
+      '@id': 'https://ctcsalarycalculator.com/authors/a-person#person',
     });
     expect(person(author)).toMatchObject({
       '@type': 'Person',
       name: 'A Person',
-      url: 'https://ctcinhand.pages.dev/authors/a-person',
-      worksFor: { '@id': 'https://ctcinhand.pages.dev/#organization' },
+      url: 'https://ctcsalarycalculator.com/authors/a-person',
+      worksFor: { '@id': 'https://ctcsalarycalculator.com/#organization' },
     });
   });
 
@@ -72,18 +72,18 @@ describe('article', () => {
 describe('webPage', () => {
   it('marks a profile page and points at the person it is about', () => {
     const node = webPage({
-      url: 'https://ctcinhand.pages.dev/authors/a-person',
+      url: 'https://ctcsalarycalculator.com/authors/a-person',
       title: 'A Person',
       description: 'd',
       hasBreadcrumb: true,
-      image: 'https://ctcinhand.pages.dev/og/default.png',
+      image: 'https://ctcsalarycalculator.com/og/default.png',
       type: 'ProfilePage',
-      mainEntity: 'https://ctcinhand.pages.dev/authors/a-person#person',
+      mainEntity: 'https://ctcsalarycalculator.com/authors/a-person#person',
     });
     expect(node).toMatchObject({
       '@type': 'ProfilePage',
-      '@id': 'https://ctcinhand.pages.dev/authors/a-person#webpage',
-      mainEntity: { '@id': 'https://ctcinhand.pages.dev/authors/a-person#person' },
+      '@id': 'https://ctcsalarycalculator.com/authors/a-person#webpage',
+      mainEntity: { '@id': 'https://ctcsalarycalculator.com/authors/a-person#person' },
     });
   });
 });
@@ -91,7 +91,7 @@ describe('webPage', () => {
 describe.skipIf(!AUTHOR)('the configured author', () => {
   it('is credited on articles by default', () => {
     expect(article(base).author).toEqual({
-      '@id': `https://ctcinhand.pages.dev/authors/${AUTHOR!.slug}#person`,
+      '@id': `https://ctcsalarycalculator.com/authors/${AUTHOR!.slug}#person`,
     });
   });
 
