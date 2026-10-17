@@ -498,7 +498,7 @@ function ledger(ws: ExcelJS.Worksheet, start: number, l: Ledger, withNotes: bool
   );
   if (withNotes) {
     const noteCell = ws.getCell(`${col(3 + l.columns.length)}${r}`);
-    noteCell.alignment = { vertical: 'middle', horizontal: 'left' };
+    noteCell.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
   }
   let stripe = 0;
   for (const row of l.rows) {
@@ -536,6 +536,7 @@ function ledger(ws: ExcelJS.Worksheet, start: number, l: Ledger, withNotes: bool
         value: rupee(row.hint ?? ''),
         font: { size: 9, color: C.ink3 },
         fill: rowFill,
+        indent: 1,
         wrap: true,
         border: edge,
       });
