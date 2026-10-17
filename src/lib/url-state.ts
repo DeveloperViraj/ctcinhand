@@ -7,9 +7,9 @@
  * fall back to the default rather than produce a nonsense salary.
  */
 
+import { CITY_VALUES } from './city-options';
 import type { CalculatorInput, ComponentValue } from './tax/calculate';
 import { DEFAULT_INPUT } from './tax/defaults';
-import { HRA_CITY_OPTIONS } from './tax/hra';
 import { STATES } from './tax/professional-tax';
 
 export type Mode = 'quick' | 'advanced';
@@ -33,7 +33,7 @@ export function effectiveInput(state: CalculatorState): CalculatorInput {
 }
 
 const STATE_CODES = new Set(STATES.map((s) => s.code));
-const CITY_NAMES = new Set<string>(HRA_CITY_OPTIONS);
+const CITY_NAMES = new Set<string>(CITY_VALUES);
 
 /** Percent values are written as "50p", rupee values as plain numbers. */
 function encodeComponent(v: ComponentValue | 'balance'): string {

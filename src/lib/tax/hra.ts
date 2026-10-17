@@ -29,10 +29,6 @@ export const HRA_FIFTY_PERCENT_CITIES = [
   'Pune',
 ] as const;
 
-export type HraCity = (typeof HRA_FIFTY_PERCENT_CITIES)[number] | 'Other';
-
-export const HRA_CITY_OPTIONS: readonly HraCity[] = [...HRA_FIFTY_PERCENT_CITIES, 'Other'];
-
 /** Annual rent above this requires the landlord's PAN in the declaration to the employer (Rule 205). */
 export const LANDLORD_PAN_THRESHOLD = 1_00_000;
 

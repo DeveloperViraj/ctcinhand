@@ -9,10 +9,10 @@
  * Shared by the page's build-time render and its browser script, so both show the same thing.
  */
 
+import { CITY_VALUES } from './city-options';
 import { formatCompactRupees, formatRupees } from './format';
 import { calculate, type CalculatorInput, type ComponentValue } from './tax/calculate';
 import { DEFAULT_INPUT } from './tax/defaults';
-import { HRA_CITY_OPTIONS } from './tax/hra';
 import { computeIncomeTax } from './tax/income-tax';
 import { STATES } from './tax/professional-tax';
 import type { PfMode } from './tax/provident-fund';
@@ -87,7 +87,7 @@ export type OfferResult = { ok: true; offer: OfferSummary } | { ok: false; probl
 
 const REGIME: Record<Regime, string> = { new: 'New', old: 'Old' };
 const STATE_CODES = new Set(STATES.map((s) => s.code));
-const CITIES = new Set<string>(HRA_CITY_OPTIONS);
+const CITIES = new Set<string>(CITY_VALUES);
 
 export function toCalculatorInput(o: OfferInput): CalculatorInput {
   return {

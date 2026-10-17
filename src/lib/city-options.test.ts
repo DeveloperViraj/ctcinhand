@@ -1,36 +1,66 @@
 import { describe, expect, it } from 'vitest';
-import { citiesInState, cityForState, cityOptionsHtml, elsewhereLabel } from './city-options';
+import {
+  CITY_VALUES,
+  citiesInState,
+  cityForState,
+  cityOptionsHtml,
+  elsewhereLabel,
+} from './city-options';
 import { calculate } from './tax/calculate';
 import { DEFAULT_INPUT } from './tax/defaults';
-import { HRA_CITY_OPTIONS } from './tax/hra';
+import { isFiftyPercentCity } from './tax/hra';
 import { decodeState, encodeState } from './url-state';
 
 describe('city options by state', () => {
-  it("lists a state's own 50% cities first", () => {
-    expect(citiesInState('MH')).toEqual(['Mumbai', 'Pune']);
-    expect(citiesInState('KA')).toEqual(['Bengaluru']);
-    expect(citiesInState('HR')).toEqual([]);
+  it("lists a state's 50% cities first, then its other big job cities", () => {
+    expect(citiesInState('MH')).toEqual(['Mumbai', 'Pune', 'Nagpur', 'Nashik']);
+    expect(citiesInState('KA')).toEqual(['Bengaluru', 'Mysuru', 'Mangaluru']);
+    expect(citiesInState('HR')).toEqual(['Gurugram', 'Faridabad']);
+    expect(citiesInState('LD')).toEqual([]);
   });
 
   it('names the 40% option for the state', () => {
     expect(elsewhereLabel('MH')).toBe('Elsewhere in Maharashtra');
-    expect(elsewhereLabel('HR')).toBe('Anywhere in Haryana');
+    expect(elsewhereLabel('HR')).toBe('Elsewhere in Haryana');
+    expect(elsewhereLabel('LD')).toBe('Anywhere in Lakshadweep');
     expect(elsewhereLabel('DL')).toBe('Outside Delhi');
   });
 
   it('moves to the new state when the old city is not in it, and keeps it otherwise', () => {
     expect(cityForState('MH', 'Bengaluru')).toBe('Mumbai');
     expect(cityForState('MH', 'Pune')).toBe('Pune');
-    expect(cityForState('HR', 'Bengaluru')).toBe('Other');
+    expect(cityForState('HR', 'Bengaluru')).toBe('Gurugram');
+    expect(cityForState('LD', 'Bengaluru')).toBe('Other');
   });
 
   it('keeps every city selectable, once each, with the chosen one selected', () => {
     const html = cityOptionsHtml('MH', 'Delhi');
-    for (const city of HRA_CITY_OPTIONS) {
+    for (const city of CITY_VALUES) {
       expect(html.match(new RegExp(`value="${city}"`, 'g'))).toHaveLength(1);
     }
     expect(html).toContain('<option value="Delhi" selected>');
-    expect(html.indexOf('Mumbai')).toBeLessThan(html.indexOf('Live in another state?'));
+    expect(html.indexOf('Nashik')).toBeLessThan(html.indexOf('Live in another state?'));
+    expect(html).toContain('>Gurugram (Gurgaon)</option>');
+  });
+
+  it('gives only the eight listed cities the 50% HRA limit', () => {
+    const exemption = (city: string) =>
+      calculate({ ...DEFAULT_INPUT, ctc: 20_00_000, monthlyRent: 50_000, city }).regimes.old
+        .hraExemption!.rate;
+    for (const city of CITY_VALUES) {
+      expect(exemption(city), city).toBe(isFiftyPercentCity(city) ? 0.5 : 0.4);
+    }
+    expect(exemption('Gurugram')).toBe(0.4);
+    expect(exemption('Bengaluru')).toBe(0.5);
+  });
+
+  it('reads a new city back from a share link', () => {
+    const query = encodeState({
+      mode: 'quick',
+      input: { ...DEFAULT_INPUT, stateCode: 'HR', city: 'Gurugram' },
+    });
+    expect(decodeState(query).input.city).toBe('Gurugram');
+    expect(decodeState('ci=Atlantis').input.city).toBe(DEFAULT_INPUT.city);
   });
 });
 
