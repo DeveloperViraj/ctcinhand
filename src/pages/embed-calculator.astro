@@ -4,8 +4,8 @@ import { SITE } from '../config/site';
 
 // The widget posts its height; this listener sizes the frame to fit. It only trusts messages from
 // our own origin, and only from a frame that is actually one of ours on the host page.
-const resizer = `<script>addEventListener("message",function(e){if(e.origin!=="${SITE.url}"||!e.data||e.data.type!=="inhand:height")return;var h=Math.min(Math.max(+e.data.height||0,300),2000);document.querySelectorAll("iframe[data-inhand-embed]").forEach(function(f){if(f.contentWindow===e.source)f.style.height=h+"px"})})</script>`;
-const snippet = `<iframe src="${SITE.url}/embed" title="CTC to in-hand salary calculator" width="100%" height="900" style="border:0;max-width:560px" loading="lazy" data-inhand-embed></iframe>
+const resizer = `<script>addEventListener("message",function(e){if(e.origin!=="${SITE.url}"||!e.data||e.data.type!=="ctc:height")return;var h=Math.min(Math.max(+e.data.height||0,300),2000);document.querySelectorAll("iframe[data-ctc-embed]").forEach(function(f){if(f.contentWindow===e.source)f.style.height=h+"px"})})</script>`;
+const snippet = `<iframe src="${SITE.url}/embed" title="CTC to in-hand salary calculator" width="100%" height="900" style="border:0;max-width:560px" loading="lazy" data-ctc-embed></iframe>
 ${resizer}
 <p><a href="${SITE.url}/">CTC to in-hand salary calculator</a> by ${SITE.name}</p>`;
 ---
@@ -56,7 +56,7 @@ ${resizer}
     height="900"
     style="border:0;max-width:560px"
     loading="lazy"
-    data-inhand-embed
+    data-ctc-embed
   ></iframe>
 </DocLayout>
 
@@ -65,9 +65,9 @@ ${resizer}
   const code = document.getElementById('embed-snippet');
   // The preview sizes itself the same way the snippet does, from this site's own origin.
   window.addEventListener('message', (event) => {
-    if (event.origin !== window.location.origin || event.data?.type !== 'inhand:height') return;
+    if (event.origin !== window.location.origin || event.data?.type !== 'ctc:height') return;
     const height = Math.min(Math.max(Number(event.data.height) || 0, 300), 2000);
-    for (const frame of document.querySelectorAll<HTMLIFrameElement>('iframe[data-inhand-embed]')) {
+    for (const frame of document.querySelectorAll<HTMLIFrameElement>('iframe[data-ctc-embed]')) {
       if (frame.contentWindow === event.source) frame.style.height = `${height}px`;
     }
   });

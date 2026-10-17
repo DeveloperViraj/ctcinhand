@@ -3,7 +3,9 @@
  * and `SITE_URL` in astro.config.mjs (Astro config can't import TS at load time).
  */
 export const SITE = {
-  name: 'InHand',
+  name: 'CTC Salary Calculator',
+  /** For the home-screen label, which has room for about twelve characters. */
+  shortName: 'CTC Salary',
   domain: 'ctcinhand.pages.dev',
   url: 'https://ctcinhand.pages.dev',
   tagline: 'CTC to in-hand salary calculator for India',
@@ -25,5 +27,10 @@ export const SITE = {
     label: 'Buy me a coffee',
     url: 'https://buymeacoffee.com/developerviraj',
   },
+  /**
+   * Google Search Console's HTML-tag verification code (the content="..." value). Empty until the
+   * property is added; the tag is only emitted when this is set.
+   */
+  googleVerification: '',
   locale: 'en-IN',
 } as const;

@@ -3,7 +3,7 @@
  *
  * Every run also writes the files, so the layout can be inspected by eye:
  *   PDF_SAMPLE_DIR=<folder> node node_modules/vitest/vitest.mjs run src/lib/pdf
- * Without PDF_SAMPLE_DIR they go to <os tmpdir>/inhand-pdf-samples.
+ * Without PDF_SAMPLE_DIR they go to <os tmpdir>/ctc-pdf-samples.
  */
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -25,7 +25,7 @@ const fonts: PdfFontFiles = {
   medium: readFileSync(new URL('report-sans-medium.ttf', fontDir)),
   display: readFileSync(new URL('report-display.ttf', fontDir)),
 };
-const sampleDir = process.env.PDF_SAMPLE_DIR ?? join(tmpdir(), 'inhand-pdf-samples');
+const sampleDir = process.env.PDF_SAMPLE_DIR ?? join(tmpdir(), 'ctc-pdf-samples');
 const preparedOn = new Date(2026, 8, 28);
 
 const latin1 = (bytes: Uint8Array) => Buffer.from(bytes).toString('latin1');
@@ -196,9 +196,9 @@ describe('PDF report', () => {
   });
 
   it('names the file after the CTC', () => {
-    expect(pdfFileName(calculate(DEFAULT_INPUT))).toBe('inhand-salary-breakdown-12-lakh.pdf');
+    expect(pdfFileName(calculate(DEFAULT_INPUT))).toBe('ctc-salary-breakdown-12-lakh.pdf');
     expect(pdfFileName(calculate(input({ ctc: 1_25_00_000 })))).toBe(
-      'inhand-salary-breakdown-1.25-crore.pdf',
+      'ctc-salary-breakdown-1.25-crore.pdf',
     );
   });
 });

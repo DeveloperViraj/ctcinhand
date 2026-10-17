@@ -164,7 +164,7 @@ const faqs = [
 const schema = [
   {
     '@type': 'WebApplication',
-    name: `${SITE.name} CTC Calculator`,
+    name: SITE.name,
     '@id': `${SITE.url}/#calculator`,
     url: SITE.url,
     applicationCategory: 'FinanceApplication',
@@ -185,7 +185,7 @@ const schema = [
 ---
 
 <BaseLayout
-  title={`CTC to In-Hand Salary Calculator ${SITE.shortYearLabel}`}
+  title={`${SITE.name}: In-Hand Salary for ${SITE.shortYearLabel}`}
   schema={schema}
   description="Work out your monthly in-hand salary from CTC for FY 2026-27. Both tax regimes side by side, with PF, ESI, gratuity, state professional tax and the Labour Code wage rule. Free, private, no sign-up."
 >

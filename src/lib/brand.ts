@@ -1,5 +1,5 @@
 /**
- * The InHand mark: an open palm with a rupee coin above it, on a green tile. One source for the
+ * The site's mark: an open palm with a rupee coin above it, on a green tile. One source for the
  * header, favicon, app icons, Organization logo, social cards and the PDF report.
  */
 
@@ -15,7 +15,7 @@ export const BRAND = {
 export const HAND_PATH =
   'M10.6 43C13.5 41.2 16.8 39.2 20.2 38.6C23.4 38 25.8 39 28.4 40L37.4 40C38.67 40 39.7 41.03 39.7 42.3C39.7 43.57 38.67 44.6 37.4 44.6L26.6 44.6C26.08 44.6 25.65 45.03 25.65 45.55C25.65 46.07 26.08 46.5 26.6 46.5L37 46.5C38.6 46.5 40.03 43.4 40.9 42.9L50.6 37.3C51.59 36.8 52.8 37.21 53.3 38.2C53.8 39.19 53.39 40.4 52.4 40.9L36.2 53C34.6 54 33 53.9 31.4 53.5C27.5 52.6 23.5 51.2 20.4 50.6C17 50 13.6 51.8 10.6 53.3Z';
 
-/** The rupee sign, from Geist Bold, fitted to the coin. Left off at favicon sizes. */
+/** The rupee sign, from Geist Bold, fitted to the coin. */
 export const RUPEE_PATH =
   'M31.6 28.8 27.22 24.74V22.84H30.95Q31.64 22.84 32.1 22.64Q32.55 22.45 32.78 22.04Q33.01 21.64 33.01 21.04Q33.01 20.43 32.78 20.04Q32.55 19.65 32.1 19.46Q31.64 19.26 30.95 19.26H27.22V17.33H31.08Q32.4 17.33 33.4 17.76Q34.41 18.18 34.98 18.99Q35.56 19.81 35.56 20.98Q35.56 22.14 35.01 22.98Q34.46 23.81 33.46 24.25Q32.46 24.69 31.08 24.69H30.21L34.75 28.8ZM27.22 21.74V20.4H36.78V21.74ZM27.22 18.53V17.2H36.78V18.53Z';
 
@@ -31,6 +31,17 @@ export function logoSvg({ detail = true, rx = 15 } = {}): string {
     ? `<circle cx="${cx}" cy="${cy}" r="${rim}" fill="none" stroke="${BRAND.rim}" stroke-width="${rimWidth}"/><path d="${RUPEE_PATH}" fill="${BRAND.navy}"/>`
     : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="${rx}" fill="${BRAND.green}"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="${BRAND.saffron}"/>${coinDetail}<path d="${HAND_PATH}" fill="${BRAND.white}"/></svg>`;
+}
+
+/**
+ * The mark drawn for browser tabs (16 to 48 pixels). The coin is larger and the rupee sign is scaled
+ * up and given a stroke of its own colour, so it still reads as a rupee at tab size; the hand stays
+ * underneath, overlapping the coin's lower edge.
+ */
+export function faviconSvg({ rx = 14 } = {}): string {
+  const cy = 24.5;
+  const rupee = `<path d="${RUPEE_PATH}" transform="translate(32 ${cy}) scale(1.62) translate(-32 -23)" fill="${BRAND.navy}" stroke="${BRAND.navy}" stroke-width="0.7" stroke-linejoin="round"/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="${rx}" fill="${BRAND.green}"/><circle cx="32" cy="${cy}" r="17.5" fill="${BRAND.saffron}"/>${rupee}<path d="${HAND_PATH}" transform="translate(0 3)" fill="${BRAND.white}"/></svg>`;
 }
 
 /** One closed outline for jsPDF's lines(): a start point and relative segments. */

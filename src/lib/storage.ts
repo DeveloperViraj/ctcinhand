@@ -8,7 +8,7 @@
 
 import { decodeState, encodeState, type CalculatorState } from './url-state';
 
-const KEY = 'inhand:inputs';
+const KEY = 'ctc:inputs';
 
 export function saveState(state: CalculatorState): void {
   try {

@@ -1,4 +1,4 @@
-# InHand — CTC to in-hand salary calculator (India, FY 2026-27)
+# CTC Salary Calculator — CTC to in-hand salary for India (FY 2026-27)
 
 A free, fully static salary calculator. Enter a CTC, get monthly in-hand pay with both tax regimes
 compared side by side, including provident fund, ESI, gratuity, state professional tax and the

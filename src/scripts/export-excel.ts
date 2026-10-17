@@ -6,7 +6,6 @@
  */
 
 import { utils, writeFile, type WorkSheet } from 'xlsx';
-import { SITE } from '../config/site';
 import { buildExportDocument } from '../lib/export-data';
 import type { CalculationResult } from '../lib/tax/calculate';
 
@@ -42,5 +41,5 @@ export async function exportExcel(result: CalculationResult): Promise<void> {
 
   const book = utils.book_new();
   utils.book_append_sheet(book, sheet, 'Salary breakdown');
-  writeFile(book, `${SITE.name.toLowerCase()}-salary-breakdown.xlsx`, { compression: true });
+  writeFile(book, 'ctc-salary-breakdown.xlsx', { compression: true });
 }

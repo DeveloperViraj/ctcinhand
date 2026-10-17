@@ -31,7 +31,8 @@ const isCurrent = (href: string) =>
       class="flex items-center gap-2.5 font-display text-lg font-bold tracking-tight text-ink no-underline"
     >
       <Logo class="size-8" />
-      <span>{SITE.name}</span>
+      <span class="whitespace-nowrap md:hidden lg:inline">{SITE.name}</span>
+      <span class="hidden whitespace-nowrap md:inline lg:hidden">{SITE.shortName}</span>
     </a>
     <nav aria-label="Primary" class="flex items-center gap-1">
       <ul class="hidden items-center gap-0.5 text-sm md:flex">

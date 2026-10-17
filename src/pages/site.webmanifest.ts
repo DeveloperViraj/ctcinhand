@@ -6,7 +6,7 @@ export const GET: APIRoute = () =>
   new Response(
     JSON.stringify({
       name: `${SITE.name}: ${SITE.tagline}`,
-      short_name: SITE.name,
+      short_name: SITE.shortName,
       description: `Turn CTC into monthly in-hand salary for ${SITE.shortYearLabel}, with both tax regimes side by side.`,
       start_url: '/',
       scope: '/',

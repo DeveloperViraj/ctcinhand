@@ -66,7 +66,7 @@ export function website(): JsonLdNode {
     '@type': 'WebSite',
     '@id': WEBSITE_ID,
     name: SITE.name,
-    alternateName: `${SITE.name} CTC calculator`,
+    alternateName: 'CTC to in-hand salary calculator',
     url: SITE.url,
     inLanguage: SITE.locale,
     publisher: { '@id': ORGANIZATION_ID },

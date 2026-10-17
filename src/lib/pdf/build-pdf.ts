@@ -1094,12 +1094,12 @@ export function buildPdf(
   return pdf;
 }
 
-/** "inhand-salary-breakdown-12-lakh.pdf" */
+/** "ctc-salary-breakdown-12-lakh.pdf" */
 export function pdfFileName(result: CalculationResult): string {
   const ctc = formatCompactRupees(result.input.ctc)
     .replace('₹', '')
     .replace(' L', '-lakh')
     .replace(' Cr', '-crore')
     .replace(/[^\w.-]+/g, '-');
-  return `${SITE.name.toLowerCase()}-salary-breakdown-${ctc}.pdf`;
+  return `ctc-salary-breakdown-${ctc}.pdf`;
 }

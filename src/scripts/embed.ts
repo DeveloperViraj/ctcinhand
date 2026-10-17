@@ -79,7 +79,7 @@ export function mountEmbed(): void {
   if (main && window.parent !== window && 'ResizeObserver' in window) {
     const report = () =>
       window.parent.postMessage(
-        { type: 'inhand:height', height: Math.ceil(main.getBoundingClientRect().height) },
+        { type: 'ctc:height', height: Math.ceil(main.getBoundingClientRect().height) },
         '*',
       );
     new ResizeObserver(report).observe(main);

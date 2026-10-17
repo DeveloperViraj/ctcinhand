@@ -1,6 +1,6 @@
-/** The favicon: the shared mark (src/lib/brand.ts) without the coin's rim and rupee sign, which blur at 16px. */
+/** The favicon: the tab-size drawing of the mark (src/lib/brand.ts), with a large rupee coin. */
 import type { APIRoute } from 'astro';
-import { logoSvg } from '../lib/brand';
+import { faviconSvg } from '../lib/brand';
 
 export const GET: APIRoute = () =>
-  new Response(logoSvg({ detail: false }), { headers: { 'Content-Type': 'image/svg+xml' } });
+  new Response(faviconSvg(), { headers: { 'Content-Type': 'image/svg+xml' } });

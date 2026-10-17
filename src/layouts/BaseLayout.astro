@@ -88,6 +88,9 @@ const graph = {
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    {SITE.googleVerification && (
+      <meta name="google-site-verification" content={SITE.googleVerification} />
+    )}
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -120,7 +123,7 @@ const graph = {
     <!-- Resolve the theme before first paint so dark-mode users never see a white flash. -->
     <script is:inline>
       (() => {
-        const KEY = 'inhand:theme';
+        const KEY = 'ctc:theme';
         const root = document.documentElement;
         const mq = window.matchMedia('(prefers-color-scheme: dark)');
         const read = () => {

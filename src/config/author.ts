@@ -16,7 +16,7 @@ export interface Author {
   name: string;
   /** URL segment for the profile page, e.g. "priya-sharma". */
   slug: string;
-  /** One honest line, e.g. "Software engineer; builds and maintains InHand". */
+  /** One honest line, e.g. "Software engineer; builds and maintains the site". */
   role: string;
   /** Short job title for structured data. Defaults to `role`. */
   jobTitle?: string;
