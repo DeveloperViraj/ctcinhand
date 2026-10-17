@@ -7,28 +7,11 @@ import { buildWorkbook } from '../lib/excel/build-workbook';
 import { exportFileName } from '../lib/export-data';
 import type { CalculationResult } from '../lib/tax/calculate';
 
-/** The site's mark as a data URL, for the workbook's title. Left out if it cannot be fetched. */
-async function loadLogo(): Promise<string | undefined> {
-  try {
-    const response = await fetch('/logo.png');
-    if (!response.ok) return undefined;
-    const blob = await response.blob();
-    return await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : undefined);
-      reader.onerror = () => resolve(undefined);
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return undefined;
-  }
-}
-
 export async function exportExcel(
   result: CalculationResult,
   options: { shareUrl?: string } = {},
 ): Promise<void> {
-  const workbook = buildWorkbook(result, { shareUrl: options.shareUrl, logo: await loadLogo() });
+  const workbook = buildWorkbook(result, { shareUrl: options.shareUrl });
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

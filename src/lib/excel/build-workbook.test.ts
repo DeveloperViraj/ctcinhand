@@ -13,7 +13,7 @@ import { describe, expect, it } from 'vitest';
 import { exportFileName } from '../export-data';
 import { calculate, type CalculatorInput } from '../tax/calculate';
 import { DEFAULT_INPUT } from '../tax/defaults';
-import { buildWorkbook } from './build-workbook';
+import { buildWorkbook, INDIAN } from './build-workbook';
 
 const sampleDir = process.env.PDF_SAMPLE_DIR ?? join(tmpdir(), 'ctc-xlsx-samples');
 const preparedOn = new Date(2026, 9, 17);
@@ -53,6 +53,16 @@ async function roundTrip(wb: ExcelJS.Workbook, name: string): Promise<ExcelJS.Wo
 const numeric = (v: ExcelJS.CellValue): number =>
   typeof v === 'number' ? v : v && typeof v === 'object' && 'result' in v ? Number(v.result) : NaN;
 
+/** The row whose label (column B) starts with `label`. */
+function rowOf(ws: ExcelJS.Worksheet, label: string): ExcelJS.Row {
+  let found: ExcelJS.Row | undefined;
+  ws.eachRow((row) => {
+    if (!found && String(row.getCell(2).value ?? '').startsWith(label)) found = row;
+  });
+  if (!found) throw new Error(`No row labelled ${label}`);
+  return found;
+}
+
 describe('Excel workbook', () => {
   it.each(scenarios)('$name', async ({ name, input: i }) => {
     const result = calculate(i);
@@ -61,63 +71,59 @@ describe('Excel workbook', () => {
       buildWorkbook(result, { generatedOn: preparedOn, shareUrl: 'https://example.test/?c=1' }),
       name,
     );
-
-    expect(wb.worksheets.map((ws) => ws.name)).toEqual([
-      'Summary',
-      'Breakdown',
-      'Tax working',
-      'Month by month',
-    ]);
-
+    expect(wb.worksheets.map((ws) => ws.name)).toEqual(['Salary breakdown']);
+    const ws = wb.worksheets[0];
     const best = result.regimes[result.better];
-    const summary = wb.getWorksheet('Summary')!;
-    expect(summary.getCell('B6').value).toBe(Math.round(best.monthlyTakeHome));
-    expect(summary.getCell('B6').numFmt).toContain('₹');
-    expect(summary.getCell('B2').value).toBe('CTC Salary Calculator');
 
-    // The month-by-month year adds up to the year's fixed in-hand, as live formulas.
-    const months = wb.getWorksheet('Month by month')!;
-    const yearCell = months.getCell('H19');
-    expect((yearCell.value as ExcelJS.CellFormulaValue).formula).toBe('SUM(H7:H18)');
-    expect(numeric(yearCell.value)).toBe(
+    // In hand = gross (A) - deductions (B), as live formulas whose cached results match the page.
+    const gross = rowOf(ws, 'Gross salary (A)');
+    const deducted = rowOf(ws, 'Total deductions (B)');
+    const inHand = rowOf(ws, 'In-hand salary');
+    const formula = (cell: ExcelJS.Cell) => (cell.value as ExcelJS.CellFormulaValue).formula;
+    expect(formula(inHand.getCell(3))).toBe(`C${gross.number}-C${deducted.number}`);
+    expect(numeric(inHand.getCell(3).value)).toBe(Math.round(best.monthlyTakeHome));
+    expect(numeric(inHand.getCell(4).value)).toBe(
       Math.round(best.annualTakeHome - result.structure.annual.variable),
     );
-    expect((months.getCell('H7').value as ExcelJS.CellFormulaValue).formula).toBe('SUM(C7:G7)');
 
-    // Every ledger total in the breakdown equals the sum of its rows (rounded as on a payslip).
-    const breakdown = wb.getWorksheet('Breakdown')!;
-    let rows: number[] = [];
-    breakdown.eachRow((row) => {
-      const label = String(row.getCell(2).value ?? '');
-      const perYear = row.getCell(4).value;
-      if (typeof perYear !== 'number') {
-        rows = [];
-        return;
+    // Every SUM's cached result is the sum of the rows it covers, so Excel's recalculation agrees.
+    for (const row of [gross, deducted]) {
+      for (const c of [3, 4]) {
+        const cell = row.getCell(c);
+        const [, column, from, to] = /SUM\(([A-Z])(\d+):[A-Z](\d+)\)/.exec(formula(cell))!;
+        let total = 0;
+        for (let r = Number(from); r <= Number(to); r++)
+          total += numeric(ws.getCell(`${column}${r}`).value);
+        expect(numeric(cell.value)).toBe(total);
       }
-      const isTotal = row.getCell(2).font?.bold === true;
-      if (isTotal) {
-        expect(Math.abs(rows.reduce((a, b) => a + b, 0) - perYear), label).toBeLessThanOrEqual(1);
-        rows = [];
-      } else {
-        rows.push(perYear);
-      }
-    });
+    }
+
+    // Both regimes, the cheaper one named when one is cheaper (at 3 lakh both owe nothing).
+    const regime = result.better === 'new' ? 'New regime' : 'Old regime';
+    const tie = result.savingByChoosingBetter < 1;
+    const better = rowOf(ws, tie ? regime : `${regime} (lower tax)`);
+    expect(numeric(better.getCell(3).value)).toBe(Math.round(best.tax.totalTax));
+    expect(numeric(better.getCell(4).value)).toBe(Math.round(best.monthlyTakeHome));
   });
 
-  it('uses the site palette for captions and totals', () => {
-    const wb = buildWorkbook(calculate(DEFAULT_INPUT), { generatedOn: preparedOn });
-    const summary = wb.getWorksheet('Summary')!;
-    const band = summary.getCell('A1').fill as ExcelJS.FillGradientAngle;
-    expect(band.type).toBe('gradient');
-    expect(band.stops.map((s) => s.color.argb)).toEqual(['FFF69835', 'FF0B7643', 'FF183680']);
-    expect(summary.views[0].showGridLines).toBe(false);
+  it('looks like a plain hand-made sheet: orange captions, black boxes, yellow result', () => {
+    const ws = buildWorkbook(calculate(DEFAULT_INPUT), { generatedOn: preparedOn }).worksheets[0];
+    const caption = rowOf(ws, 'Component').getCell(2);
+    expect((caption.fill as ExcelJS.FillPattern).fgColor?.argb).toBe('FFF9CB9C');
+    expect(caption.border.top?.style).toBe('thin');
+    expect(caption.font.name).toBe('Arial');
+    const result = rowOf(ws, 'In-hand salary').getCell(3);
+    expect((result.fill as ExcelJS.FillPattern).fgColor?.argb).toBe('FFFFF2CC');
+    // Lakh grouping (ExcelJS drops the escapes when it reads a file back, so check before saving).
+    expect(result.numFmt).toBe(INDIAN);
+    expect(ws.getImages()).toHaveLength(0);
   });
 
   it('explains a structure that does not add up instead of printing numbers', () => {
     const result = calculate(input({ basic: { unit: 'percent', value: 120 } }));
-    const wb = buildWorkbook(result, { generatedOn: preparedOn });
-    expect(wb.worksheets.map((ws) => ws.name)).toEqual(['Summary']);
-    expect(String(wb.getWorksheet('Summary')!.getCell('B5').value)).toContain('does not add up');
+    const ws = buildWorkbook(result, { generatedOn: preparedOn }).worksheets[0];
+    expect(String(ws.getCell('B2').value)).toContain('does not add up');
+    expect(() => rowOf(ws, 'In-hand salary')).toThrow();
   });
 
   it('names the file after the CTC', () => {
