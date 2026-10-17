@@ -34,14 +34,12 @@ export function logoSvg({ detail = true, rx = 15 } = {}): string {
 }
 
 /**
- * The mark drawn for browser tabs (16 to 48 pixels). The coin is larger and the rupee sign is scaled
- * up and given a stroke of its own colour, so it still reads as a rupee at tab size; the hand stays
- * underneath, overlapping the coin's lower edge.
+ * The mark drawn for browser tabs (16 to 48 pixels): just a white rupee sign filling the green tile.
+ * The coin and hand turn to mush at 16 pixels, so the tab keeps only what has to be read.
  */
 export function faviconSvg({ rx = 14 } = {}): string {
-  const cy = 24.5;
-  const rupee = `<path d="${RUPEE_PATH}" transform="translate(32 ${cy}) scale(1.62) translate(-32 -23)" fill="${BRAND.navy}" stroke="${BRAND.navy}" stroke-width="0.7" stroke-linejoin="round"/>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="${rx}" fill="${BRAND.green}"/><circle cx="32" cy="${cy}" r="17.5" fill="${BRAND.saffron}"/>${rupee}<path d="${HAND_PATH}" transform="translate(0 3)" fill="${BRAND.white}"/></svg>`;
+  const rupee = `<path d="${RUPEE_PATH}" transform="translate(32 32) scale(3.6) translate(-32 -23)" fill="${BRAND.white}" stroke="${BRAND.white}" stroke-width="0.45" stroke-linejoin="round"/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="${rx}" fill="${BRAND.green}"/>${rupee}</svg>`;
 }
 
 /** One closed outline for jsPDF's lines(): a start point and relative segments. */

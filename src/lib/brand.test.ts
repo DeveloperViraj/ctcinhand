@@ -41,10 +41,10 @@ describe('logoSvg', () => {
 });
 
 describe('faviconSvg', () => {
-  it('keeps the rupee sign, enlarged, with the hand', () => {
+  it('is just the rupee sign, large and white, so it reads at 16 pixels', () => {
     const svg = faviconSvg();
     expect(svg).toContain(RUPEE_PATH);
-    expect(svg).toContain('scale(1.62)');
-    expect(svg).toContain(HAND_PATH);
+    expect(svg).toContain('scale(3.6)');
+    expect(svg).not.toContain(HAND_PATH);
   });
 });
