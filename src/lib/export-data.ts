@@ -4,7 +4,7 @@
  */
 
 import { SITE } from '../config/site';
-import { formatMonthYear } from './format';
+import { formatCompactRupees, formatMonthYear } from './format';
 import type { CalculationResult } from './tax/calculate';
 import { describePtPattern } from './pt-pattern';
 import { employerPfNote, pfCeilingNote } from './pf-note';
@@ -173,4 +173,14 @@ export function monthlyInHand(result: CalculationResult): number {
  */
 export function ptHint(monthly: number[]): string | undefined {
   return describePtPattern(monthly, rs);
+}
+
+/** "ctc-salary-breakdown-12-lakh.pdf", "ctc-salary-breakdown-1.25-crore.xlsx". */
+export function exportFileName(result: CalculationResult, extension: 'pdf' | 'xlsx'): string {
+  const ctc = formatCompactRupees(result.input.ctc)
+    .replace('₹', '')
+    .replace(' L', '-lakh')
+    .replace(' Cr', '-crore')
+    .replace(/[^\w.-]+/g, '-');
+  return `ctc-salary-breakdown-${ctc}.${extension}`;
 }

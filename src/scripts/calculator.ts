@@ -562,7 +562,7 @@ export function mountCalculator(): void {
   el.exportXlsx.addEventListener('click', () =>
     busy(el.exportXlsx, async () => {
       const { exportExcel } = await import('./export-excel');
-      await exportExcel(calculate(effectiveInput(state)));
+      await exportExcel(calculate(effectiveInput(state)), { shareUrl: shareUrl() });
     }),
   );
 

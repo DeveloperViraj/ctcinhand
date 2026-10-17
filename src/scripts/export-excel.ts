@@ -1,45 +1,44 @@
 /**
- * Excel export. Loaded on demand so SheetJS stays out of the initial bundle.
- *
- * Amounts are written as real numbers with an Indian currency format, so the file can be sorted
- * and summed rather than being a picture of a table.
+ * Excel export. Loaded on demand, so ExcelJS stays out of the page's own bundle until someone
+ * clicks the button. The workbook itself is built by src/lib/excel/build-workbook.ts.
  */
 
-import { utils, writeFile, type WorkSheet } from 'xlsx';
-import { buildExportDocument } from '../lib/export-data';
+import { buildWorkbook } from '../lib/excel/build-workbook';
+import { exportFileName } from '../lib/export-data';
 import type { CalculationResult } from '../lib/tax/calculate';
 
-const CURRENCY = '[$₹-en-IN]##,##,##0';
-
-export async function exportExcel(result: CalculationResult): Promise<void> {
-  const doc = buildExportDocument(result);
-  const rows: (string | number | null)[][] = [[doc.title], [doc.subtitle], []];
-
-  for (const section of doc.sections) {
-    rows.push([section.title, 'Amount (Rs/year)', 'Note']);
-    for (const row of section.rows) rows.push([row.label, row.value, row.note ?? '']);
-    if (section.total) rows.push([section.total.label, section.total.value, '']);
-    rows.push([]);
+/** The site's mark as a data URL, for the workbook's title. Left out if it cannot be fetched. */
+async function loadLogo(): Promise<string | undefined> {
+  try {
+    const response = await fetch('/logo.png');
+    if (!response.ok) return undefined;
+    const blob = await response.blob();
+    return await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : undefined);
+      reader.onerror = () => resolve(undefined);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return undefined;
   }
+}
 
-  if (doc.notices.length) {
-    rows.push(['Notes']);
-    for (const notice of doc.notices) rows.push([notice]);
-    rows.push([]);
-  }
-  rows.push([doc.footer]);
-
-  const sheet: WorkSheet = utils.aoa_to_sheet(rows);
-  sheet['!cols'] = [{ wch: 42 }, { wch: 18 }, { wch: 60 }];
-
-  // Apply the currency format to every numeric cell in the amount column.
-  for (const ref of Object.keys(sheet)) {
-    if (ref.startsWith('!')) continue;
-    const cell = sheet[ref];
-    if (cell && cell.t === 'n' && /^B\d+$/.test(ref)) cell.z = CURRENCY;
-  }
-
-  const book = utils.book_new();
-  utils.book_append_sheet(book, sheet, 'Salary breakdown');
-  writeFile(book, 'ctc-salary-breakdown.xlsx', { compression: true });
+export async function exportExcel(
+  result: CalculationResult,
+  options: { shareUrl?: string } = {},
+): Promise<void> {
+  const workbook = buildWorkbook(result, { shareUrl: options.shareUrl, logo: await loadLogo() });
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = exportFileName(result, 'xlsx');
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
