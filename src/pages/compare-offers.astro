@@ -33,7 +33,7 @@ const sides = DEFAULTS.map((o, i) => ({ key: i === 0 ? 'a' : 'b', o }));
   </p>
 
   <form id="offers" class="not-prose" novalidate aria-label="Compare two job offers">
-    <div class="grid gap-4 md:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
       {sides.map(({ key, o }) => (
         <fieldset class="min-w-0 rounded-lg border border-line bg-surface p-4 shadow-xs sm:p-5">
           <legend class="sr-only">{o.name}</legend>

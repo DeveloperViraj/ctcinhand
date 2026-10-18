@@ -42,7 +42,7 @@ const PRESETS = [
   -->
   <!-- overflow-clip, not hidden: hidden would make the panel a scroll container and stop the sticky result. -->
   <div class="panel overflow-clip">
-    <div class="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,27rem)]">
+    <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,27rem)]">
       <div class="p-5 sm:p-8" data-inputs>
         <div class="flex items-center justify-between gap-3">
           <label for="ctc" class="text-sm font-semibold text-ink">
@@ -124,7 +124,7 @@ const PRESETS = [
           />
         </div>
 
-        <div class="mt-8 grid gap-5 sm:grid-cols-2">
+        <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
           <SelectField id="state" label="Work state" hintId="pt-status">
             {STATES.map((s) => (
               <option value={s.code} selected={s.code === DEFAULT_INPUT.stateCode}>
@@ -183,7 +183,7 @@ const PRESETS = [
         <div id="advanced" hidden class="mt-6 space-y-8">
           <fieldset class="space-y-5">
             <legend class={legend}>Salary structure</legend>
-            <div class="grid gap-5 sm:grid-cols-2">
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <ComponentField
                 id="basic"
                 label="Basic + DA"
@@ -275,7 +275,7 @@ const PRESETS = [
           <fieldset class="border-t border-line pt-6">
             <legend class={`${legend} float-left w-full`}>About you</legend>
             <div class="clear-both space-y-5 pt-4">
-              <div class="grid gap-5 sm:grid-cols-2">
+              <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <NumberField id="age" label="Age" value="30" suffix="yrs" width="2.5rem" />
                 <NumberField
                   id="years"
@@ -286,7 +286,7 @@ const PRESETS = [
                   inputmode="decimal"
                 />
               </div>
-              <div class="grid gap-5 sm:grid-cols-2">
+              <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <Segmented
                   name="employer-type"
                   legend="Employer"
@@ -307,7 +307,7 @@ const PRESETS = [
                   hint="Fixed-term staff get gratuity after one year."
                 />
               </div>
-              <div class="grid gap-5 sm:grid-cols-2">
+              <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <Segmented
                   name="pt-category"
                   legend="Professional tax slab"

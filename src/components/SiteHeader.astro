@@ -28,13 +28,15 @@ const isCurrent = (href: string) =>
   <div class="glass mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 rounded-pill border border-line pr-2 pl-4 shadow-sm">
     <a
       href="/"
-      class="flex items-center gap-2.5 font-display text-lg font-bold tracking-tight text-ink no-underline"
+      class="flex min-w-0 items-center gap-2.5 font-display text-lg font-bold tracking-tight text-ink no-underline"
     >
-      <Logo class="size-8" />
-      <span class="whitespace-nowrap md:hidden lg:inline">{SITE.name}</span>
-      <span class="hidden whitespace-nowrap md:inline lg:hidden">{SITE.shortName}</span>
+      <Logo class="size-8 shrink-0" />
+      {/* The short name on the narrowest phones; with very large text the name trims rather than
+           pushing the menu button off the screen. */}
+      <span class="truncate max-[359px]:hidden md:hidden lg:inline">{SITE.name}</span>
+      <span class="hidden truncate max-[359px]:inline md:inline lg:hidden">{SITE.shortName}</span>
     </a>
-    <nav aria-label="Primary" class="flex items-center gap-1">
+    <nav aria-label="Primary" class="flex shrink-0 items-center gap-1">
       <ul class="hidden items-center gap-0.5 text-sm md:flex">
         {nav.slice(0, 1).map((item) => (
           <li>

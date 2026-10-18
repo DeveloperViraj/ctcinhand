@@ -179,7 +179,7 @@ export function renderHike(q: HikeQuery): string {
   return `<p class="text-sm font-medium text-ink-2">${label}</p>
     <p class="mt-2 text-figure font-semibold tabular-nums ${down ? 'text-negative' : 'text-ink'}">${figure}</p>
     <p class="mt-2 text-sm text-ink-2">${summary}</p>
-    <div class="mt-5 grid gap-2.5 sm:grid-cols-2">${card('Now', before)}${card('After the hike', after)}</div>
+    <div class="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2">${card('Now', before)}${card('After the hike', after)}</div>
     ${legend}
     ${notes.map((n) => `<p class="callout mt-5 p-3 text-sm text-ink-2">${n}</p>`).join('')}
     <p class="mt-5 text-sm"><a href="${calculatorLink(after.ctc, q.stateCode, q.city)}" class="${LINK}">See the full breakdown at ${formatCompactRupees(after.ctc)}</a></p>`;

@@ -138,7 +138,7 @@ export function compositionBar(result: CalculationResult): string {
     .map(
       (seg) => `<li class="flex items-center gap-2.5"${seg.value > 0 ? '' : ' hidden'}>
         <span class="size-2.5 shrink-0 rounded-full" style="background:${seg.color}" aria-hidden="true"></span>
-        <span class="min-w-0 flex-1 truncate text-ink-2">${escape(seg.label)}</span>
+        <span class="min-w-0 flex-1 leading-snug text-ink-2">${escape(seg.label)}</span>
         <span class="font-medium whitespace-nowrap tabular-nums text-ink">${formatRupees(seg.value)}</span>
       </li>`,
     )
@@ -147,8 +147,8 @@ export function compositionBar(result: CalculationResult): string {
   const kept = pct(takeHome);
   return `<section class="mt-7" aria-labelledby="composition-heading">
     <h3 id="composition-heading" class="text-sm font-semibold text-ink">Where your ${formatCompactRupees(total)} CTC goes</h3>
-    <div class="mt-4 flex items-center gap-5">
-      <div class="relative size-28 shrink-0 sm:size-32">
+    <div class="mt-4 flex items-center gap-4 sm:gap-5">
+      <div class="relative size-24 shrink-0 sm:size-32">
         <svg viewBox="0 0 128 128" class="size-full -rotate-90" role="img" aria-label="${escape(
           segments
             .filter((seg) => seg.value > 0)
@@ -430,7 +430,7 @@ export function renderDetails(result: CalculationResult): string {
 
   return `<div class="space-y-4">
     ${notices}
-    <div class="breakdown grid gap-4 lg:grid-cols-2">
+    <div class="breakdown grid grid-cols-1 gap-4 lg:grid-cols-2">
       ${ledger('What you are paid', earnings, { label: 'Gross salary (fixed)', value: formatRupees(a.grossFixed) })}
       ${ledger(
         'What is deducted',
@@ -470,7 +470,7 @@ export function renderDetails(result: CalculationResult): string {
         <span class="text-sm font-normal text-ink-3 group-open:hidden">Show both regimes</span>
         <span class="hidden text-sm font-normal text-ink-3 group-open:inline">Hide</span>
       </summary>
-      <div class="grid gap-x-12 gap-y-10 border-t border-line p-5 sm:p-6 lg:grid-cols-2">
+      <div class="grid grid-cols-1 gap-x-12 gap-y-10 border-t border-line p-5 sm:p-6 lg:grid-cols-2">
         <div><p class="mb-4 text-sm font-semibold text-accent-ink">${REGIME_LABEL[best.regime]}</p>${taxDetail(best)}</div>
         <div><p class="mb-4 text-sm font-semibold text-ink-2">${REGIME_LABEL[other.regime]}</p>${taxDetail(other)}</div>
       </div>
