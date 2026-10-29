@@ -3,6 +3,7 @@
  * "N LPA in-hand salary" pages. Every number is computed by the calculator engine at build time;
  * the prose only chooses which of those numbers to say.
  */
+import { Icon } from 'astro-icon/components';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import Byline from '../../components/Byline.astro';
@@ -29,7 +30,7 @@ export function getStaticPaths() {
 }
 
 const PUBLISHED = '2026-10-04';
-const UPDATED = '2026-10-09';
+const UPDATED = '2026-10-29';
 const GUIDES = new Set(PT_STATE_PAGES.map((p) => p.code));
 const { lpa } = Astro.props;
 const data = bracketData(lpa);
@@ -63,10 +64,12 @@ const monthly = formatRupees(best.monthlyTakeHome);
 const regimeName = result.better === 'new' ? 'new regime' : 'old regime';
 const percent = (x: number) => `${(x * 100).toFixed(1).replace(/\.0$/, '')}%`;
 
-const title = `${label} In-Hand Salary ${SITE.shortYearLabel}: ${monthly} a Month`;
-const description = `On a ${ctcWords} CTC you take home about ${monthly} a month (${formatRupees(
+const ctcMonthly = formatRupees(lakhs(lpa) / 12);
+// "per Month" because that is how people search ("6 lpa means how much per month").
+const title = `${label} In-Hand Salary per Month (${SITE.shortYearLabel}): ${monthly}`;
+const description = `${label} is ${ctcMonthly} a month of CTC, but you take home about ${monthly} a month (${formatRupees(
   best.annualTakeHome,
-)} a year) under the ${regimeName} in ${SITE.shortYearLabel}. Both regimes, PF, professional tax by state, and exactly when the old regime wins.`;
+)} a year) under the ${regimeName} in ${SITE.shortYearLabel}. Both regimes, PF, professional tax by state, and when the old regime wins.`;
 
 const path = bracketPath(lpa);
 const crumbs: Crumb[] = [
@@ -108,6 +111,62 @@ const losses = listJoin(
     result.professionalTax.annual > 0 ? 'professional tax' : '',
   ].filter(Boolean),
 );
+const yourPfYear = result.structure.pf.employee * 12;
+// Everything between CTC and in-hand at this salary, income tax included when there is any.
+const takenBy = listJoin(
+  [
+    a.employerPf > 0 || result.structure.pf.employee > 0 ? 'provident fund' : '',
+    result.structure.esi.applicable ? 'ESI' : '',
+    a.gratuity > 0 && result.input.gratuityInCtc ? 'the gratuity provision' : '',
+    result.professionalTax.annual > 0 ? 'professional tax' : '',
+    best.tax.totalTax >= 0.5 ? 'income tax' : '',
+  ].filter(Boolean),
+);
+const faqs = [
+  {
+    q: `${label} means how much per month?`,
+    a: `${label} is ${ctcMonthly} a month of CTC (${ctcWords} divided by 12). After ${takenBy}, about ${monthly} a month reaches your bank under the ${regimeName}.`,
+  },
+  {
+    q: `How much income tax do you pay on ${label}?`,
+    a:
+      best.tax.totalTax < 0.5
+        ? `None under the ${regimeName}: your taxable income of ${formatRupees(
+            best.taxableIncome,
+          )} is ${
+            best.taxableIncome <= (best.regime === 'new' ? 4_00_000 : 2_50_000)
+              ? `below the ${best.regime === 'new' ? '₹4 lakh' : '₹2.5 lakh'} slab taxed at zero`
+              : `within the ${best.regime === 'new' ? '₹12 lakh' : '₹5 lakh'} rebate limit`
+          }, so no income tax is deducted from your salary.`
+        : `${formatRupees(best.tax.totalTax)} a year, about ${formatRupees(
+            best.tax.totalTax / 12,
+          )} a month, under the ${regimeName}, which is cheaper here. The ${
+            other.regime === 'new' ? 'new' : 'old'
+          } regime would charge ${formatRupees(other.tax.totalTax)}.`,
+  },
+  {
+    q: `How much PF is deducted on ${label}?`,
+    a: `About ${formatRupees(result.structure.pf.employee)} a month on average, ${formatRupees(
+      yourPfYear,
+    )} this year, assuming PF is capped at the wage ceiling (raised from ₹15,000 to ₹25,000 on 17 September 2026). Your employer contributes ${formatRupees(
+      a.employerPf,
+    )} a year as well (part of it goes to the pension scheme), and that comes out of your CTC.`,
+  },
+  {
+    q: `What is the yearly in-hand salary on ${label}?`,
+    a: `${formatRupees(best.annualTakeHome)} a year, ${percent(
+      best.annualTakeHome / lakhs(lpa),
+    )} of the CTC. The rest goes to ${takenBy}.`,
+  },
+];
+schema.push({
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+});
 ---
 
 <BaseLayout
@@ -368,6 +427,27 @@ const losses = listJoin(
           out”.
         </p>
         <div class="mt-8" set:html={renderDetails(result)} />
+      </section>
+
+      <section class="mt-20" aria-labelledby="faq-heading">
+        <h2 id="faq-heading" class="text-2xl font-semibold tracking-tight text-ink">
+          {label} questions
+        </h2>
+        <div class="mt-4 divide-y divide-line rounded-lg border border-line bg-surface">
+          {faqs.map((f) => (
+            <details class="group">
+              <summary class="flex cursor-pointer list-none items-start justify-between gap-4 px-5 py-4 font-semibold text-ink hover:bg-surface-2 sm:px-6 [&::-webkit-details-marker]:hidden">
+                {f.q}
+                <Icon
+                  name="lucide:plus"
+                  class="mt-0.5 size-5 shrink-0 text-ink-3 transition-transform duration-200 group-open:rotate-45"
+                  aria-hidden="true"
+                />
+              </summary>
+              <p class="px-5 pb-5 text-ink-2 sm:px-6">{f.a}</p>
+            </details>
+          ))}
+        </div>
       </section>
 
       <nav class="mt-20" aria-labelledby="nearby-heading">
