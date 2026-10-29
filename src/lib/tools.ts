@@ -9,18 +9,25 @@ export interface Tool {
 
 export const TOOLS: Tool[] = [
   {
+    href: '/in-hand-to-ctc-calculator',
+    label: 'In-hand to CTC',
+    text: 'The CTC to ask for, from the salary you want each month',
+    icon: 'lucide:arrow-left-right',
+    isNew: true,
+  },
+  {
     href: '/compare-offers',
     label: 'Compare job offers',
     text: 'Two offers side by side: which puts more in your bank',
     icon: 'lucide:git-compare-arrows',
-    isNew: true,
+    isNew: false,
   },
   {
     href: '/salary-hike-calculator',
     label: 'Salary hike calculator',
     text: 'What a raise adds to your monthly pay',
     icon: 'lucide:trending-up',
-    isNew: true,
+    isNew: false,
   },
   {
     href: '/gratuity-calculator',

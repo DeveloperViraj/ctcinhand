@@ -1,0 +1,236 @@
+---
+/**
+ * In-hand to CTC: the CTC that pays a chosen monthly in-hand salary, with the common amounts
+ * worked out at build time by the same engine the browser runs.
+ */
+import { Icon } from 'astro-icon/components';
+import DocLayout from '../layouts/DocLayout.astro';
+import NumberField from '../components/form/NumberField.astro';
+import SelectField from '../components/form/SelectField.astro';
+import { SITE } from '../config/site';
+import { cityOptionsHtml } from '../lib/city-options';
+import { formatRupees } from '../lib/format';
+import {
+  ctcForInHand,
+  lpaLabel,
+  renderReverse,
+  reverseCalculatorLink,
+  type ReverseQuery,
+} from '../lib/reverse';
+import { DEFAULT_INPUT } from '../lib/tax/defaults';
+import { STATES } from '../lib/tax/professional-tax';
+
+const STATE = DEFAULT_INPUT.stateCode;
+const CITY = DEFAULT_INPUT.city;
+const START = 50_000;
+const base: Omit<ReverseQuery, 'inHand'> = {
+  stateCode: STATE,
+  city: CITY,
+  monthlyRent: 0,
+  variablePercent: 0,
+};
+const initial = renderReverse({ ...base, inHand: START });
+
+const TARGETS = [
+  20_000, 25_000, 30_000, 35_000, 40_000, 50_000, 60_000, 75_000, 1_00_000, 1_25_000, 1_50_000,
+  2_00_000, 2_50_000, 3_00_000,
+];
+const table = TARGETS.map((inHand) => ({ inHand, o: ctcForInHand({ ...base, inHand })! }));
+const row = (inHand: number) => table.find((r) => r.inHand === inHand)!.o;
+const thirty = row(30_000);
+const lakh = row(1_00_000);
+const ratio = (inHand: number) => Math.round((row(inHand).ctc / (inHand * 12)) * 100) / 100;
+
+// The same 50,000 in hand in a state with no professional tax.
+const delhi = ctcForInHand({ ...base, stateCode: 'DL', city: 'Delhi', inHand: 50_000 })!;
+const karnataka = row(50_000);
+const withVariable = ctcForInHand({ ...base, variablePercent: 10, inHand: 1_00_000 })!;
+
+const faqs = [
+  {
+    q: '30k in hand salary means what CTC?',
+    a: `About ${formatRupees(thirty.ctc)} a year (${lpaLabel(thirty.ctc)}) on a standard structure in Karnataka, with no variable pay. The gap is your own and your employer's provident fund, the gratuity provision and professional tax.`,
+  },
+  {
+    q: 'How do I convert in-hand salary to CTC?',
+    a: 'Add back everything that sits between them: your PF contribution, professional tax and income tax, plus the parts of CTC you never see monthly (employer PF, gratuity and any variable pay). Because tax depends on the CTC itself, this calculator searches for the smallest CTC whose in-hand pay reaches your number.',
+  },
+  {
+    q: 'Is variable pay included?',
+    a: `Only if you enter it. Variable pay is part of CTC but paid separately and only if earned, so it never counts toward monthly in-hand. With 10% variable, ₹1,00,000 a month in hand needs about ${formatRupees(withVariable.ctc)} instead of ${formatRupees(lakh.ctc)}.`,
+  },
+  {
+    q: 'Does the CTC needed change by state?',
+    a: `A little, through professional tax. ₹50,000 a month in hand needs about ${formatRupees(karnataka.ctc)} in Karnataka and ${formatRupees(delhi.ctc)} in Delhi, which charges no professional tax.`,
+  },
+];
+const schema = [
+  {
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+
+<DocLayout
+  title="In-hand to CTC calculator: the CTC you need for your monthly salary"
+  description="Enter the in-hand salary you want each month and get the CTC to ask for in FY 2026-27, with PF, professional tax for your state and income tax under the cheaper regime."
+  updated="2026-10-29"
+  ogImage="in-hand-to-ctc-calculator"
+  about={['In-hand salary', 'Cost to company', 'Salary negotiation']}
+  deva="वेतन"
+  schema={schema}
+>
+  <p>
+    Know the salary you want in your account each month, but not what to ask for? Enter it here and
+    get the CTC that pays it, after provident fund, professional tax and income tax for{' '}
+    {SITE.shortYearLabel}.
+  </p>
+
+  <form
+    id="reverse"
+    class="panel not-prose overflow-clip"
+    novalidate
+    aria-label="In-hand to CTC calculator"
+  >
+    <div class="grid grid-cols-1 gap-x-8 gap-y-5 p-5 sm:grid-cols-2">
+      <NumberField
+        id="r-inhand"
+        label="In-hand salary you want"
+        value={START.toLocaleString('en-IN')}
+        prefix="₹"
+        width="7.5rem"
+        hint="A month, fixed pay"
+        money
+      />
+      <NumberField
+        id="r-var"
+        label="Variable pay in the CTC"
+        value="0"
+        suffix="%"
+        width="3.5rem"
+        inputmode="decimal"
+        hint="Optional. Paid separately, if earned"
+      />
+      <div class="grid grid-cols-2 gap-3">
+        <SelectField id="r-state" label="Work state">
+          {STATES.map((s) => (
+            <option value={s.code} selected={s.code === STATE}>
+              {s.name}
+            </option>
+          ))}
+        </SelectField>
+        <SelectField id="r-city" label="City">
+          <Fragment set:html={cityOptionsHtml(STATE, CITY)} />
+        </SelectField>
+      </div>
+      <NumberField
+        id="r-rent"
+        label="Monthly rent"
+        value="0"
+        prefix="₹"
+        width="6rem"
+        hint="Optional. Only counts if the old regime is cheaper"
+        money
+      />
+    </div>
+    <output
+      id="r-result"
+      for="r-inhand r-var r-state r-city r-rent"
+      class="block border-t border-line result-wash p-5 sm:p-6"
+      aria-live="polite"
+      set:html={initial}
+    />
+  </form>
+
+  <p>
+    The CTC uses the calculator's standard structure: Basic at half of CTC, PF capped at the wage
+    ceiling (₹25,000 from 17 September 2026), gratuity and employer PF inside the CTC, and whichever
+    regime leaves you more. If your offer is structured differently, open the result in the{' '}
+    <a href="/">full calculator</a> and match each component.
+  </p>
+
+  <h2>CTC needed for common in-hand salaries</h2>
+  <p>In Karnataka, with no variable pay and no rent claimed. Each row opens the full breakdown.</p>
+  <div class="overflow-x-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">In hand a month</th>
+          <th scope="col">CTC to ask for</th>
+          <th scope="col">Income tax a year</th>
+        </tr>
+      </thead>
+      <tbody>
+        {table.map(({ inHand, o }) => (
+          <tr>
+            <td>{formatRupees(inHand)}</td>
+            <td>
+              <a href={reverseCalculatorLink(o.ctc, base)}>
+                {formatRupees(o.ctc)} ({lpaLabel(o.ctc)})
+              </a>
+            </td>
+            <td>{formatRupees(o.tax)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Why the CTC is so much more than your in-hand</h2>
+  <ul>
+    <li>
+      <strong>Parts of CTC never reach your monthly pay.</strong> Your employer's PF contribution
+      and the gratuity provision are counted in CTC but paid into your PF account or only when you
+      leave.
+    </li>
+    <li>
+      <strong>Your own deductions.</strong> 12% of your wages goes to PF, and most states charge up
+      to ₹2,500 a year of professional tax.
+    </li>
+    <li>
+      <strong>Income tax, once it starts.</strong> Up to about ₹12.75 lakh of salary the new regime
+      charges nothing, so ₹30,000 a month needs only {ratio(30_000)} times its yearly amount. At
+      ₹1,00,000 a month, tax pushes that to {ratio(1_00_000)} times.
+    </li>
+  </ul>
+
+  <h2>When you're negotiating</h2>
+  <p>
+    Offers are still quoted in CTC, so work out the CTC that gives the in-hand you need and ask for
+    at least that. Just above ₹12 lakh of taxable income, marginal relief means a slightly higher
+    CTC adds almost nothing in hand; this calculator gives the lowest CTC that reaches your number,
+    and flags it when you land in that band.{' '}
+    <a href="/marginal-relief">How marginal relief works</a>.
+  </p>
+  <p>
+    To compare two offers in the same way, use <a href="/compare-offers">compare job offers</a>; for
+    a raise at your current job, the <a href="/salary-hike-calculator">salary hike calculator</a>.
+  </p>
+
+  <h2 id="faq">Common questions</h2>
+  <div class="not-prose divide-y divide-line rounded-lg border border-line bg-surface">
+    {faqs.map((f) => (
+      <details class="group">
+        <summary class="flex cursor-pointer list-none items-start justify-between gap-4 px-5 py-4 font-semibold text-ink hover:bg-surface-2 sm:px-6 [&::-webkit-details-marker]:hidden">
+          {f.q}
+          <Icon
+            name="lucide:plus"
+            class="mt-0.5 size-5 shrink-0 text-ink-3 transition-transform duration-200 group-open:rotate-45"
+            aria-hidden="true"
+          />
+        </summary>
+        <p class="px-5 pb-5 text-ink-2 sm:px-6">{f.a}</p>
+      </details>
+    ))}
+  </div>
+</DocLayout>
+
+<script>
+  import { mountReverse } from '../scripts/reverse';
+  mountReverse();
+</script>

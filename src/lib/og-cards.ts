@@ -37,6 +37,10 @@ export function allOgCards(): OgCard[] {
       title: 'Salary hike calculator: what your raise adds in hand',
     },
     { slug: 'compare-offers', title: 'Compare two job offers: which pays more in hand' },
+    {
+      slug: 'in-hand-to-ctc-calculator',
+      title: 'In-hand to CTC: the CTC you need for your monthly salary',
+    },
     ...LPA_BRACKETS.map((lpa) => {
       const result = calculate({ ...DEFAULT_INPUT, ctc: lakhs(lpa) });
       const best = result.regimes[result.better];

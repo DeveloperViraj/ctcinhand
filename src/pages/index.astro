@@ -198,13 +198,13 @@ const schema = [
     <div class="mx-auto grid max-w-6xl items-center gap-8 px-4 pt-10 pb-12 sm:px-6 sm:pt-16 lg:pb-14">
       <div>
         <a
-          href="/compare-offers"
+          href="/in-hand-to-ctc-calculator"
           class="badge animate-rise no-underline transition-colors hover:text-ink"
         >
           <span class="badge-dot">New</span>
           <span>
-            Compare two job offers
-            <span class="hidden sm:inline"> side by side</span>
+            In-hand to CTC
+            <span class="hidden sm:inline"> calculator</span>
           </span>
           <Icon name="lucide:chevron-right" class="size-3.5 text-ink-3" aria-hidden="true" />
         </a>
@@ -244,7 +244,7 @@ const schema = [
         Weighing an offer or a raise?
       </h2>
     </div>
-    <ul class="mt-10 grid grid-cols-1 gap-4 md:grid-cols-3">
+    <ul class="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
       {TOOLS.map((t) => (
         <li>
           <a href={t.href} class="tool-card group">
