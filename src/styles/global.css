@@ -787,8 +787,10 @@
   .hero-glow::before {
     content: '';
     position: absolute;
-    inset: -20% -10% auto;
-    height: 75%;
+    /* Fixed lengths, not percentages of the hero: when its height settles (fonts loading), a
+       percentage offset would move the glow and count as a layout shift. */
+    inset: -9rem -10% auto;
+    height: 34rem;
     background:
       radial-gradient(
         40% 50% at 30% 40%,

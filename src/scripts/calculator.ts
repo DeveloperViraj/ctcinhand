@@ -293,24 +293,26 @@ export function mountCalculator(): void {
       if (!field) return;
       field.value = grouped(fromPosition(Number(range.value), scaleOf(range)));
       paintSlider(range);
-      render();
+      render(TYPING_PAUSE);
     });
   }
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  /** Restarts a CSS animation even if it is already running. */
+  /**
+   * Restarts a CSS animation even if it is already running. The class comes back two frames later
+   * rather than after a forced reflow, so a keystroke never waits on a synchronous layout.
+   */
   function replay(node: Element, className: string) {
     node.classList.remove(className);
-    void (node as HTMLElement).offsetWidth;
-    node.classList.add(className);
+    requestAnimationFrame(() => requestAnimationFrame(() => node.classList.add(className)));
   }
 
   /**
    * The figure counts to its new value while a rule draws itself underneath,
    * so it is obvious the result already updated and there is no "Calculate" button to hunt for.
    */
-  function animateHeadline(to: number) {
+  function animateHeadline(to: number, animate = true) {
     const headline = summary!.querySelector<HTMLElement>('[data-headline]');
     const digits = headline?.querySelector<HTMLElement>('[data-headline-num]') ?? null;
     const from = lastHeadline;
@@ -322,7 +324,16 @@ export function mountCalculator(): void {
     };
 
     const changed = Math.abs(to - from) >= 1;
-    if (!headline || !digits || from === 0 || !changed || prefersReducedMotion.matches) {
+    // While typing, the figure just follows the keys: counting up on every keystroke would keep
+    // the page busy between them and make the next keystroke wait.
+    if (
+      !animate ||
+      !headline ||
+      !digits ||
+      from === 0 ||
+      !changed ||
+      prefersReducedMotion.matches
+    ) {
       write(to);
       return;
     }
@@ -428,18 +439,44 @@ export function mountCalculator(): void {
     });
   }
 
-  function render() {
+  /**
+   * Laying out and painting the result cards and the breakdown is the slow part on phones, so it
+   * happens after the browser has shown the keystroke, and while someone is typing, once they
+   * pause. The headline figure and the change chip still update on every keystroke.
+   */
+  const TYPING_PAUSE = 250;
+  let resultTimer: number | undefined;
+  let resultFrame = 0;
+  function showResult(computed: ReturnType<typeof calculate>, wait: number) {
+    window.clearTimeout(resultTimer);
+    cancelAnimationFrame(resultFrame);
+    const patch = () => {
+      morphInto(summary!, renderSummary(computed));
+      morphInto(details!, renderDetails(computed));
+      watchResultVisibility();
+    };
+    if (wait < 0) {
+      patch();
+      return;
+    }
+    resultFrame = requestAnimationFrame(() => {
+      resultTimer = window.setTimeout(patch, wait);
+    });
+  }
+
+  /** `wait`: -1 patches the result now, 0 right after the next paint, more while typing. */
+  function render(wait = 0) {
     state.input = readFromForm();
     syncPresets();
     const problems = inputErrors(flagUnreadable());
     const computed = calculate(effectiveInput(state));
     computed.errors.unshift(...problems);
-    morphInto(summary!, renderSummary(computed));
-    morphInto(details!, renderDetails(computed));
+    // An error replaces the headline, so show it at once rather than animating the figure to zero.
+    showResult(computed, computed.errors.length ? -1 : wait);
 
     const previous = lastHeadline;
     const next = computed.errors.length ? 0 : computed.regimes[computed.better].monthlyTakeHome;
-    animateHeadline(next);
+    animateHeadline(next, wait !== TYPING_PAUSE);
     showDelta(previous, next);
     updatePtStatus(computed.professionalTax);
     watchResultVisibility();
@@ -482,7 +519,7 @@ export function mountCalculator(): void {
     if (target.matches('input[data-slider-for]')) return;
     const range = sliders.find((r) => r.dataset.sliderFor === target.id);
     if (range) syncSliderFromField(range);
-    render();
+    render(TYPING_PAUSE);
   });
   form.addEventListener('change', (event) => {
     if ((event.target as HTMLElement).matches('input[data-slider-for]')) return;
@@ -537,7 +574,7 @@ export function mountCalculator(): void {
     state = structuredClone(DEFAULT_STATE);
     applyToForm();
     lastHeadline = 0;
-    render();
+    render(-1);
   });
 
   /** Export libraries are large, so they load only when someone actually exports. */
@@ -567,5 +604,5 @@ export function mountCalculator(): void {
   );
 
   applyToForm();
-  render();
+  render(-1);
 }
